@@ -1,3 +1,16 @@
 {
-  "files": {}
+  "files": {
+    "nhsd-primary-care-domain-refsets-dem_cod.csv": {
+      "id": "nhsd-primary-care-domain-refsets/dem_cod/20241205",
+      "url": "https://www.opencodelists.org/codelist/nhsd-primary-care-domain-refsets/dem_cod/20241205/",
+      "downloaded_at": "2025-04-04 14:20:02.815046Z",
+      "sha": "88a1a9cd2b73f2825f3e735c03efbba4adbcfc65"
+    },
+    "bristol-any-dementia-snomed-ct-v14.csv": {
+      "id": "bristol/any-dementia-snomed-ct-v14/5dda3a39",
+      "url": "https://www.opencodelists.org/codelist/bristol/any-dementia-snomed-ct-v14/5dda3a39/",
+      "downloaded_at": "2025-04-01 15:26:12.546377Z",
+      "sha": "3da973cdf5e743f572b6d922976c9ff58de93b62"
+    }
+  }
 }
