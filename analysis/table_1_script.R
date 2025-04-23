@@ -9,7 +9,7 @@ library(dplyr)
 if (!dir.exists("outputs")) dir.create("outputs")
 
 # Load data
-data <- read_csv("output/dataset.csv")
+data <- read_csv("output/dataset.csv.gz")
 
 # Clean missing values
 data$ethnicity[is.na(data$ethnicity)] <- "Unknown"
