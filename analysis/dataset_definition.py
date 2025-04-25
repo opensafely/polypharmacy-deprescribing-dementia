@@ -28,9 +28,7 @@ dataset.region = practice_registrations.for_patient_on(index_date).practice_nuts
 
 ##Apply study population criteria from protocol
 aged_65_or_above = dataset.age > 64
-has_registration = practice_registrations.for_patient_on(
-    index_date
-).exists_for_patient()
+has_registration = practice_registrations.for_patient_on(index_date).exists_for_patient()
 
 has_dementia = (
     clinical_events.where(clinical_events.snomedct_code.is_in(dementia_codelist))
@@ -46,3 +44,4 @@ known_region = dataset.region != ""
 
 ##Define population
 dataset.define_population(has_registration & has_dementia & aged_65_or_above & is_alive & known_sex & known_imd & known_region)
+dataset.configure_dummy_data(population_size=100)
