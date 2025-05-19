@@ -22,11 +22,6 @@ alzheimers_codelist = codelist_from_csv(
     column="code"
 )
 
-other_dementia_codelists = codelist_from_csv(
-    "codelists/other-dementias.csv",
-    column="code"
-)
-
 ##Derive dataset variables
 dataset.sex = patients.sex
 dataset.age = patients.age_on(index_date)
