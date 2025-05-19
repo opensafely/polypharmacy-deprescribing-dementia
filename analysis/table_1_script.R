@@ -1,69 +1,61 @@
-# Load necessary libraries
-install.packages("readr")
-install.packages("dplyr")
-
 library(readr)
 library(dplyr)
-
-# Create output directory if it doesn't exist
-if (!dir.exists("outputs")) dir.create("outputs")
+library(stringr)
 
 # Load data
 data <- read_csv("output/dataset.csv.gz")
+dementia_codes <- read_csv("codelists/nhsd-primary-care-domain-refsets-dem_cod.csv")
+# Create dementia type mapping
 
-# Clean missing values
-data$ethnicity[is.na(data$ethnicity)] <- "Unknown"
-
-# Convert categorical variables to factors
-data <- data %>%
+dementia_classified <- dementia_codes %>%
   mutate(
-    sex = as.factor(sex),
-    dementia_type = as.factor(latest_dementia_code),
-    region = as.factor(region),
-    ethnicity = as.factor(ethnicity)
+    # Ensure 'term' is character, handle potential NAs gracefully
+    term = as.character(term),
+    term_lower = tolower(term), # Convert to lowercase for case-insensitive matching
+    
+    # Check for Alzheimer's first, then Vascular, then default to Other.
+    dementia_type = case_when(
+      # Alzheimer's disease: check for 'alzheimer'
+      str_detect(term_lower, "alzheimer") ~ "alzheimer's disease",
+      
+      # Vascular dementia: check for relevant keywords
+      str_detect(term_lower, "vascular|multi-infarct|multi infarct|atherosclerosis|cerebral vasculitis|hemorrhagic cerebral infarction") ~ "vascular dementia",
+      
+      # Default category if none of the above keywords are found
+      TRUE ~ "other"
+    ),
+    
+    # Remove the temporary lowercase column if no longer needed
+    term_lower = NULL
   )
 
-# Define variables
-categorical_vars <- c("sex", "dementia_type", "region", "ethnicity")
-continuous_vars <- c("age", "imd")
+merged_data <- merge(data, dementia_classified, by.x = "latest_dementia_code", by.y = "code", all.x = TRUE)
 
-# Initialize a character vector to store output
-table_output <- c()
+# Calculate summary statistics
+mean_age <- mean(mean(data$age))
+sd_age <- sd(data$age)
 
-# Summarize categorical variables
-for (var in categorical_vars) {
-  table_output <- c(table_output, paste0("== ", var, " =="))
-  freq_table <- data %>%
-    group_by(.data[[var]]) %>%
-    summarise(n = n()) %>%
-    mutate(percent = round(n / sum(n) * 100, 1))
-  
-  for (i in 1:nrow(freq_table)) {
-    row <- freq_table[i, ]
-    table_output <- c(table_output,
-                      sprintf("  %s: %d (%.1f%%)",
-                              as.character(row[[var]]),
-                              row$n,
-                              row$percent))
-  }
-  table_output <- c(table_output, "")
-}
+sex_counts <- table(data$sex)
+region_counts <- table(data$region)
 
-# Summarize continuous variables
-for (var in continuous_vars) {
-  summary_stats <- data %>%
-    summarise(
-      Mean = mean(.data[[var]], na.rm = TRUE),
-      SD = sd(.data[[var]], na.rm = TRUE),
-      Median = median(.data[[var]], na.rm = TRUE),
-      IQR = IQR(.data[[var]], na.rm = TRUE)
-    )
-  table_output <- c(table_output,
-                    paste0("== ", var, " =="),
-                    sprintf("  Mean (SD): %.2f (%.2f)", summary_stats$Mean, summary_stats$SD),
-                    sprintf("  Median (IQR): %.2f (%.2f)", summary_stats$Median, summary_stats$IQR),
-                    "")
-}
+total <- sum(sex_counts)
 
-# Write to file
-writeLines(table_output, "output/table_1.txt")
+dementia_counts <- table(merged_data$dementia_type)
+
+#Format output
+
+line0 <- sprintf("total : %d", total)
+line1 <- sprintf("age : %.2f +/- %.2f", mean_age, sd_age)
+
+sex_parts <- sprintf("%s = %d (%.2f%%)",names(sex_counts),as.integer(sex_counts), 100 * sex_counts / total)
+line2 <- paste("sex :", paste(sex_parts, collapse = ", "))
+
+region_parts <- sprintf("%s = %d (%.2f%%)",names(region_counts),as.integer(region_counts), 100 * region_counts / total)
+line3 <- paste("region :", paste(region_parts, collapse = ", "))
+
+
+dementia_parts <- sprintf("%s = %d (%.2f%%)",names(dementia_counts),as.integer(dementia_counts), 100 * dementia_counts / total)
+line4 <- paste("dementia types: ", paste(dementia_parts, collapse = ", "))
+
+writeLines(c(line0, line1, line2, line3, line4), "output/table_1.txt")
+
