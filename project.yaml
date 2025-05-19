@@ -6,3 +6,10 @@ actions:
     outputs:
       highly_sensitive:
         dataset: output/dataset.csv.gz
+  
+  create_table1:
+    run: r:v2 analysis/create_table1.R
+    needs: [generate_dataset]
+    outputs:
+      moderately_sensitive:
+        table_one: output/tables/table1.csv
