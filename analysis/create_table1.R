@@ -5,6 +5,12 @@ library(stringr)
 library(fs)
 library(purrr)
 
+# Load codelists
+codelist_dem  <- read_csv(
+  here("codelists", "nhsd-primary-care-domain-refsets-dem_cod.csv"),
+  col_types = cols(code = col_character())
+)
+
 # Load data
 df_dataset <- read_csv(
   here("output", "dataset.csv.gz"),
@@ -22,6 +28,7 @@ count_categories <- function(df, variable_name) {
   df %>%
     group_by(!!variable_sym) %>%
     count() %>%
+    ungroup() %>%
     mutate(n = round(n, -1),
            variable = variable_name) %>%
     rename(value = !!variable_sym)
@@ -33,14 +40,18 @@ count_multiple_categories <- function(df, variable_names) {
     relocate(variable, value, n)
 }
 
-df_tab1_count <- count_multiple_categories(
+df_tab1_counts <- count_multiple_categories(
   df_dataset,
-  c("sex", "region")
+  c("sex", "region", "latest_dementia_code")
 )
+
+# Add term descriptions for codes
+df_tab1_counts <- df_tab1_counts %>%
+  left_join(codelist_dem, by = c("value" = "code"))
 
 dir_create(here("output", "tables"))
 
 write_csv(
-  df_tab1,
+  df_tab1_counts,
   here("output", "tables", "table1.csv")
 )
