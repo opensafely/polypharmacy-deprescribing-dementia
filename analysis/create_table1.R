@@ -5,7 +5,14 @@ library(stringr)
 library(fs)
 
 # Load data
-df_dataset <- read_csv(here("output", "dataset.csv.gz"))
+df_dataset <- read_csv(
+  here("output", "dataset.csv.gz"),
+  col_types = cols(
+    latest_dementia_code = col_character(),
+    latest_alzheimers_code = col_character(),
+    latest_vascular_dementia_code = col_character()
+  )
+)
 
 df_tab1 <- df_dataset %>%
   group_by(sex) %>%
