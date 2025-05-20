@@ -40,6 +40,27 @@ count_multiple_categories <- function(df, variable_names) {
     relocate(variable, value, n)
 }
 
+# Function to calculate min, max, and mean
+# Fill with missing values for the other columns so we can combine later
+calc_stats <- function(df, variable_name) {
+  variable_sym <- rlang::sym(variable_name)
+
+  df %>%
+    summarise(
+      variable = variable_name,
+      value = NA_character_,
+      n = NA_real_,
+      term = NA_character_,
+      min = min(!!variable_sym, na.rm = TRUE),
+      max = max(!!variable_sym, na.rm = TRUE),
+      mean = mean(!!variable_sym, na.rm = TRUE)
+    )
+}
+
+# Calculate descriptive stats for age
+df_tab1_stats <- calc_stats(df_dataset, "age")
+
+# Calculate counts for sex, region, and dementia codes
 df_tab1_counts <- count_multiple_categories(
   df_dataset,
   c("sex", "region", "latest_dementia_code")
@@ -49,9 +70,12 @@ df_tab1_counts <- count_multiple_categories(
 df_tab1_counts <- df_tab1_counts %>%
   left_join(codelist_dem, by = c("value" = "code"))
 
+# Combine table with descriptive stats and counts
+df_tab1 <- bind_rows(df_tab1_stats, df_tab1_counts)
+
 dir_create(here("output", "tables"))
 
 write_csv(
-  df_tab1_counts,
+  df_tab1,
   here("output", "tables", "table1.csv")
 )
