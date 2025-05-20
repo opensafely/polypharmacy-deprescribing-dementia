@@ -3,6 +3,7 @@ library(here)
 library(dplyr)
 library(stringr)
 library(fs)
+library(purrr)
 
 # Load data
 df_dataset <- read_csv(
@@ -14,15 +15,28 @@ df_dataset <- read_csv(
   )
 )
 
-df_tab1 <- df_dataset %>%
-  group_by(sex) %>%
-  summarise(
-    n = n(),
-    age_min = min(age, na.rm = TRUE),
-    age_max = max(age, na.rm = TRUE),
-    age_mean = mean(age, na.rm = TRUE)
-  ) %>%
-  mutate(n = round(n, -1))
+# Create function to counts categories of variables
+count_categories <- function(df, variable_name) {
+  variable_sym <- rlang::sym(variable_name)
+
+  df %>%
+    group_by(!!variable_sym) %>%
+    count() %>%
+    mutate(n = round(n, -1),
+           variable = variable_name) %>%
+    rename(value = !!variable_sym)
+}
+
+# Using map_dfr to apply across multiple columns and combine rows
+count_multiple_categories <- function(df, variable_names) {
+  map_dfr(variable_names, ~count_categories(df, .x)) %>%
+    relocate(variable, value, n)
+}
+
+df_tab1_count <- count_multiple_categories(
+  df_dataset,
+  c("sex", "region")
+)
 
 dir_create(here("output", "tables"))
 
