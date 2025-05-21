@@ -10,6 +10,15 @@ codelist_dem  <- read_csv(
   here("codelists", "nhsd-primary-care-domain-refsets-dem_cod.csv"),
   col_types = cols(code = col_character())
 )
+codelist_vasc <- read_csv(
+  here("codelists","nhsd-primary-care-domain-refsets-vascular-dementia-codes.csv"),
+  col_types = cols(code = col_character())
+)    
+codelist_alz <- read_csv(
+  here("codelists", "nhsd-primary-care-domain-refsets-alzheimers-disease-dementia-codes.csv"),
+  col_types = cols(code = col_character())
+)
+
 
 # Load data
 df_dataset <- read_csv(
@@ -20,6 +29,16 @@ df_dataset <- read_csv(
     latest_vascular_dementia_code = col_character()
   )
 )
+
+df_dataset <- df_dataset %>%
+  mutate(
+    dementia_type = case_when(
+      latest_dementia_code %in% codelist_alz$code ~ "Alzheimer's",
+      latest_dementia_code %in% codelist_vasc$code ~ "Vascular",
+      !is.na(latest_dementia_code) ~ "Other",
+      TRUE ~ NA_character_
+    )
+  )
 
 # Create function to counts categories of variables
 count_categories <- function(df, variable_name) {
@@ -63,12 +82,12 @@ df_tab1_stats <- calc_stats(df_dataset, "age")
 # Calculate counts for sex, region, and dementia codes
 df_tab1_counts <- count_multiple_categories(
   df_dataset,
-  c("sex", "region", "latest_dementia_code")
+  c("sex", "region", "dementia_type")
 )
 
 # Add term descriptions for codes
-df_tab1_counts <- df_tab1_counts %>%
-  left_join(codelist_dem, by = c("value" = "code"))
+# df_tab1_counts <- df_tab1_counts %>%
+#  left_join(codelist_dem, by = c("value" = "code"))
 
 # Combine table with descriptive stats and counts
 df_tab1 <- bind_rows(df_tab1_stats, df_tab1_counts)
