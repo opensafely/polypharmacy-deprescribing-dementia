@@ -69,7 +69,6 @@ calc_stats <- function(df, variable_name) {
       variable = variable_name,
       value = NA_character_,
       n = NA_real_,
-      term = NA_character_,
       min = min(!!variable_sym, na.rm = TRUE),
       max = max(!!variable_sym, na.rm = TRUE),
       mean = mean(!!variable_sym, na.rm = TRUE)
