@@ -20,6 +20,19 @@ alzheimers_codelist = codelist_from_csv(
 other_dementia_codelist = list(
     set(dementia_codelist) - set(alzheimers_codelist).union(vascular_dementia_codelist)
 )
+## Antihypertensive codes
+antihypertensive_codelist = codelist_from_csv(
+    "codelists/opensafely-combination-blood-pressure-medication.csv",
+    column="code"
+)
+
+## Medication review codes
+medication_review_codelist = codelist_from_csv(
+    "codelists/nhsd-primary-care-domain-refsets-demmedrvw_cod.csv",
+    column="code"
+)
+
+
 
 
 ## Covariates
