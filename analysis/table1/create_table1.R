@@ -77,12 +77,12 @@ calc_stats <- function(df, variable_name) {
 }
 
 # Calculate descriptive stats for age
-df_tab1_stats <- calc_stats(df_dataset, "age")
+df_tab1_stats <- calc_stats(df_dataset, "cov_num_age")
 
 # Calculate counts for sex, region, and dementia codes
 df_tab1_counts <- count_multiple_categories(
   df_dataset,
-  c("sex", "region")
+  c("cov_cat_sex", "cov_cat_region")
 )
 
 # Add term descriptions for codes
