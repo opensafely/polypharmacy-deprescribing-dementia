@@ -6,7 +6,14 @@ actions:
     outputs:
       highly_sensitive:
         dataset: output/dataset.csv.gz
-  
+
+  clean_dataset:
+    run: r:v2 analysis/dataset_clean/dataset_clean.R
+    needs: [generate_dataset]
+    outputs:
+      highly_sensitive:
+        dataset: output/dataset_clean/dataset_clean.csv.gz
+
   create_table1:
     run: r:v2 analysis/table1/create_table1.R
     needs: [generate_dataset]
