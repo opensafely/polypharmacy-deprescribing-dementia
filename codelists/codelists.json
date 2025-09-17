@@ -29,6 +29,36 @@
       "url": "https://www.opencodelists.org/codelist/nhsd-primary-care-domain-refsets/demmedrvw_cod/5f1ce4d6/",
       "downloaded_at": "2025-07-31 14:23:19.589031Z",
       "sha": "57f6566bc7c170d99fc8d6355bb38997054a8b73"
+    },
+    "opensafely-ace-inhibitor-medications.csv": {
+      "id": "opensafely/ace-inhibitor-medications/0a044c49",
+      "url": "https://www.opencodelists.org/codelist/opensafely/ace-inhibitor-medications/0a044c49/",
+      "downloaded_at": "2025-09-16 13:26:00.284791Z",
+      "sha": "5575c56cbd5c015a7ad344c525994e87377c6120"
+    },
+    "opensafely-alpha-adrenoceptor-blocking-drugs.csv": {
+      "id": "opensafely/alpha-adrenoceptor-blocking-drugs/28793f6a",
+      "url": "https://www.opencodelists.org/codelist/opensafely/alpha-adrenoceptor-blocking-drugs/28793f6a/",
+      "downloaded_at": "2025-09-16 13:31:53.884205Z",
+      "sha": "5c42306c0ae7493b2746fe944e35d879e00896b4"
+    },
+    "opensafely-angiotensin-ii-receptor-blockers-arbs.csv": {
+      "id": "opensafely/angiotensin-ii-receptor-blockers-arbs/3ed5f2a9",
+      "url": "https://www.opencodelists.org/codelist/opensafely/angiotensin-ii-receptor-blockers-arbs/3ed5f2a9/",
+      "downloaded_at": "2025-09-16 13:31:54.197555Z",
+      "sha": "161a99b3f75ab3ea3c712ea045ee44063f068c52"
+    },
+    "opensafely-beta-blocker-medications.csv": {
+      "id": "opensafely/beta-blocker-medications/5a9825d4",
+      "url": "https://www.opencodelists.org/codelist/opensafely/beta-blocker-medications/5a9825d4/",
+      "downloaded_at": "2025-09-16 13:31:55.157549Z",
+      "sha": "219b4d0aa5852e944c88f336eefe79eaa09738df"
+    },
+    "opensafely-calcium-channel-blockers.csv": {
+      "id": "opensafely/calcium-channel-blockers/25c67f74",
+      "url": "https://www.opencodelists.org/codelist/opensafely/calcium-channel-blockers/25c67f74/",
+      "downloaded_at": "2025-09-16 13:31:56.102515Z",
+      "sha": "8f1ffd9b9083ca36de771439c6fe14eb865825ad"
     }
   }
 }

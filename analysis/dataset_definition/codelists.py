@@ -20,11 +20,6 @@ alzheimers_codelist = codelist_from_csv(
 other_dementia_codelist = list(
     set(dementia_codelist) - set(alzheimers_codelist).union(vascular_dementia_codelist)
 )
-## Antihypertensive codes
-antihypertensive_codelist = codelist_from_csv(
-    "codelists/opensafely-combination-blood-pressure-medication.csv",
-    column="code"
-)
 
 ## Medication review codes
 medication_review_codelist = codelist_from_csv(
@@ -32,9 +27,36 @@ medication_review_codelist = codelist_from_csv(
     column="code"
 )
 
+## Antihypertensive codes
+antihypertensive_codelist = codelist_from_csv(
+    "codelists/opensafely-combination-blood-pressure-medication.csv",
+    column="code"
+)
+## ACE-Inhibitor codes
+ace_inhibitor_codelist = codelist_from_csv(
+    "codelists/opensafely-ace-inhibitor-medications.csv",
+    column="code"
+)
+## Alpha-Adrenoceptor Blocking Drugs codes
+alpha_adrenoceptor_blocking_drugs_codelist = codelist_from_csv(
+    "codelists/opensafely-alpha-adrenoceptor-blocking-drugs.csv",
+    column="code"
+)
+## Angiotensin II Receptor Blockers (ARBs) codes
+angiotensin_ii_receptor_blockers_codelist = codelist_from_csv(
+    "codelists/opensafely-angiotensin-ii-receptor-blockers-arbs.csv",
+    column="code"
+)
+## Beta blockers codes
+beta_blockers_codelist = codelist_from_csv(
+    "codelists/opensafely-beta-blocker-medications.csv",
+    column="code"
+)
+## Calcium channel blockers codes
+calcium_channel_blockers_codelist = codelist_from_csv(
+    "codelists/opensafely-calcium-channel-blockers.csv",
+    column="code"
+)
 
 
 
-## Covariates
-## Will put more codelists here
-## etc etc
