@@ -58,5 +58,20 @@ calcium_channel_blockers_codelist = codelist_from_csv(
     column="code"
 )
 
+## Chronic Heart Disease codes
+chd_codelist = codelist_from_csv(
+    "codelists/primis-covid19-vacc-uptake-chd_cov.csv",
+    column="code"
+)
 
+## Myocardial Infarction codes
+mi_codelist = codelist_from_csv(
+    "codelists/nhsd-primary-care-domain-refsets-mi_cod.csv",
+    column="code"
+)
 
+## Stroke codes
+strk_codelist = codelist_from_csv(
+    "codelists/nhsd-primary-care-domain-refsets-strk_cod.csv",
+    column="code"
+)

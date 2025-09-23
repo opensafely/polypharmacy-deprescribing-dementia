@@ -14,11 +14,11 @@ actions:
       highly_sensitive:
         dataset: output/dataset_clean/dataset_clean.csv.gz
 
-  create_table1:
-    run: r:v2 analysis/table1/create_table1.R
-    needs: [generate_dataset]
-    outputs:
-      moderately_sensitive:
-        table_one: output/tables/table1.csv
+  #create_table_1:
+  #  run: r:v2 analysis/table1/create_table1.R
+  #  needs: [generate_dataset]
+  #  outputs:
+  #    moderately_sensitive:
+  #      table_one: output/tables/table1.csv
 
 

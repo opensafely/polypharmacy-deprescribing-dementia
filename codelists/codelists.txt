@@ -1,14 +1,17 @@
 nhsd-primary-care-domain-refsets/dem_cod/20241205/
 nhsd-primary-care-domain-refsets/vascular-dementia-codes/55053b2c/
 nhsd-primary-care-domain-refsets/alzheimers-disease-dementia-codes/156894f4/
-opensafely/combination-blood-pressure-medication/4188b29f
+
 nhsd-primary-care-domain-refsets/demmedrvw_cod/5f1ce4d6
+
+opensafely/combination-blood-pressure-medication/4188b29f
 opensafely/ace-inhibitor-medications/0a044c49
 opensafely/alpha-adrenoceptor-blocking-drugs/28793f6a
 opensafely/angiotensin-ii-receptor-blockers-arbs/3ed5f2a9
 opensafely/beta-blocker-medications/5a9825d4
 opensafely/calcium-channel-blockers/25c67f74
 
-
-
-
+opensafely/ethnicity-snomed-0removed/22911876
+primis-covid19-vacc-uptake/chd_cov/v2.5
+nhsd-primary-care-domain-refsets/mi_cod/3b4271c9
+nhsd-primary-care-domain-refsets/strk_cod/1e517cc9
