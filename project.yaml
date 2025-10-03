@@ -2,23 +2,16 @@ version: '4.0'
 
 actions:
   generate_dataset:
-    run: ehrql:v1 generate-dataset analysis/dataset_definition/dataset_definition.py --output output/dataset.csv.gz
+    run: ehrql:v1 generate-dataset analysis/dataset_definition/dataset_definition.py --output output/dataset/input.csv.gz
     outputs:
       highly_sensitive:
-        dataset: output/dataset.csv.gz
+        dataset: output/dataset/input.csv.gz
 
   clean_dataset:
     run: r:v2 analysis/dataset_clean/dataset_clean.R
     needs: [generate_dataset]
     outputs:
       highly_sensitive:
-        dataset: output/dataset_clean/dataset_clean.csv.gz
-
-  #create_table_1:
-  #  run: r:v2 analysis/table1/create_table1.R
-  #  needs: [generate_dataset]
-  #  outputs:
-  #    moderately_sensitive:
-  #      table_one: output/tables/table1.csv
-
-
+        dataset: output/dataset_clean/input_clean.csv.gz
+      moderately_sensitive:
+        flow: output/dataset_clean/flow.csv

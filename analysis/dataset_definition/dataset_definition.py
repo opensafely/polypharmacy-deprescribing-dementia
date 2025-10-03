@@ -13,10 +13,10 @@ start_date = "2015-01-01"
 end_date = "2020-03-01"
 
 ## ---------------------------------
-##Create variables for inclusion / exclusion criteria
+## Create variables for inclusion / exclusion criteria
 
 # Dementia diagnosis
-dataset.inex_bin_has_dementia = (
+dataset.inex_bin_has_dem = (
     clinical_events.where(clinical_events.snomedct_code.is_in(dementia_codelist))
     .where(clinical_events.date.is_on_or_before(end_date))
     .sort_by(clinical_events.date)
@@ -24,7 +24,7 @@ dataset.inex_bin_has_dementia = (
     ).exists_for_patient()
 
 # Long-term antihypertensive user 
-dataset.inex_bin_long_term_antihypertensive_user = (medications.where(medications.dmd_code.is_in(antihypertensive_codelist))
+dataset.inex_bin_lt_antihyp_user = (medications.where(medications.dmd_code.is_in(antihypertensive_codelist))
     .where(medications.date.is_on_or_before(start_date - days (365)))
     .where(medications.date.is_on_or_after(start_date))
     .count_for_patient()) > 2
@@ -34,7 +34,7 @@ dataset.inex_bin_alive = (((patients.date_of_death.is_null()) | (patients.date_o
     ((ons_deaths.date.is_null()) | (ons_deaths.date.is_after(start_date))))
 
 #65 or over at start date
-dataset.inex_bin_over_65 = patients.age_on(start_date)>64
+dataset.inex_bin_over_64 = patients.age_on(start_date)>64
 
 # Registered with practice at within 6 months of start date
 dataset.inex_bin_6m_reg = (practice_registrations.spanning(
@@ -63,7 +63,7 @@ dataset.cov_cat_imd = addresses.for_patient_on(start_date).imd_rounded
 dataset.cov_cat_region = practice_registrations.for_patient_on(start_date).practice_nuts1_region_name
 
 # Date of first dementia diagnosis
-dataset.cov_dat_dementia_diagnosis_date = (
+dataset.cov_dat_dem_diag = (
     clinical_events.where(clinical_events.snomedct_code.is_in(dementia_codelist))
     .where(clinical_events.date.is_on_or_before(end_date))
     .sort_by(clinical_events.date)
@@ -71,7 +71,7 @@ dataset.cov_dat_dementia_diagnosis_date = (
     .date)
 
 #Date of CHD diagnosis
-dataset.cov_dat_chd_diagnosis_date = (
+dataset.cov_dat_chd_diag = (
     clinical_events.where(clinical_events.snomedct_code.is_in(chd_codelist))
     .where(clinical_events.date.is_on_or_before(end_date))
     .sort_by(clinical_events.date)
@@ -92,63 +92,3 @@ dataset.cov_bin_carehome = (
 ##Define population
 dataset.configure_dummy_data(population_size=100)
 dataset.define_population(patients.date_of_birth.is_not_null())
-
-
-
-
-# ---NOT USING THESE RIGHT NOW---
-#Most recent dementia codes
-dataset.latest_dementia_code = (
-    clinical_events.where(clinical_events.snomedct_code.is_in(dementia_codelist))
-    .where(clinical_events.date.is_on_or_before(end_date))
-    .sort_by(clinical_events.date)
-    .last_for_patient()
-    .snomedct_code)
-dataset.latest_alzheimers_code = (clinical_events.where(clinical_events.snomedct_code.is_in(alzheimers_codelist))
-    .where(clinical_events.date.is_on_or_before(end_date))
-    .sort_by(clinical_events.date)
-    .last_for_patient()
-    .snomedct_code)
-dataset.latest_vascular_dementia_code = (clinical_events.where(clinical_events.snomedct_code.is_in(vascular_dementia_codelist))
-    .where(clinical_events.date.is_on_or_before(end_date))
-    .sort_by(clinical_events.date)
-    .last_for_patient()
-    .snomedct_code)
-dataset.latest_other_dementia_code = (clinical_events.where(clinical_events.snomedct_code.is_in(other_dementia_codelist))
-    .where(clinical_events.date.is_on_or_before(end_date))
-    .sort_by(clinical_events.date)
-    .last_for_patient()
-    .snomedct_code)
-
-# ##Medication variables
-# dataset.number_of_antihypertensive_prescriptions = (medications.where(medications.dmd_code.is_in(antihypertensive_codelist))
-#     .where(medications.date.is_on_or_before(end_date))
-#     .where(medications.date.is_on_or_after(start_date))
-#     .count_for_patient())
-
-# ## Medication review variables
-# dataset.cov_bin_medication_review_yn = (
-#     clinical_events.where(clinical_events.snomedct_code.is_in(medication_review_codelist))
-#     .where(clinical_events.date.is_on_or_after(start_date))
-#     .where(clinical_events.date.is_on_or_before(end_date))
-#     .exists_for_patient()
-# )
-
-##Yes/No variables for prescriptions in each month
-#for i in range(37):
-#    medication_yn = (medications.where(medications.dmd_code.is_in(antihypertensive_codelist))
-#    .where(medications.date.is_on_or_before(start_date + days(30 * i)))
-#    .where(medications.date.is_on_or_after(start_date + days(30 * (i-1))))
-#    .sort_by(medications.date)
-#    .exists_for_patient())
-#    dataset.add_column(f"Month_{i}_med", medication_yn)
-
-##Derive variables for inclusion / exclusion criteria (not using these rn)
-#aged_65_or_above = dataset.cov_num_age > 64
-#multiple_antihypertensive_prescriptions = dataset.number_of_antihypertensive_prescriptions > 1
-#has_registration = practice_registrations.for_patient_on(start_date).exists_for_patient()
-#is_alive = patients.is_alive_on(start_date)
-#known_sex = patients.sex != "unknown"
-
-
-
