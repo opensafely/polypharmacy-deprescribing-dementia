@@ -40,7 +40,8 @@ modify_dummy <- function(df) {
         size = nrow(.),
         replace = TRUE,
         prob = c(rep(0.11, 9), 0.01) # 11% for each area, %1 Missing
-      )
+      ),
+      inex_bin_known_region = cov_cat_region != ""
     ) %>%
 
     ## IMD
@@ -52,13 +53,6 @@ modify_dummy <- function(df) {
         prob = c(rep(0.195, 5), 0.025) # 19.5% for each area, 2.5% missing
       ),
       inex_bin_known_imd = !is.na(cov_cat_imd)
-    ) %>%
-
-    mutate(
-      across(
-        matches("^Month_\\d+_med$"),
-        ~ (rbinom(n(), 1, 0.20) == 1)
-      )
     )
 
 }

@@ -59,7 +59,19 @@ dataset.qa_num_death_year = patients.date_of_death.year
 dataset.cov_num_age = patients.age_on(start_date)
 dataset.cov_cat_sex = patients.sex
 dataset.cov_cat_ethnicity = ethnicity_from_sus.code
-dataset.cov_cat_imd = addresses.for_patient_on(start_date).imd_rounded
+### Deprivation
+dataset.cov_cat_imd = case(
+        when((addresses.for_patient_on(start_date).imd_rounded >= 0) & 
+                (addresses.for_patient_on(start_date).imd_rounded < int(32844 * 1 / 5))).then("1 (most deprived)"),
+        when(addresses.for_patient_on(start_date).imd_rounded < int(32844 * 2 / 5)).then("2"),
+        when(addresses.for_patient_on(start_date).imd_rounded < int(32844 * 3 / 5)).then("3"),
+        when(addresses.for_patient_on(start_date).imd_rounded < int(32844 * 4 / 5)).then("4"),
+        when(addresses.for_patient_on(start_date).imd_rounded < int(32844 * 5 / 5)).then("5 (least deprived)"),
+        otherwise="unknown",
+    )
+
+
+
 dataset.cov_cat_region = practice_registrations.for_patient_on(start_date).practice_nuts1_region_name
 
 # Date of first dementia diagnosis
