@@ -18,7 +18,7 @@ inex <- function(input, flow) {
   print(flow[nrow(flow), ])
 
   ## Patients must be long term antihypertensive user
-  input <- subset(input, inex_bin_lt_antihyp_user == TRUE)
+  input <- subset(input, inex_bin_antihyp == TRUE)
   flow[nrow(flow) + 1, ] <- c("Inclusion criteria: Long term antihypertensive user", nrow(input)) 
   print(flow[nrow(flow), ])
 

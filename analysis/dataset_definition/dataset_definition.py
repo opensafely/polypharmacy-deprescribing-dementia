@@ -24,8 +24,8 @@ dataset.inex_bin_has_dem = (
     ).exists_for_patient()
 
 # Long-term antihypertensive user 
-dataset.inex_bin_lt_antihyp_user = (medications.where(medications.dmd_code.is_in(antihypertensive_codelist))
-    .where(medications.date.is_on_or_before(start_date - days (365)))
+dataset.inex_bin_antihyp = (medications.where(medications.dmd_code.is_in(antihypertensive_codelist))
+    .where(medications.date.is_on_or_before(start_date - days(365)))
     .where(medications.date.is_on_or_after(start_date))
     .count_for_patient()) > 2
 
@@ -90,5 +90,5 @@ dataset.cov_bin_carehome = (
 ## Exposure and outcome variables to be added later
 
 ##Define population
-dataset.configure_dummy_data(population_size=100)
+dataset.configure_dummy_data(population_size=1000)
 dataset.define_population(patients.date_of_birth.is_not_null())

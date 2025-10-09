@@ -26,24 +26,26 @@ flow <- data.frame(
   stringsAsFactors = FALSE
 )
 
+## Source functions
+lapply(
+  list.files("analysis/dataset_clean", full.names = TRUE, pattern = "fn-"),
+  source
+)
 
 ## Modify dummy data
-source(here::here("analysis", "dataset_clean", "fn-modify_dummy.R"))
 dataset_clean <- modify_dummy(dataset_clean)
 
 ## Preprocess the data
-source(here::here("analysis", "dataset_clean", "fn-preprocess.R"))
 dataset_clean <- preprocess(dataset_clean)
 
 ## Run quality assurance script
-source(here::here("analysis", "dataset_clean", "fn-qa.R"))
 dataset_clean <- qa(dataset_clean)
 
 ## Run inclusion and exlcusion criteria
-source(here::here("analysis", "dataset_clean", "fn-inex.R"))
 dataset_clean <- inex(dataset_clean, flow)
 
 ## Saved cleaned dataset to output folder
 write_csv(dataset_clean$input, here::here(dataclean_dir, "input_clean.csv.gz"))
 
+## Saved flowvchart data to output folder
 write_csv(dataset_clean$flow, here::here(dataclean_dir, "flow.csv"))
