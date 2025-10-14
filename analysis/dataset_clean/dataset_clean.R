@@ -14,8 +14,6 @@ dir_create(here::here(dataclean_dir))
 ## Specify redaction threshold -------------------------------------------------
 print("Specify redaction threshold")
 
-threshold <- 6
-
 ## Load dataset
 dataset_clean <- read_csv(here("output", "dataset", "input.csv.gz"))
 
