@@ -53,6 +53,18 @@ modify_dummy <- function(df) {
         prob = c(rep(0.195, 5), 0.025) # 19.5% for each area, 2.5% missing
       ),
       inex_bin_known_imd = !is.na(cov_cat_imd)
-    )
+    ) %>%
 
+  ## Adding medication review date
+    mutate(
+      exp_date_medication_review = ifelse(
+        runif(n()) < 0.4,  # ~40% chance
+        sample(
+          x = seq(as.Date("2015-01-01"), as.Date("2020-01-01"), by = "day"),
+          size = n(),
+          replace = TRUE
+        ),
+        NA
+      )
+    )
 }

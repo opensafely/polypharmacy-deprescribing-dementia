@@ -82,6 +82,30 @@ dataset.cov_dat_dem_diag = (
     .first_for_patient()
     .date)
 
+# Date of first Alzheimer's diagnosis
+dataset.cov_dat_alz_diag = (
+    clinical_events.where(clinical_events.snomedct_code.is_in(alzheimers_codelist))
+    .where(clinical_events.date.is_on_or_before(end_date))
+    .sort_by(clinical_events.date)
+    .first_for_patient()
+    .date)
+
+# Date of first Vascular dementia diagnosis
+dataset.cov_dat_vasc_diag = (
+    clinical_events.where(clinical_events.snomedct_code.is_in(vascular_dementia_codelist))
+    .where(clinical_events.date.is_on_or_before(end_date))
+    .sort_by(clinical_events.date)
+    .first_for_patient()
+    .date)
+
+# Date of first "Other" dementia diagnosis
+dataset.cov_dat_other_diag = (
+    clinical_events.where(clinical_events.snomedct_code.is_in(other_dementia_codelist))
+    .where(clinical_events.date.is_on_or_before(end_date))
+    .sort_by(clinical_events.date)
+    .first_for_patient()
+    .date)
+
 #Date of CHD diagnosis
 dataset.cov_dat_chd_diag = (
     clinical_events.where(clinical_events.snomedct_code.is_in(chd_codelist))
@@ -100,6 +124,15 @@ dataset.cov_bin_carehome = (
 
 ## ---------------------------------
 ## Exposure and outcome variables to be added later
+
+## Medication review variables
+dataset.exp_date_medication_review = (
+    clinical_events.where(clinical_events.snomedct_code.is_in(medication_review_codelist))
+    .where(clinical_events.date.is_on_or_after(start_date))
+    .where(clinical_events.date.is_on_or_before(end_date))
+    .sort_by(clinical_events.date)
+    .first_for_patient()
+    .date)
 
 ##Define population
 dataset.configure_dummy_data(population_size=1000)
