@@ -107,5 +107,4 @@ modify_dummy <- function(df) {
     ) %>%
     ungroup()
 
-  return(df)
 }

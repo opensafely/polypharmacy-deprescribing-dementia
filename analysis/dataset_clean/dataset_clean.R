@@ -31,7 +31,9 @@ lapply(
 )
 
 ## Modify dummy data
-dataset_clean <- modify_dummy(dataset_clean)
+if (Sys.getenv("OPENSAFELY_BACKEND") %in% c("", "expectations")) {
+  dataset_clean <- modify_dummy(dataset_clean)
+}
 
 ## Preprocess the data
 dataset_clean <- preprocess(dataset_clean)
