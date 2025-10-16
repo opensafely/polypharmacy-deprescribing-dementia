@@ -19,8 +19,6 @@ end_date = "2020-03-01"
 dataset.inex_bin_has_dem = (
     clinical_events.where(clinical_events.snomedct_code.is_in(dementia_codelist))
     .where(clinical_events.date.is_on_or_before(end_date))
-    .sort_by(clinical_events.date)
-    .last_for_patient()
     ).exists_for_patient()
 
 # Long-term antihypertensive user 
@@ -82,29 +80,23 @@ dataset.cov_dat_dem_diag = (
     .first_for_patient()
     .date)
 
-# Date of first Alzheimer's diagnosis
-dataset.cov_dat_alz_diag = (
+# Alzheimer's diagnosis
+dataset.cov_bin_alz_diag = (
     clinical_events.where(clinical_events.snomedct_code.is_in(alzheimers_codelist))
     .where(clinical_events.date.is_on_or_before(end_date))
-    .sort_by(clinical_events.date)
-    .first_for_patient()
-    .date)
+    ).exists_for_patient()
 
-# Date of first Vascular dementia diagnosis
-dataset.cov_dat_vasc_diag = (
+# Vascular dementia diagnosis
+dataset.cov_bin_vasc_diag = (
     clinical_events.where(clinical_events.snomedct_code.is_in(vascular_dementia_codelist))
     .where(clinical_events.date.is_on_or_before(end_date))
-    .sort_by(clinical_events.date)
-    .first_for_patient()
-    .date)
+    ).exists_for_patient()
 
-# Date of first "Other" dementia diagnosis
-dataset.cov_dat_other_diag = (
+# "Other" dementia diagnosis
+dataset.cov_bin_other_diag = (
     clinical_events.where(clinical_events.snomedct_code.is_in(other_dementia_codelist))
     .where(clinical_events.date.is_on_or_before(end_date))
-    .sort_by(clinical_events.date)
-    .first_for_patient()
-    .date)
+    ).exists_for_patient()
 
 #Date of CHD diagnosis
 dataset.cov_dat_chd_diag = (

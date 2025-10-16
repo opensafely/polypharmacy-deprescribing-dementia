@@ -125,10 +125,7 @@ table1 <- bind_rows(
   tibble(
     characteristic = "Age, years",
     subcharacteristic = "Median (IQR)",
-    N = median_iqr_age,
-    percent_of_total = "",
-    exposed_N = "",
-    percent_exposed = ""
+    N = median_iqr_age
   )
 )
 
