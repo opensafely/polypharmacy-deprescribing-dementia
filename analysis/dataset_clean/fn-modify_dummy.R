@@ -105,6 +105,12 @@ modify_dummy <- function(df) {
         cov_bin_other_diag
       )
     ) %>%
-    ungroup()
+    ungroup() %>%
+
+    ## Convert date variables to Date type 
+    mutate(
+      exp_date_medication_review = as.Date(exp_date_medication_review, origin = "1970-01-01"),
+      cov_dat_dem_diag = as.Date(cov_dat_dem_diag, origin = "1970-01-01")
+    )
 
 }
