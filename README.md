@@ -29,6 +29,8 @@ Deatils of the purpose for each file in this repository are outlined below
 
 - The [`project.yaml`](./project.yaml) file lists all actions to be run in OpenSAFELY and their run order
 
+- [`create_table1.R`](./analysis/table1/create_table1.R) generates a csv file for table one for the study.
+
 
 
 # About the OpenSAFELY framework

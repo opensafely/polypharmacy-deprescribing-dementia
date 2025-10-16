@@ -53,6 +53,64 @@ modify_dummy <- function(df) {
         prob = c(rep(0.195, 5), 0.025) # 19.5% for each area, 2.5% missing
       ),
       inex_bin_known_imd = !is.na(cov_cat_imd)
+    ) %>%
+
+    ## Adding medication review date
+    mutate(
+      exp_date_medication_review = ifelse(
+        runif(n()) < 0.4,  # ~40% chance
+        sample(
+          x = seq(as.Date("2015-01-01"), as.Date("2020-01-01"), by = "day"),
+          size = n(),
+          replace = TRUE
+        ),
+        NA
+      )
+    ) %>%
+
+    ## Adding dementia diagnosis dates
+    mutate(
+      cov_dat_dem_diag = ifelse(
+        runif(n()) < 0.5,  # ~50% chance (not actually representative of UK)
+        sample(
+          x = seq(as.Date("1950-01-01"), as.Date("2020-01-01"), by = "day"),
+          size = n(),
+          replace = TRUE
+        ),
+        NA
+      ),
+      inex_bin_has_dem = !is.na(cov_dat_dem_diag)
+    ) %>%
+
+    ## Dementia subtype indicators --------------------------------------------
+    rowwise() %>%
+    mutate(
+      cov_bin_alz_diag = if (inex_bin_has_dem)
+        rbinom(1, 1, 0.7) == 1 else FALSE,
+      cov_bin_vasc_diag = if (inex_bin_has_dem)
+        rbinom(1, 1, 0.4) == 1 else FALSE,
+      cov_bin_other_diag = if (inex_bin_has_dem)
+        rbinom(1, 1, 0.05) == 1 else FALSE
+    ) %>%
+    mutate(
+      # Ensure at least one subtype TRUE if dementia present
+      cov_bin_other_diag = ifelse(
+        inex_bin_has_dem &
+          !(
+            cov_bin_alz_diag |
+              cov_bin_vasc_diag |
+              cov_bin_other_diag
+          ),
+        TRUE,
+        cov_bin_other_diag
+      )
+    ) %>%
+    ungroup() %>%
+
+    ## Convert date variables to Date type 
+    mutate(
+      exp_date_medication_review = as.Date(exp_date_medication_review, origin = "1970-01-01"),
+      cov_dat_dem_diag = as.Date(cov_dat_dem_diag, origin = "1970-01-01")
     )
 
 }

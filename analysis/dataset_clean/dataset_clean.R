@@ -14,8 +14,6 @@ dir_create(here::here(dataclean_dir))
 ## Specify redaction threshold -------------------------------------------------
 print("Specify redaction threshold")
 
-threshold <- 6
-
 ## Load dataset
 dataset_clean <- read_csv(here("output", "dataset", "input.csv.gz"))
 
@@ -33,7 +31,9 @@ lapply(
 )
 
 ## Modify dummy data
-dataset_clean <- modify_dummy(dataset_clean)
+if (Sys.getenv("OPENSAFELY_BACKEND") %in% c("", "expectations")) {
+  dataset_clean <- modify_dummy(dataset_clean)
+}
 
 ## Preprocess the data
 dataset_clean <- preprocess(dataset_clean)

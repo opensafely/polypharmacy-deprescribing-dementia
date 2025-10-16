@@ -1,101 +1,137 @@
 library(readr)
+library(tidyverse)
+library(gtsummary)
 library(here)
 library(dplyr)
-library(stringr)
-library(purrr)
-
 #------------------------------------------------
 # Load data
 #------------------------------------------------
-df_dataset <- read_csv(
-  here("output", "dataset_clean", "dataset_clean.csv.gz"),
-  col_types = cols(
-    latest_dementia_code = col_character(),
-    latest_alzheimers_code = col_character(),
-    latest_vascular_dementia_code = col_character(),
-    latest_other_dementia_code = col_character(),
-    cov_num_age = col_double()   # ensure numeric
-  )
+df <- read_csv(
+  here("output", "dataset_clean", "input_clean.csv.gz"),
+  show_col_types = FALSE
 )
 
 #------------------------------------------------
-# Create dementia flags
+# Create binary indicators for "cov_dat_" variables
 #------------------------------------------------
-df_dataset <- df_dataset %>%
+df <- df %>%
+  mutate(across(starts_with("cov_dat_"), ~ !is.na(.x), .names = "cov_bin_from_{.col}"))
+
+
+#------------------------------------------------
+# Create "exposed" variable for medication review
+#------------------------------------------------
+df$exposed <- !is.na(df$exp_date_medication_review)
+
+#------------------------------------------------
+# Select variables of interest (following naming convention)
+#------------------------------------------------
+df_table1 <- df %>%
+  select(
+    patient_id,
+    exposed,
+    starts_with("cov_cat_"),
+    starts_with("cov_bin_"),
+    starts_with("strat_cat_"),
+  )
+
+# Align data types: convert all to character except patient_id
+df_table1 <- df_table1 %>%
+  mutate(across(-c(patient_id, exposed), as.character))
+
+#------------------------------------------------
+# Add a catch-all "All" group (for total counts)
+df_table1$All <- "All"
+
+#------------------------------------------------
+# Convert to long format: one row per characteristic/subcharacteristic
+#------------------------------------------------
+df_long <- df_table1 %>%
+  pivot_longer(
+    cols = -c(patient_id, exposed),
+    names_to = "characteristic",
+    values_to = "subcharacteristic"
+  )
+
+#------------------------------------------------
+# Clean missing data
+#------------------------------------------------
+df_long <- df_long %>%
   mutate(
-    has_alz   = str_trim(as.character(latest_alzheimers_code)) != "",
-    has_vasc  = str_trim(as.character(latest_vascular_dementia_code)) != "",
-    has_other = str_trim(as.character(latest_other_dementia_code)) != ""
+    subcharacteristic = case_when(
+      is.na(subcharacteristic) ~ "Missing",
+      subcharacteristic == "" ~ "Missing",
+      subcharacteristic == "unknown" ~ "Missing",
+      TRUE ~ as.character(subcharacteristic)
+    )
   )
 
-alz_patients   <- df_dataset %>% filter(has_alz)   %>% pull(patient_id)
-vasc_patients  <- df_dataset %>% filter(has_vasc)  %>% pull(patient_id)
-other_patients <- df_dataset %>% filter(has_other) %>% pull(patient_id)
-
 #------------------------------------------------
-# Helper functions
+# Aggregate counts
 #------------------------------------------------
-
-# Continuous variables: mean (SD), rounded to nearest 10
-summarise_continuous <- function(df, var, label) {
-  m <- round(mean(df[[var]], na.rm = TRUE), -1)
-  s <- round(sd(df[[var]], na.rm = TRUE), -1)
-
-  tibble(
-    Variable = label,
-    Value = "",
-    Summary = sprintf("%d (%d)", m, s)
+table1 <- df_long %>%
+  group_by(characteristic, subcharacteristic) %>%
+  summarise(
+    N = n(),
+    exposed_N = sum(exposed, na.rm = TRUE),
+    .groups = "drop"
   )
-}
 
-# Categorical variables: n (%), rounded to nearest 10
-summarise_categorical <- function(df, var, label) {
-  total_n <- sum(!is.na(df[[var]]))  # % based on non-missing
+#------------------------------------------------
+# Convert N to character to avoid type mismatch
+#------------------------------------------------
+table1 <- table1 %>%
+  mutate(N = as.character(N), exposed_N = as.character(exposed_N))
 
-  df %>%
-    count(!!sym(var)) %>%
-    mutate(
-      n_rounded = round(n, -1),
-      pct_rounded = round(100 * n / total_n, -1),
-      Variable = label,
-      Value = as.character(!!sym(var)),
-      Summary = sprintf("%d (%d%%)", n_rounded, pct_rounded)
-    ) %>%
-    select(Variable, Value, Summary)
-}
 
-# Dementia summary (from subsets), rounded to nearest 10
-summarise_dementia <- function(alz_patients, vasc_patients, other_patients, total_n) {
-  raw_n <- c(length(unique(alz_patients)),
-             length(unique(vasc_patients)),
-             length(unique(other_patients)))
+# Sort table
+#------------------------------------------------
+table1 <- table1 %>%
+  arrange(characteristic, subcharacteristic)
 
+
+#------------------------------------------------
+# Calculate % of total
+#------------------------------------------------
+total_count <- table1 %>% filter(characteristic == "All") %>% pull(N) %>% as.numeric()
+
+table1 <- table1 %>%
+  mutate(
+    percent_of_total_population = if_else(
+      characteristic == "All" | subcharacteristic == "Median (IQR)",
+      "",
+      paste0(round(100 * as.numeric(N) / total_count, 1), "%")
+    ),
+    percent_exposed = if_else(
+      as.numeric(N) > 0,
+      paste0(round(100 * as.numeric(exposed_N) / as.numeric(N), 1), "%"),
+      ""
+    )
+  )
+
+# Add a median (IQR) age row 
+
+median_age <- median(df$cov_num_age, na.rm = TRUE)
+iqr_age <- IQR(df$cov_num_age, na.rm = TRUE)
+median_iqr_age <- paste0(
+  round(median_age, 1), " (", 
+  round(quantile(df$cov_num_age, 0.25, na.rm = TRUE), 1), "–",
+  round(quantile(df$cov_num_age, 0.75, na.rm = TRUE), 1), ")"
+)
+
+# Stick them together
+table1 <- bind_rows(
+  table1,
   tibble(
-    Variable = "Dementia type",
-    Value = c("Alzheimer's", "Vascular", "Other"),
-    n = raw_n
-  ) %>%
-    mutate(
-      n_rounded = round(n, -1),
-      pct_rounded = round(100 * n / total_n, -1),
-      Summary = sprintf("%d (%d%%)", n_rounded, pct_rounded)
-    ) %>%
-    select(Variable, Value, Summary)
-}
+    characteristic = "Age, years",
+    subcharacteristic = "Median (IQR)",
+    N = median_iqr_age
+  )
+)
 
-#------------------------------------------------
-# Build Table 1
-#------------------------------------------------
-total_n <- nrow(df_dataset)
-
-df_age      <- summarise_continuous(df_dataset, "cov_num_age", "Age")
-df_sex      <- summarise_categorical(df_dataset, "cov_cat_sex", "Sex")
-df_region   <- summarise_categorical(df_dataset, "cov_cat_region", "Region")
-df_dementia <- summarise_dementia(alz_patients, vasc_patients, other_patients, total_n)
-
-table1 <- bind_rows(df_age, df_sex, df_region, df_dementia)
 
 #------------------------------------------------
 # Save
 #------------------------------------------------
+dir.create(here("output", "tables"), recursive = TRUE, showWarnings = FALSE)
 write_csv(table1, here("output", "tables", "table1.csv"))
