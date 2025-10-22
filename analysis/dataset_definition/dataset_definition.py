@@ -8,9 +8,9 @@ from codelists import *
 ## Create dataset
 dataset = create_dataset()
 
-## Set start and end date (only looking at first period for now)
+## Set start and end date (only looking at first year for now)
 start_date = "2015-01-01"
-end_date = "2020-03-01"
+end_date = "2016-01-01"
 
 ## ---------------------------------
 ## Create variables for inclusion / exclusion criteria
@@ -57,6 +57,7 @@ dataset.qa_num_death_year = patients.date_of_death.year
 dataset.cov_num_age = patients.age_on(start_date)
 dataset.cov_cat_sex = patients.sex
 dataset.cov_cat_ethnicity = ethnicity_from_sus.code
+
 ### Deprivation
 dataset.cov_cat_imd = case(
         when((addresses.for_patient_on(start_date).imd_rounded >= 0) & 
@@ -73,7 +74,7 @@ dataset.cov_cat_imd = case(
 dataset.cov_cat_region = practice_registrations.for_patient_on(start_date).practice_nuts1_region_name
 
 # Date of first dementia diagnosis
-dataset.cov_dat_dem_diag = (
+dataset.cov_dat_dem = (
     clinical_events.where(clinical_events.snomedct_code.is_in(dementia_codelist))
     .where(clinical_events.date.is_on_or_before(end_date))
     .sort_by(clinical_events.date)
@@ -81,25 +82,25 @@ dataset.cov_dat_dem_diag = (
     .date)
 
 # Alzheimer's diagnosis
-dataset.cov_bin_alz_diag = (
+dataset.cov_bin_dem_alz = (
     clinical_events.where(clinical_events.snomedct_code.is_in(alzheimers_codelist))
     .where(clinical_events.date.is_on_or_before(end_date))
     ).exists_for_patient()
 
 # Vascular dementia diagnosis
-dataset.cov_bin_vasc_diag = (
+dataset.cov_bin_dem_vasc = (
     clinical_events.where(clinical_events.snomedct_code.is_in(vascular_dementia_codelist))
     .where(clinical_events.date.is_on_or_before(end_date))
     ).exists_for_patient()
 
 # "Other" dementia diagnosis
-dataset.cov_bin_other_diag = (
+dataset.cov_bin_dem_other = (
     clinical_events.where(clinical_events.snomedct_code.is_in(other_dementia_codelist))
     .where(clinical_events.date.is_on_or_before(end_date))
     ).exists_for_patient()
 
 #Date of CHD diagnosis
-dataset.cov_dat_chd_diag = (
+dataset.cov_dat_chd = (
     clinical_events.where(clinical_events.snomedct_code.is_in(chd_codelist))
     .where(clinical_events.date.is_on_or_before(end_date))
     .sort_by(clinical_events.date)
@@ -118,7 +119,7 @@ dataset.cov_bin_carehome = (
 ## Exposure and outcome variables to be added later
 
 ## Medication review variables
-dataset.exp_date_medication_review = (
+dataset.exp_date_med_rev = (
     clinical_events.where(clinical_events.snomedct_code.is_in(medication_review_codelist))
     .where(clinical_events.date.is_on_or_after(start_date))
     .where(clinical_events.date.is_on_or_before(end_date))

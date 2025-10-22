@@ -29,7 +29,7 @@ Deatils of the purpose for each file in this repository are outlined below
 
 - The [`project.yaml`](./project.yaml) file lists all actions to be run in OpenSAFELY and their run order
 
-- [`create_table1.R`](./analysis/table1/create_table1.R) generates a csv file for table one for the study.
+- [`create_table1.R`](./analysis/table1/create_table1.R) generates a csv file for table one for the study. This uses the output of [`dataset_clean.R`](./analysis/dataset_clean/dataset_clean.R) to describe the patient characteristics, displaying the proportion of study population in each variable category.
 
 
 

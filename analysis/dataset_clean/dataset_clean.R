@@ -11,16 +11,14 @@ print("Creating output/dataset_clean output folder")
 dataclean_dir <- "output/dataset_clean/"
 dir_create(here::here(dataclean_dir))
 
-## Specify redaction threshold -------------------------------------------------
-print("Specify redaction threshold")
-
 ## Load dataset
+print("Load dataset")
 dataset_clean <- read_csv(here("output", "dataset", "input.csv.gz"))
 
 ## Create object for flowchart
 flow <- data.frame(
   Description = "Input",
-  N = nrow(dataset_clean ),
+  N = nrow(dataset_clean),
   stringsAsFactors = FALSE
 )
 
@@ -31,21 +29,27 @@ lapply(
 )
 
 ## Modify dummy data
+print("Modifying dummy data")
 if (Sys.getenv("OPENSAFELY_BACKEND") %in% c("", "expectations")) {
   dataset_clean <- modify_dummy(dataset_clean)
 }
 
 ## Preprocess the data
+print("Preprocessing dataset")
 dataset_clean <- preprocess(dataset_clean)
 
 ## Run quality assurance script
+print("Running quality assurance")
 dataset_clean <- qa(dataset_clean)
 
-## Run inclusion and exlcusion criteria
+## Run inclusion and exclusion criteria
+print("Applying inclusion and exclusion criteria")
 dataset_clean <- inex(dataset_clean, flow)
 
 ## Saved cleaned dataset to output folder
+print("Saving cleaned dataset to output folder")
 write_csv(dataset_clean$input, here::here(dataclean_dir, "input_clean.csv.gz"))
 
-## Saved flowvchart data to output folder
+## Saved flowchart data to output folder
+print("Saving flowchart data to output folder")
 write_csv(dataset_clean$flow, here::here(dataclean_dir, "flow.csv"))
