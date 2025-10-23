@@ -144,8 +144,6 @@ table1 <- table1[table1$subcharacteristic != "Median (IQR)", ] # Remove Median I
 table1$total_midpoint6 <- roundmid_any(table1$N)
 table1$exposed_midpoint6 <- roundmid_any(table1$exposed_N)
 
-table1$N_midpoint6_derived <- table1$total_midpoint6
-
 table1$percent_midpoint6_derived <- paste0(
   ifelse(
     table1$characteristic == "All",
@@ -154,7 +152,7 @@ table1$percent_midpoint6_derived <- paste0(
       round(
         100 *
           (table1$total_midpoint6 /
-            table1[table1$characteristic == "All", "total_midpoint6"]),
+            (as.numeric(table1[table1$characteristic == "All", "total_midpoint6"]))),
         1
       ),
       "%"
@@ -162,20 +160,21 @@ table1$percent_midpoint6_derived <- paste0(
   )
 )
 
+table1$total_midpoint6 <- as.character(table1$total_midpoint6)
 table1 <- table1[, c(
   "characteristic",
   "subcharacteristic",
-  "N_midpoint6_derived",
+  "total_midpoint6",
   "percent_midpoint6_derived",
   "exposed_midpoint6"
 )]
 
-table1 <- bind_rows(
+table1 <- add_row(
   table1,
   tibble(
     characteristic = "Age, years",
     subcharacteristic = "Median (IQR)",
-    N = median_iqr_age
+    total_midpoint6 = median_iqr_age
   )
 )
 
@@ -183,9 +182,8 @@ table1 <- dplyr::rename(
   table1,
   "Characteristic" = "characteristic",
   "Subcharacteristic" = "subcharacteristic",
-  "N [midpoint6_derived]" = "N_midpoint6_derived",
+  "N [midpoint6_derived]" = "total_midpoint6",
   "(%) [midpoint6_derived]" = "percent_midpoint6_derived",
-  "COVID-19 diagnoses [midpoint6]" = "exposed_midpoint6"
 )
 
 # Save rounded / redacted table
