@@ -4,6 +4,8 @@ library(dplyr)
 library(stringr)
 library(fs)
 library(purrr)
+library(lubridate)
+library(tidyr)
 
 ## Define clean dataset output folder ------------------------------------------
 print("Creating output/dataset_clean output folder")
@@ -28,10 +30,12 @@ lapply(
   source
 )
 
+source("analysis/utility.R")
+
 ## Modify dummy data
-print("Modifying dummy data")
 if (Sys.getenv("OPENSAFELY_BACKEND") %in% c("", "expectations")) {
   dataset_clean <- modify_dummy(dataset_clean)
+  print("Modifying dummy data")
 }
 
 ## Preprocess the data
@@ -40,7 +44,13 @@ dataset_clean <- preprocess(dataset_clean)
 
 ## Run quality assurance script
 print("Running quality assurance")
-dataset_clean <- qa(dataset_clean)
+dataset_clean <- qa(dataset_clean, flow)
+flow <- dataset_clean$flow
+dataset_clean <- dataset_clean$input
+
+## Set reference levels and handle missing values
+print("Set reference levels and handle missing values")
+dataset_clean <- ref(dataset_clean)
 
 ## Run inclusion and exclusion criteria
 print("Applying inclusion and exclusion criteria")
