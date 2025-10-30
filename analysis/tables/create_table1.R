@@ -205,6 +205,8 @@ df <- dplyr::rename(
   "Subcharacteristic" = "subcharacteristic",
   "N [midpoint6_derived]" = "N_midpoint6_derived",
   "(%) [midpoint6_derived]" = "percent_midpoint6_derived",
+  "Exposed [midpoint6_derived]" = "exposed_midpoint6",
+  "Percent Exposed [midpoint6_derived]" = "percent_exposed_midpoint6_derived"
 )
 
 # Save rounded / redacted table
