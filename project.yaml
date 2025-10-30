@@ -15,3 +15,11 @@ actions:
         dataset: output/dataset_clean/input_clean.csv.gz
       moderately_sensitive:
         flow: output/dataset_clean/flow.csv
+  
+  create_table_1:
+   run: r:v2 analysis/tables/create_table1.R
+   needs: [clean_dataset]
+   outputs:
+     moderately_sensitive:
+       table_one: output/tables/table1.csv
+       table_one_midpoint6: output/tables/table1_midpoint6.csv
