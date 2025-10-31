@@ -12,6 +12,7 @@ source("analysis/utility.R")
 #------------------------------------------------
 # Load data
 #------------------------------------------------
+print("Load cleaned dataset")
 df <- read_csv(
   here("output", "dataset_clean", "input_clean.csv.gz"),
   show_col_types = FALSE
@@ -20,6 +21,7 @@ df <- read_csv(
 #------------------------------------------------
 # Create binary indicators for "cov_dat_" variables
 #------------------------------------------------
+print("Create derived binary variables")
 df <- df %>%
   mutate(
     across(starts_with("cov_dat_"), ~ !is.na(.x), .names = "{sub('dat', 'bin', .col)}"))
@@ -33,6 +35,7 @@ df$exposed <- !is.na(df$exp_date_med_rev)
 #------------------------------------------------
 # Select variables of interest (following naming convention)
 #------------------------------------------------
+print("Select variables of interest")
 df <- df %>%
   select(
     patient_id,
@@ -49,30 +52,43 @@ df <- df %>%
 #------------------------------------------------
 # Convert to long format: one row per characteristic/subcharacteristic
 #------------------------------------------------
+print("Convert to long format")
 df <- df %>%
   pivot_longer(
-    cols = -c(patient_id, exposed,cov_num_age),
+    cols = -c(patient_id, exposed, cov_num_age),
     names_to = "characteristic",
     values_to = "subcharacteristic"
-  ) %>%
+  )
 
 #------------------------------------------------
 # Clean missing data
 #------------------------------------------------
-
-  mutate(
-    subcharacteristic = case_when(
-      is.na(subcharacteristic) ~ "Missing",
-      subcharacteristic == "" ~ "Missing",
-      subcharacteristic == "unknown" ~ "Missing",
-      TRUE ~ as.character(subcharacteristic)
-    )
+print("Clean missing data")
+df <- df %>%
+mutate(
+  subcharacteristic = case_when(
+    is.na(subcharacteristic) ~ "Missing",
+    subcharacteristic == "" ~ "Missing",
+    subcharacteristic == "unknown" ~ "Missing",
+    TRUE ~ as.character(subcharacteristic)
   )
+)
+
+# Calculate median (IQR) age 
+print("Calculate median (IQR) age")
+median_age <- median(df$cov_num_age, na.rm = TRUE)
+iqr_age <- IQR(df$cov_num_age, na.rm = TRUE)
+median_iqr_age <- paste0(
+  round(median_age, 1), " (", 
+  round(quantile(df$cov_num_age, 0.25, na.rm = TRUE), 1), "-",
+  round(quantile(df$cov_num_age, 0.75, na.rm = TRUE), 1), ")"
+)
 
 #------------------------------------------------
 # Aggregate counts
 #------------------------------------------------
-table1 <- df %>%
+print("Aggregate counts")
+df <- df %>%
   group_by(characteristic, subcharacteristic) %>%
   summarise(
     N = n(),
@@ -81,18 +97,19 @@ table1 <- df %>%
   ) %>%
 
 
-  # Convert N to character to avoid type mismatch
-  mutate(N = as.character(N), exposed_N = as.character(exposed_N)) %>%
-  
-  #Sort table
-  arrange(characteristic, subcharacteristic)
+#Convert N to character to avoid type mismatch
+mutate(N = as.character(N), exposed_N = as.character(exposed_N)) %>%
+
+#Sort table
+arrange(characteristic, subcharacteristic)
 
 #------------------------------------------------
 # Calculate % of total
 #------------------------------------------------
-total_count <- as.numeric(table1$N[table1$characteristic == "All"][1])
+print("Calculate percentages")
+total_count <- as.numeric(df$N[df$characteristic == "All"][1])
 
-table1 <- table1 %>%
+df <- df %>%
   mutate(
     percent_of_total_population = if_else(
       characteristic == "All" | subcharacteristic == "Median (IQR)",
@@ -106,19 +123,9 @@ table1 <- table1 %>%
     )
   )
 
-# Add a median (IQR) age row 
-
-median_age <- median(df$cov_num_age, na.rm = TRUE)
-iqr_age <- IQR(df$cov_num_age, na.rm = TRUE)
-median_iqr_age <- paste0(
-  round(median_age, 1), " (", 
-  round(quantile(df$cov_num_age, 0.25, na.rm = TRUE), 1), "-",
-  round(quantile(df$cov_num_age, 0.75, na.rm = TRUE), 1), ")"
-)
-
 # Stick them together
-table1 <- bind_rows(
-  table1,
+df <- bind_rows(
+  df,
   tibble(
     characteristic = "Age, years",
     subcharacteristic = "Median (IQR)",
@@ -130,8 +137,9 @@ table1 <- bind_rows(
 #------------------------------------------------
 # Save
 #------------------------------------------------
+print("Save table 1 to output/tables")
 dir.create(here("output", "tables"), recursive = TRUE, showWarnings = FALSE)
-write_csv(table1, here("output", "tables", "table1.csv"))
+write_csv(df, here("output", "tables", "table1.csv"))
 
 
 #------------------------------------------------
@@ -139,22 +147,21 @@ write_csv(table1, here("output", "tables", "table1.csv"))
 #------------------------------------------------
 print("Creating redacted / midpoint rounded version of table 1")
 
-table1 <- table1[table1$subcharacteristic != "Median (IQR)", ] # Remove Median IQR row
+df <- df[df$subcharacteristic != "Median (IQR)", ] # Remove Median IQR row
 
-table1$total_midpoint6 <- roundmid_any(table1$N)
-table1$exposed_midpoint6 <- roundmid_any(table1$exposed_N)
+df$N_midpoint6_derived <- roundmid_any(df$N)
+df$exposed_midpoint6 <- roundmid_any(df$exposed_N)
 
-table1$N_midpoint6_derived <- table1$total_midpoint6
 
-table1$percent_midpoint6_derived <- paste0(
+df$percent_midpoint6_derived <- paste0(
   ifelse(
-    table1$characteristic == "All",
+    df$characteristic == "All",
     "",
     paste0(
       round(
         100 *
-          (table1$total_midpoint6 /
-            table1[table1$characteristic == "All", "total_midpoint6"]),
+          (df$N_midpoint6_derived /
+            (as.numeric(df[df$characteristic == "All", "N_midpoint6_derived"]))),
         1
       ),
       "%"
@@ -162,32 +169,46 @@ table1$percent_midpoint6_derived <- paste0(
   )
 )
 
-table1 <- table1[, c(
+df$percent_exposed_midpoint6_derived <- paste0(if_else(
+      as.numeric(df$N_midpoint6_derived) > 0,
+      paste0(round(100 * as.numeric(df$exposed_midpoint6) / as.numeric(df$N_midpoint6_derived), 1), "%"),
+      ""
+    ))
+
+df <- df[, c(
   "characteristic",
   "subcharacteristic",
   "N_midpoint6_derived",
   "percent_midpoint6_derived",
-  "exposed_midpoint6"
+  "exposed_midpoint6",
+  "percent_exposed_midpoint6_derived"
 )]
 
-table1 <- bind_rows(
-  table1,
+df <- df %>%
+  mutate(
+    N_midpoint6_derived = as.character(N_midpoint6_derived),
+    exposed_midpoint6 = as.character(exposed_midpoint6)
+  )
+
+df <- bind_rows(
+  df,
   tibble(
     characteristic = "Age, years",
     subcharacteristic = "Median (IQR)",
-    N = median_iqr_age
+    N_midpoint6_derived = median_iqr_age
   )
 )
 
-table1 <- dplyr::rename(
-  table1,
+df <- dplyr::rename(
+  df,
   "Characteristic" = "characteristic",
   "Subcharacteristic" = "subcharacteristic",
   "N [midpoint6_derived]" = "N_midpoint6_derived",
   "(%) [midpoint6_derived]" = "percent_midpoint6_derived",
-  "COVID-19 diagnoses [midpoint6]" = "exposed_midpoint6"
+  "Exposed [midpoint6_derived]" = "exposed_midpoint6",
+  "Percent Exposed [midpoint6_derived]" = "percent_exposed_midpoint6_derived"
 )
 
 # Save rounded / redacted table
-write_csv(table1, here("output", "tables", "table1_midpoint6.csv"))
-
+print("Save redacted / midpoint rounded table 1 to output/tables")
+write_csv(df, here("output", "tables", "table1_midpoint6.csv"))
