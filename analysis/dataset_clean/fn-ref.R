@@ -34,9 +34,30 @@ ref <- function(input) {
   if ("cov_cat_ethnicity" %in% names(input)) {
     print("Handle missing values in cov_cat_ethnicity")
     input$cov_cat_ethnicity <- if_else(
-      input$cov_cat_ethnicity %in% c("A", "B", "C", "D", "E","F", "G", "H", "I", "J", "K", "L", "M","N", "O", "P", "Q", "R", "S"),
+      input$cov_cat_ethnicity %in% c("1", "2", "3", "4", "5"),
       input$cov_cat_ethnicity,
-      "NA"
+      "0"
+    )
+  }
+
+  # Handle missing values in cov_cat_region ---------------------------------
+
+  if ("cov_cat_region" %in% names(input)) {
+    print("Handle missing values in cov_cat_region")
+    input$cov_cat_region <- if_else(
+      input$cov_cat_region %in% c(
+        "East",
+        "East Midlands",
+        "London",
+        "North East",
+        "North West",
+        "South East",
+        "South West",
+        "West Midlands",
+        "Yorkshire and The Humber"
+      ),
+      input$cov_cat_region,
+      "missing"
     )
   }
 
@@ -57,7 +78,40 @@ ref <- function(input) {
     function(x) factor(x, ordered = FALSE)
   )
 
-  # Set reference level for variable: cov_cat_ethnicity (will do this later)
+
+  # Set reference level for variable: cov_cat_ethnicity --------------------
+
+  if ("cov_cat_ethnicity" %in% names(input)) {
+    print("Set reference level for variable: cov_cat_ethnicity")
+    levels(input$cov_cat_ethnicity) <- list(
+      "Missing" = "0",
+      "White" = "1",
+      "Mixed" = "2",
+      "Asian" = "3",
+      "Black" = "4",
+      "Other" = "5"
+    )
+    input$cov_cat_ethnicity <- relevel(input$cov_cat_ethnicity, ref = "White")
+  }
+
+  # Set reference level for variable: cov_cat_region ---------------------------
+  if ("cov_cat_region" %in% names(input)) {
+    print("Set reference level for variable: cov_cat_region")
+    input$cov_cat_region <- ordered(
+      input$cov_cat_region,
+      levels = c(
+        "East",
+        "East Midlands",
+        "London",
+        "North East",
+        "North West",
+        "South East",
+        "South West",
+        "West Midlands",
+        "Yorkshire and The Humber"
+      )
+    )
+  }
 
   # Set reference level for variable: cov_cat_imd ------------------------------
 
@@ -84,5 +138,9 @@ ref <- function(input) {
     function(x) factor(x, levels = c("FALSE", "TRUE"))
   )
 
+  #Describe data ----
+  print("Describe data")
+
+  describe_data(df = input, name = "ref_dataset")
   return(input)
 }

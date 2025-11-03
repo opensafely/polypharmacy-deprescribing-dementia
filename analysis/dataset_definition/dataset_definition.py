@@ -56,7 +56,17 @@ dataset.qa_num_death_year = patients.date_of_death.year
 ## Create covariates
 dataset.cov_num_age = patients.age_on(start_date)
 dataset.cov_cat_sex = patients.sex
-dataset.cov_cat_ethnicity = ethnicity_from_sus.code
+
+### Ethnicity
+tmp_cov_cat_ethnicity = (
+    clinical_events.where(clinical_events.snomedct_code.is_in(ethnicity_snomed))
+    .where(clinical_events.date.is_on_or_before(start_date))
+    .sort_by(clinical_events.date)
+    .last_for_patient()
+    .snomedct_code
+)
+
+dataset.cov_cat_ethnicity = tmp_cov_cat_ethnicity.to_category(ethnicity_snomed)
 
 ### Deprivation
 dataset.cov_cat_imd = case(

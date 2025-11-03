@@ -1,22 +1,19 @@
 preprocess <- function(df) {
   df_dataset <- df
   # Get column names ----
-  print('Get column names')
+  print("Get column names")
   all_cols <- colnames(df)
 
   message("Column names found")
   print(all_cols)
 
   # Define column classes ----
-  print('Define column classes')
+  print("Define column classes")
 
   cat_cols <- c("patient_id", grep("_cat", all_cols, value = TRUE))
   bin_cols <- c(grep("_bin", all_cols, value = TRUE))
-  num_cols <- c(
-    grep("_num", all_cols, value = TRUE),
-    grep("vax_jcvi_age_", all_cols, value = TRUE)
-  )
-  date_cols <- grep("_date", all_cols, value = TRUE)
+  num_cols <- c(grep("_num", all_cols, value = TRUE))
+  date_cols <- grep("_dat", all_cols, value = TRUE)
 
   message("Column classes identified")
 
@@ -50,7 +47,6 @@ preprocess <- function(df) {
     select(
       patient_id,
       starts_with("exp_"),
-      starts_with("out_"),
       starts_with("cov_"),
       starts_with("inex_"),
       starts_with("qa_"),

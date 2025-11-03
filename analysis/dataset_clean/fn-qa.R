@@ -2,7 +2,7 @@ qa <- function(input, flow) {
   # Apply quality assurance to dataset
 
   # Remove records with missing patient id ----
-  print('Remove records with missing patient id')
+  print("Remove records with missing patient id")
   input <- input[!is.na(input$patient_id), ]
   flow[nrow(flow) + 1, ] <- c(
     "Quality assurance: Removed records with missing patient id",
@@ -30,13 +30,10 @@ qa <- function(input, flow) {
   )
   print(flow[nrow(flow), ])
 
-  # Missing sex
-  input <- subset(input, cov_cat_sex == "female" | cov_cat_sex == "male" | cov_cat_sex == "intersex")
-  flow[nrow(flow) + 1, ] <- c("Quality assurance: Known sex", nrow(input))
+  #Describe data ----
+  print("Describe data")
 
-  # Missing IMD
-  input <- subset(input, cov_cat_imd %in% c("1 (most deprived)", "2", "3", "4", "5 (least deprived)"))
-  flow[nrow(flow) + 1, ] <- c("Quality assurance: Known IMD", nrow(input))
-  
+  describe_data(df = input, name = "qa_dataset")
+
   return(list(input = input, flow = flow))
 }
