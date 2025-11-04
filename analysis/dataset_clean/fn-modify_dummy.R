@@ -50,7 +50,7 @@ modify_dummy <- function(df) {
 
     ## Recalculate birth year based on new age
     mutate(
-      qa_num_birth_year = as.numeric(format(as.Date("01-01-2015"), "%Y")) -
+      qa_num_birth_year = as.numeric(format(as.Date(start_date), "%Y")) -
         cov_num_age
     ) %>%
 
