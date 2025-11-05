@@ -5,21 +5,29 @@ modify_dummy <- function(df) {
   df <- df %>%
 
     mutate(
+      patient_id = ifelse(
+        row_number() %in% sample(n(), size = ceiling(0.002 * n())),
+        NA_character_,  # or "" if you prefer blank string
+        patient_id
+      )
+    ) %>%
+
+    mutate(
       inex_bin_alive         = rbinom(n(), 1, 0.99) == 1,
       inex_bin_6m_reg        = rbinom(n(), 1, 0.99) == 1,
       inex_bin_antihyp = rbinom(n(), 1, 0.75) == 1,
-      cov_bin_carehome = rbinom(n(), 1, 0.2) == 1
+      cov_bin_carehome = rbinom(n(), 1, 0.2) == 1,
     ) %>%
 
     ## Ethnicity
     mutate(
       cov_cat_ethnicity = sample(
-        x = c("0", "1", "2", "3", "4", "5"),
+        x = c("NA", "1", "2", "3", "4", "5"),
         size = nrow(.),
         replace = TRUE,
         prob = c(0.25, 0.15, 0.15, 0.15, 0.15, 0.15) # %15% for each category
       ),
-      inex_bin_known_ethnicity = cov_cat_ethnicity != "0"
+      inex_bin_known_ethnicity = cov_cat_ethnicity != "NA"
     ) %>%
 
     ## Sex
@@ -45,13 +53,21 @@ modify_dummy <- function(df) {
       )
     ) %>%
 
+    mutate(
+      cov_num_age = ifelse(
+        row_number() %in% sample(n(), size = ceiling(0.01 * n())),
+        "-30",  # or "" if you prefer blank string
+        cov_num_age
+      )
+    ) %>%
+
     ## Define over-64 indicator consistently
-    mutate(inex_bin_over_64 = cov_num_age >= 65) %>%
+    mutate(inex_bin_over_64 = as.numeric(cov_num_age) >= 65) %>%
 
     ## Recalculate birth year based on new age
     mutate(
       qa_num_birth_year = as.numeric(format(as.Date(start_date), "%Y")) -
-        cov_num_age
+        as.numeric(cov_num_age)
     ) %>%
 
     ## Region

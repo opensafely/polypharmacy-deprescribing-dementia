@@ -1,5 +1,6 @@
 from ehrql.tables.tpp import patients, practice_registrations, clinical_events, addresses, ethnicity_from_sus, medications, ons_deaths
 from ehrql import create_dataset, codelist_from_csv, days, case, when, minimum_of, show
+from datetime import date
 
 
 # Codelists from codelists.py (which pulls all variables from the codelist folder)
@@ -50,7 +51,9 @@ dataset.inex_bin_known_region = practice_registrations.for_patient_on(start_date
 ## ---------------------------------
 ## Create variables for data quality checks
 dataset.qa_num_birth_year = patients.date_of_birth.year
+
 dataset.qa_num_death_year = patients.date_of_death.year
+
 
 ## ---------------------------------
 ## Create covariates

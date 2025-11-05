@@ -40,18 +40,6 @@ preprocess <- function(df) {
       across(all_of(cat_cols), ~ as.character(.))
     )
 
-  # Select relevant columns ----
-  print("Select relevant columns")
-
-  df <- df %>%
-    select(
-      patient_id,
-      starts_with("exp_"),
-      starts_with("cov_"),
-      starts_with("inex_"),
-      starts_with("qa_"),
-    )
-
   #Describe data ----
   print("Describe data")
 
