@@ -47,7 +47,6 @@ dataset.inex_bin_known_imd = (addresses.for_patient_on(start_date).imd_rounded >
 #Known region
 dataset.inex_bin_known_region = practice_registrations.for_patient_on(start_date).practice_nuts1_region_name != ""
 
-
 ## ---------------------------------
 ## Create variables for data quality checks
 dataset.qa_num_birth_year = patients.date_of_birth.year
@@ -63,12 +62,11 @@ dataset.cov_cat_sex = patients.sex
 ### Ethnicity
 tmp_cov_cat_ethnicity = (
     clinical_events.where(clinical_events.snomedct_code.is_in(ethnicity_snomed))
-    .where(clinical_events.date.is_on_or_before(start_date))
     .sort_by(clinical_events.date)
     .last_for_patient()
     .snomedct_code
 )
-
+ 
 dataset.cov_cat_ethnicity = tmp_cov_cat_ethnicity.to_category(ethnicity_snomed)
 
 ### Deprivation

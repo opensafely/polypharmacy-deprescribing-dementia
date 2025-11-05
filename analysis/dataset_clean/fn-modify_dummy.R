@@ -27,7 +27,6 @@ modify_dummy <- function(df) {
         replace = TRUE,
         prob = c(0.25, 0.15, 0.15, 0.15, 0.15, 0.15) # %15% for each category
       ),
-      inex_bin_known_ethnicity = cov_cat_ethnicity != "NA"
     ) %>%
 
     ## Sex
