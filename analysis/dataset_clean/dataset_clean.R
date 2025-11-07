@@ -66,7 +66,7 @@ dataset_clean <- ref(dataset_clean)
 
 ## Saved cleaned dataset to output folder
 print("Saving cleaned dataset to output folder")
-write_csv(dataset_clean, here::here(dataclean_dir, "input_clean.csv.gz"))
+write_csv(dataset_clean, here::here(dataclean_dir, "input_clean.rds"))
 
 ## Saved flowchart data to output folder
 print("Saving flowchart data to output folder")

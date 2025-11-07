@@ -14,7 +14,7 @@ source("analysis/utility.R")
 #------------------------------------------------
 print("Load cleaned dataset")
 df <- read_csv(
-  here("output", "dataset_clean", "input_clean.csv.gz"),
+  here("output", "dataset_clean", "input_clean.rds"),
   show_col_types = FALSE
 )
 

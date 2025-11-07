@@ -12,7 +12,7 @@ actions:
     needs: [generate_dataset]
     outputs:
       highly_sensitive:
-        dataset: output/dataset_clean/input_clean.csv.gz
+        dataset: output/dataset_clean/input_clean.rds
       moderately_sensitive:
         flow: output/dataset_clean/flow.csv
   
