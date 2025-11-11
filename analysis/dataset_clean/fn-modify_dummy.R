@@ -1,4 +1,7 @@
 modify_dummy <- function(df) {
+if (Sys.getenv("OPENSAFELY_BACKEND") %in% c("", "expectations")) {
+  print("Modifying dummy data")
+  
   # Set seed -------------------------------------------------------------------
   set.seed(1)
 
@@ -176,4 +179,5 @@ modify_dummy <- function(df) {
   describe_data(df = df, name = "modified_dataset")
   return(df)
 
+  } else return(df)
 }
