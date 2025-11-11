@@ -16,7 +16,7 @@ actions:
       moderately_sensitive:
         flow: output/dataset_clean/flow.csv
         describe_inex: output/describe/inex_dataset.txt
-        ##describe_modified: output/describe/modified_dataset.txt
+        describe_modified: output/describe/modified_dataset.txt
         describe_preprocessed: output/describe/preprocessed_dataset.txt
         describe_qa: output/describe/qa_dataset.txt
         describe_ref: output/describe/ref_dataset.txt
