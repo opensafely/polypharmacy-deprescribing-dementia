@@ -13,10 +13,8 @@ source("analysis/utility.R")
 # Load data
 #------------------------------------------------
 print("Load cleaned dataset")
-df <- read_csv(
-  here("output", "dataset_clean", "input_clean.rds"),
-  show_col_types = FALSE
-)
+df <- readr::read_rds(here("output", "dataset_clean", "input_clean.rds"))
+
 
 #------------------------------------------------
 # Create binary indicators for "cov_dat_" variables

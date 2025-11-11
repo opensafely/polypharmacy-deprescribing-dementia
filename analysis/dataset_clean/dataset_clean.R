@@ -35,11 +35,11 @@ lapply(
 
 source("analysis/utility.R")
 
-## Modify dummy data
-if (Sys.getenv("OPENSAFELY_BACKEND") %in% c("", "expectations")) {
-  dataset_clean <- modify_dummy(dataset_clean)
-  print("Modifying dummy data")
-}
+# ## Modify dummy data
+# if (Sys.getenv("OPENSAFELY_BACKEND") %in% c("", "expectations")) {
+#   dataset_clean <- modify_dummy(dataset_clean)
+#   print("Modifying dummy data")
+# }
 
 ## Preprocess the data
 print("Preprocessing dataset")
@@ -66,7 +66,11 @@ dataset_clean <- ref(dataset_clean)
 
 ## Saved cleaned dataset to output folder
 print("Saving cleaned dataset to output folder")
-write_csv(dataset_clean, here::here(dataclean_dir, "input_clean.rds"))
+
+saveRDS(dataset_clean,
+        file = here::here(dataclean_dir, "input_clean.rds"),
+        compress = TRUE)
+
 
 ## Saved flowchart data to output folder
 print("Saving flowchart data to output folder")
