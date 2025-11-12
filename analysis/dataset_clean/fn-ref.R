@@ -126,7 +126,7 @@ ref <- function(input) {
 
   if ("cov_cat_sex" %in% names(input)) {
     print("Set reference level for variable: cov_cat_sex")
-    levels(input$cov_cat_sex) <- list("Female" = "female", "Male" = "male")
+    levels(input$cov_cat_sex) <- list("Female" = "female", "Male" = "male", "Intersex" = "intersex")
     input$cov_cat_sex <- relevel(input$cov_cat_sex, ref = "Female")
   }
 

@@ -36,7 +36,10 @@ lapply(
 source("analysis/utility.R")
 
 ## Modify dummy data
-dataset_clean <- modify_dummy(dataset_clean)
+print("Modifying dummy data")
+if (Sys.getenv("OPENSAFELY_BACKEND") %in% c("", "expectations")) {
+  dataset_clean <- modify_dummy(dataset_clean)
+}
 
 ## Preprocess the data
 print("Preprocessing dataset")

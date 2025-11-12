@@ -1,7 +1,5 @@
 modify_dummy <- function(df) {
-if (Sys.getenv("OPENSAFELY_BACKEND") %in% c("", "expectations")) {
-  print("Modifying dummy data")
-  
+
   # Set seed -------------------------------------------------------------------
   set.seed(1)
 
@@ -10,7 +8,7 @@ if (Sys.getenv("OPENSAFELY_BACKEND") %in% c("", "expectations")) {
     mutate(
       patient_id = ifelse(
         row_number() %in% sample(n(), size = ceiling(0.002 * n())),
-        NA_character_,  # or "" if you prefer blank string
+        NA_character_,  
         patient_id
       )
     ) %>%
@@ -176,8 +174,6 @@ if (Sys.getenv("OPENSAFELY_BACKEND") %in% c("", "expectations")) {
   #Describe data ----
   print("Describe data")
 
-  describe_data(df = df, name = "modified_dataset")
   return(df)
 
-  } else return(df)
 }
