@@ -1,6 +1,7 @@
 from ehrql.tables.tpp import patients, practice_registrations, clinical_events, addresses, ethnicity_from_sus, medications, ons_deaths
 from ehrql import create_dataset, codelist_from_csv, days, case, when, minimum_of, show
 from datetime import date
+from analysis.helper_functions import get_prescription_dates, get_prescription_gaps
 
 
 # Codelists from codelists.py (which pulls all variables from the codelist folder)
@@ -137,6 +138,20 @@ dataset.exp_date_med_rev = (
     .sort_by(clinical_events.date)
     .first_for_patient()
     .date)
+
+## Date of first antihypertensive medication 
+dataset.out_dat_first_ah_med = (
+    medications.where(medications.dmd_code.is_in(antihypertensive_codelist))
+    .where(medications.date.is_after(start_date))
+    .where(medications.date.is_on_or_before(end_date))
+    .sort_by(medications.date)
+    .first_for_patient()
+    .date)
+
+## Number of days between prescription dates of antihypertensives
+## get_prescription_dates(antihypertensive_codelist, start_date, end_date, 10, dataset) ## Used this to test get_prescription_gaps
+get_prescription_gaps(antihypertensive_codelist, start_date, end_date, 10, dataset)
+
 
 ##Define population
 dataset.configure_dummy_data(population_size=1000)

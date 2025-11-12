@@ -169,10 +169,13 @@ modify_dummy <- function(df) {
         cov_bin_dem_other
       )
     ) %>%
-    ungroup() 
+    ungroup() %>%
 
-  #Describe data ----
-  print("Describe data")
+    mutate(
+      across(starts_with("out_cnt_gap_"),
+             ~ sample(0:10, n(), replace = TRUE, prob = rev(1:11)))
+    )
+
 
   return(df)
 
