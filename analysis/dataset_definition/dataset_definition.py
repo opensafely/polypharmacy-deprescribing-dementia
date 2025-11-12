@@ -1,7 +1,12 @@
-from ehrql.tables.tpp import patients, practice_registrations, clinical_events, addresses, ethnicity_from_sus, medications, ons_deaths
+from ehrql.tables.tpp import patients, practice_registrations, clinical_events, addresses, ethnicity_from_sus, medications, ons_deaths, apcs
 from ehrql import create_dataset, codelist_from_csv, days, case, when, minimum_of, show
 from datetime import date
-
+from analysis.dataset_definition.variable_helper_functions import (
+    get_prescription_dates, 
+    get_prescription_gaps,
+    last_matching_event_clinical_snomed_before,
+    last_matching_event_apc_before
+)
 
 # Codelists from codelists.py (which pulls all variables from the codelist folder)
 from codelists import *
@@ -110,6 +115,17 @@ dataset.cov_bin_dem_other = (
     .where(clinical_events.date.is_on_or_before(end_date))
     ).exists_for_patient()
 
+# Acute MI diagnosis
+dataset.cov_bin_ami = (
+        (last_matching_event_clinical_snomed_before(
+            ami_snomed, start_date
+        ).exists_for_patient()) |
+        (last_matching_event_apc_before(
+            ami_icd10 + ami_prior_icd10, start_date
+        ).exists_for_patient())
+    )
+
+
 #Date of CHD diagnosis
 dataset.cov_dat_chd = (
     clinical_events.where(clinical_events.snomedct_code.is_in(chd_codelist))
@@ -125,9 +141,15 @@ dataset.cov_bin_carehome = (
         addresses.for_patient_on(start_date).care_home_does_not_require_nursing
     )
 
+# Number of different medications prescribed in the year prior to start date
+dataset.cov_num_medication_count = ( 
+    medications.where(medications.date.is_on_or_before(start_date))
+    .where(medications.date.is_after(start_date - days(365)))
+    .dmd_code 
+    .count_distinct_for_patient())
 
 ## ---------------------------------
-## Exposure and outcome variables to be added later
+## Exposure variable
 
 ## Medication review variables
 dataset.exp_date_med_rev = (
@@ -137,6 +159,32 @@ dataset.exp_date_med_rev = (
     .sort_by(clinical_events.date)
     .first_for_patient()
     .date)
+
+## Outcome Variables
+## Date of next antihypertensive medication after medication review
+dataset.out_dat_next_ah_med = (
+    medications.where(medications.dmd_code.is_in(antihypertensive_codelist))
+    .where(medications.date.is_after(dataset.exp_date_med_rev))
+    .where(medications.date.is_on_or_before(end_date))
+    .sort_by(medications.date)
+    .first_for_patient()
+    .date)
+
+## Date of previous antihypertensive medication before medication review
+dataset.out_dat_prev_ah_med = (
+    medications.where(medications.dmd_code.is_in(antihypertensive_codelist))
+    .where(medications.date.is_before(dataset.exp_date_med_rev))
+    .where(medications.date.is_on_or_after(start_date))
+    .sort_by(medications.date)
+    .last_for_patient()
+    .date)
+
+
+## Number of days between prescription dates of antihypertensives
+get_prescription_gaps(antihypertensive_codelist, start_date, end_date, 10, dataset)
+
+## get_prescription_dates(antihypertensive_codelist, start_date, end_date, 10, dataset) ## Used this to test get_prescription_gaps
+
 
 ##Define population
 dataset.configure_dummy_data(population_size=1000)

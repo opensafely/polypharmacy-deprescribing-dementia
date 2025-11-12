@@ -82,3 +82,17 @@ strk_codelist = codelist_from_csv(
     "codelists/nhsd-primary-care-domain-refsets-strk_cod.csv",
     column="code"
 )
+
+# AMI (Acute Myocardial Infarction)
+ami_snomed = codelist_from_csv(
+  "codelists/user-elsie_horne-ami_snomed.csv",
+  column = "code"
+)
+ami_icd10 = codelist_from_csv(
+  "codelists/user-RochelleKnight-ami_icd10.csv",
+  column = "code"
+)
+ami_prior_icd10 = codelist_from_csv(
+  "codelists/user-elsie_horne-ami_prior_icd10.csv",
+  column = "code"
+)
