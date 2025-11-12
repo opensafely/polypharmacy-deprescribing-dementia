@@ -171,9 +171,6 @@ modify_dummy <- function(df) {
     ) %>%
     ungroup() 
 
-  #Describe data ----
-  print("Describe data")
-
   return(df)
 
 }
