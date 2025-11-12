@@ -86,3 +86,25 @@ def last_matching_event_apc_before(codelist, start_date, only_prim_diagnoses=Fal
     else:
         query = query.where(apcs.all_diagnoses.contains_any_of(codelist))
     return query.sort_by(apcs.admission_date).last_for_patient()
+
+## Helper function to get most recent matching clinical event before a given date 
+def last_matching_event_clinical_ctv3_before(codelist, start_date, where=True):
+    return(
+        clinical_events.where(where)
+        .where(clinical_events.ctv3_code.is_in(codelist))
+        .where(clinical_events.date.is_before(start_date))
+        .sort_by(clinical_events.date)
+        .last_for_patient()
+    )
+
+## Helper function to get any matching clinical event before a given date
+def ever_matching_event_clinical_ctv3_before(codelist, start_date, where=True):
+    return(
+        clinical_events.where(where)
+        .where(clinical_events.ctv3_code.is_in(codelist))
+        .where(clinical_events.date.is_before(start_date))
+    )
+
+# filter a codelist based on whether its values included a specified set of allowed values (include)
+def filter_codes_by_category(codelist, include):
+    return {k:v for k,v in codelist.items() if v in include}

@@ -96,3 +96,49 @@ ami_prior_icd10 = codelist_from_csv(
   "codelists/user-elsie_horne-ami_prior_icd10.csv",
   column = "code"
 )
+
+# Stroke Ischaemic (Ischaemic Stroke)
+stroke_isch_snomed = codelist_from_csv(
+  "codelists/user-elsie_horne-stroke_isch_snomed.csv",
+  column = "code"
+)
+stroke_isch_icd10 = codelist_from_csv(
+  "codelists/user-RochelleKnight-stroke_isch_icd10.csv",
+  column = "code"
+)
+
+# Cancer
+cancer_snomed = codelist_from_csv(
+  "codelists/user-elsie_horne-cancer_snomed.csv",
+  column = "code"
+)
+cancer_icd10 = codelist_from_csv(
+  "codelists/user-elsie_horne-cancer_icd10.csv",
+  column = "code"
+)
+
+# Hypertension
+hypertension_icd10 = codelist_from_csv(
+  "codelists/user-elsie_horne-hypertension_icd10.csv",
+  column = "code"
+)
+hypertension_snomed = codelist_from_csv(
+  "codelists/nhsd-primary-care-domain-refsets-hyp_cod.csv",
+  column = "code"
+)
+
+# Smoking
+smoking_clear = codelist_from_csv(
+  "codelists/opensafely-smoking-clear.csv",
+  column = "CTV3Code",
+  category_column = "Category"
+)
+smoking_unclear = codelist_from_csv(
+  "codelists/opensafely-smoking-unclear.csv",
+  column = "CTV3Code",
+  category_column = "Category"
+)
+ever_current_smoke = codelist_from_csv(
+  "codelists/bristol-smoke-and-eversmoke.csv",
+  column = "code"
+)

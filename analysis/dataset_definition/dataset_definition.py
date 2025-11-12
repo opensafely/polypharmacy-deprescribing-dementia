@@ -5,7 +5,10 @@ from analysis.dataset_definition.variable_helper_functions import (
     get_prescription_dates, 
     get_prescription_gaps,
     last_matching_event_clinical_snomed_before,
-    last_matching_event_apc_before
+    last_matching_event_apc_before,
+    last_matching_event_clinical_ctv3_before,
+    ever_matching_event_clinical_ctv3_before,
+    filter_codes_by_category
 )
 
 # Codelists from codelists.py (which pulls all variables from the codelist folder)
@@ -125,6 +128,15 @@ dataset.cov_bin_ami = (
         ).exists_for_patient())
     )
 
+### Ischaemic stroke
+dataset.cov_bin_stroke_isch = (
+    (last_matching_event_clinical_snomed_before(
+        stroke_isch_snomed, start_date
+    ).exists_for_patient()) |
+    (last_matching_event_apc_before(
+        stroke_isch_icd10, start_date
+    ).exists_for_patient())
+)
 
 #Date of CHD diagnosis
 dataset.cov_dat_chd = (
@@ -134,6 +146,26 @@ dataset.cov_dat_chd = (
     .first_for_patient()
     .date)
 
+### Cancer
+dataset.cov_bin_cancer = (
+    (last_matching_event_clinical_snomed_before(
+        cancer_snomed, start_date
+    ).exists_for_patient()) |
+    (last_matching_event_apc_before(
+        cancer_icd10, start_date
+    ).exists_for_patient())
+)
+
+### Hypertension (Also used for high vascular risk covariate)
+dataset.cov_bin_hypertension = (
+    (last_matching_event_clinical_snomed_before(
+        hypertension_snomed, start_date
+    ).exists_for_patient()) |
+    (last_matching_event_apc_before(
+        hypertension_icd10, start_date
+    ).exists_for_patient())
+)
+
 # Care home status
 dataset.cov_bin_carehome = (
         addresses.for_patient_on(start_date).care_home_is_potential_match |
@@ -141,12 +173,36 @@ dataset.cov_bin_carehome = (
         addresses.for_patient_on(start_date).care_home_does_not_require_nursing
     )
 
+### Smoking status
+tmp_most_recent_smoking_cat = (
+    last_matching_event_clinical_ctv3_before(smoking_clear, start_date)
+    .ctv3_code.to_category(smoking_clear)
+)
+tmp_ever_smoked = ever_matching_event_clinical_ctv3_before(
+    (filter_codes_by_category(smoking_clear, include=["S", "E"])), start_date
+    ).exists_for_patient()
+
+dataset.cov_cat_smoking = case(
+    when(tmp_most_recent_smoking_cat == "S").then("S"),
+    when((tmp_most_recent_smoking_cat == "E") | ((tmp_most_recent_smoking_cat == "N") & (tmp_ever_smoked == True))).then("E"),
+    when((tmp_most_recent_smoking_cat == "N") & (tmp_ever_smoked == False)).then("N"),
+    otherwise="M"
+)
+
 # Number of different medications prescribed in the year prior to start date
 dataset.cov_num_medication_count = ( 
     medications.where(medications.date.is_on_or_before(start_date))
     .where(medications.date.is_after(start_date - days(365)))
     .dmd_code 
     .count_distinct_for_patient())
+
+dataset.cov_dat_hosp = (
+    apcs.where(apcs.admission_date.is_on_or_before(start_date))
+    .sort_by(apcs.admission_date)
+    .last_for_patient()
+    .admission_date
+)
+
 
 ## ---------------------------------
 ## Exposure variable
