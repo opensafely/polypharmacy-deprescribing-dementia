@@ -9,7 +9,7 @@ roundmid_any <- function(x, to = 6) {
 describe_data <- function(df, name) {
   fs::dir_create(here::here("output/describe/"))
   sink(paste0("output/describe/", name, ".txt"))
-  print(Hmisc::describe(df))
+  print(skimr::skim(df))
   sink()
   message(paste0("output/describe/", name, ".txt written successfully."))
 }

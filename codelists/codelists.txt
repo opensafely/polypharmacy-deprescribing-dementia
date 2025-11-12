@@ -12,6 +12,7 @@ opensafely/beta-blocker-medications/5a9825d4
 opensafely/calcium-channel-blockers/25c67f74
 
 opensafely/ethnicity-snomed-0removed/22911876
+
 primis-covid19-vacc-uptake/chd_cov/v2.5
 nhsd-primary-care-domain-refsets/mi_cod/3b4271c9
 nhsd-primary-care-domain-refsets/strk_cod/1e517cc9

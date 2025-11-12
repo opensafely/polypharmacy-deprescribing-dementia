@@ -1,26 +1,39 @@
+## This function applies inclusion/exclusion criteria based on binary
+## inex variables and describes the resulting dataset.
+## The function will reduce the dataset who fullfill all the following:
+# Alive at index
+# 65 years or older
+# Diagnosed dementia
+# Long term antihypertensive users
+# Registered for 6 months
+# Known sex
+# Known IMD
+# Known region
+
 inex <- function(input, flow) {
   ## Apply exclusion criteria
   print("Apply exclusion criteria")
 
-  ## Patients must be alive at index.
-  input <- subset(input, inex_bin_alive == TRUE)
-  flow[nrow(flow) + 1, ] <- c("Inclusion criteria: Alive at index", nrow(input))
-  print(flow[nrow(flow), ])
+  all_cols <- colnames(input)
+  inex_bin_cols <- c(grep("inex_bin", all_cols, value = TRUE))
 
-  ## Patients must have dementia diagnosis
-  input <- subset(input, inex_bin_has_dem == TRUE)
-  flow[nrow(flow) + 1, ] <- c("Inclusion criteria: Diagnosed with dementia", nrow(input)) 
-  print(flow[nrow(flow), ])
+  # Loop through binary InEx variables to subset dataset
+  for (var in inex_bin_cols) {
+    # Subset to TRUE
+    input <- subset(input, input[[var]] == TRUE)
 
-  ## Patients must be age 65 or older
-  input <- subset(input, inex_bin_over_64 == TRUE)
-  flow[nrow(flow) + 1, ] <- c("Inclusion criteria: 65 years or older", nrow(input)) 
-  print(flow[nrow(flow), ])
+    # Add to flow log
+    step_name <- paste("Inclusion criteria:", var)
+    flow[nrow(flow) + 1, ] <- c(step_name, nrow(input))
 
-  ## Patients must be long term antihypertensive user
-  input <- subset(input, inex_bin_antihyp == TRUE)
-  flow[nrow(flow) + 1, ] <- c("Inclusion criteria: Long term antihypertensive user", nrow(input)) 
-  print(flow[nrow(flow), ])
+    # Print the step result
+    print(flow[nrow(flow), ])
+  }
+
+
+  #Describe data ----
+  print("Describe data")
+  describe_data(df = input, name = "inex_dataset")
 
   return(list(input = input, flow = flow))
 

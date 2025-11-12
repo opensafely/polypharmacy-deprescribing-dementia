@@ -1,5 +1,6 @@
 from ehrql.tables.tpp import patients, practice_registrations, clinical_events, addresses, ethnicity_from_sus, medications, ons_deaths
 from ehrql import create_dataset, codelist_from_csv, days, case, when, minimum_of, show
+from datetime import date
 
 
 # Codelists from codelists.py (which pulls all variables from the codelist folder)
@@ -46,17 +47,27 @@ dataset.inex_bin_known_imd = (addresses.for_patient_on(start_date).imd_rounded >
 #Known region
 dataset.inex_bin_known_region = practice_registrations.for_patient_on(start_date).practice_nuts1_region_name != ""
 
-
 ## ---------------------------------
 ## Create variables for data quality checks
 dataset.qa_num_birth_year = patients.date_of_birth.year
+
 dataset.qa_num_death_year = patients.date_of_death.year
+
 
 ## ---------------------------------
 ## Create covariates
 dataset.cov_num_age = patients.age_on(start_date)
 dataset.cov_cat_sex = patients.sex
-dataset.cov_cat_ethnicity = ethnicity_from_sus.code
+
+### Ethnicity
+tmp_cov_cat_ethnicity = (
+    clinical_events.where(clinical_events.snomedct_code.is_in(ethnicity_snomed))
+    .sort_by(clinical_events.date)
+    .last_for_patient()
+    .snomedct_code
+)
+ 
+dataset.cov_cat_ethnicity = tmp_cov_cat_ethnicity.to_category(ethnicity_snomed)
 
 ### Deprivation
 dataset.cov_cat_imd = case(

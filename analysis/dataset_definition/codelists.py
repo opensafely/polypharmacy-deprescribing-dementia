@@ -1,6 +1,13 @@
 ## This file loads all the necessary codelists for this project from OpenCodelists 
 from ehrql import codelist_from_csv
 
+# Ethnicity
+ethnicity_snomed = codelist_from_csv(
+  "codelists/opensafely-ethnicity-snomed-0removed.csv",
+  column = "code",
+  category_column = "Grouping_6"
+)
+
 ## All dementia codes 
 dementia_codelist = codelist_from_csv(
     "codelists/nhsd-primary-care-domain-refsets-dem_cod.csv",
