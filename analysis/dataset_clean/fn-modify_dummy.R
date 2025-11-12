@@ -8,7 +8,7 @@ modify_dummy <- function(df) {
     mutate(
       patient_id = ifelse(
         row_number() %in% sample(n(), size = ceiling(0.002 * n())),
-        NA_character_,  
+        NA_character_,
         patient_id
       )
     ) %>%
@@ -18,6 +18,11 @@ modify_dummy <- function(df) {
       inex_bin_6m_reg        = rbinom(n(), 1, 0.99) == 1,
       inex_bin_antihyp = rbinom(n(), 1, 0.75) == 1,
       cov_bin_carehome = rbinom(n(), 1, 0.2) == 1,
+      cov_bin_acute_mi = rbinom(n(), 1, 0.3) == 1,
+      cov_bin_stroke = rbinom(n(), 1, 0.3) == 1,
+      cov_bin_cancer = rbinom(n(), 1, 0.3) == 1,
+      cov_bin_hypertension = rbinom(n(), 1, 0.5) == 1,
+
     ) %>%
 
     ## Ethnicity
@@ -169,7 +174,28 @@ modify_dummy <- function(df) {
         cov_bin_dem_other
       )
     ) %>%
-    ungroup() 
+    ungroup() %>%
+
+    mutate(cov_num_num_meds =
+             sample(0:10, n(), replace = TRUE, prob = rev(1:11))) %>%
+
+    mutate(out_dat_next_ah_med = if_else(runif(n()) < 0.8,
+    as.Date(exp_date_med_rev) + sample(1:100, n(), replace = TRUE),
+    as.Date(NA))) %>%
+
+    mutate(out_dat_prev_ah_med = if_else(runif(n()) < 0.95,
+    as.Date(exp_date_med_rev) - sample(1:100, n(), replace = TRUE),
+    as.Date(NA))) %>%
+
+    mutate(cov_dat_hosp = if_else(runif(n()) < 0.3,
+    as.Date(start_date) + sample(1:100, n(), replace = TRUE),
+    as.Date(NA))) %>%
+
+    mutate(
+      across(starts_with("out_num_cnt_"),
+             ~ sample(0:10, n(), replace = TRUE, prob = rev(1:11)))
+    )
+
 
   return(df)
 

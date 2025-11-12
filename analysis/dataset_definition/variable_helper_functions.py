@@ -58,13 +58,13 @@ def get_prescription_gaps(codelist, start_date,end_date, limit, dataset):
             cnt_365_plus += when(diff_days >= 365).then(1).otherwise(0)
         prev_date = presc_date
 
-    dataset.add_column("out_cnt_gap_0_14", cnt_0_14)
-    dataset.add_column("out_cnt_gap_14_30", cnt_14_30)
-    dataset.add_column("out_cnt_gap_30_60", cnt_30_60)
-    dataset.add_column("out_cnt_gap_60_90", cnt_60_90)
-    dataset.add_column("out_cnt_gap_90_180", cnt_90_180)
-    dataset.add_column("out_cnt_gap_180_365", cnt_180_365)
-    dataset.add_column("out_cnt_gap_365_plus", cnt_365_plus)
+    dataset.add_column("out_num_cnt_gap_0_14", cnt_0_14)
+    dataset.add_column("out_num_cnt_gap_14_30", cnt_14_30)
+    dataset.add_column("out_num_cnt_gap_30_60", cnt_30_60)
+    dataset.add_column("out_num_cnt_gap_60_90", cnt_60_90)
+    dataset.add_column("out_num_cnt_gap_90_180", cnt_90_180)
+    dataset.add_column("out_num_cnt_gap_180_365", cnt_180_365)
+    dataset.add_column("out_num_cnt_gap_365_plus", cnt_365_plus)
 
 ## Helper function to get the last matching clinical event before a given date
 def last_matching_event_clinical_snomed_before(codelist, start_date, where=True):
