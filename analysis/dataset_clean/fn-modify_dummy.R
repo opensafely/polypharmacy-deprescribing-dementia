@@ -179,22 +179,39 @@ modify_dummy <- function(df) {
     mutate(cov_num_num_meds =
              sample(0:10, n(), replace = TRUE, prob = rev(1:11))) %>%
 
-    mutate(out_dat_next_ah_med = if_else(runif(n()) < 0.8,
-    as.Date(exp_date_med_rev) + sample(1:100, n(), replace = TRUE),
-    as.Date(NA))) %>%
+    mutate(out_dat_next_ah_med = if_else(
+      runif(n()) < 0.8, 
+      as.Date(exp_date_med_rev) + sample(1:100, n(), replace = TRUE),
+      as.Date(NA))) %>%
 
-    mutate(out_dat_prev_ah_med = if_else(runif(n()) < 0.95,
-    as.Date(exp_date_med_rev) - sample(1:100, n(), replace = TRUE),
-    as.Date(NA))) %>%
+    mutate(out_dat_prev_ah_med = if_else(
+      runif(n()) < 0.95,
+      as.Date(exp_date_med_rev) - sample(1:100, n(), replace = TRUE),
+      as.Date(NA))) %>%
 
-    mutate(cov_dat_hosp = if_else(runif(n()) < 0.3,
-    as.Date(start_date) + sample(1:100, n(), replace = TRUE),
-    as.Date(NA))) %>%
+    mutate(cov_dat_hosp = if_else(
+      runif(n()) < 0.3,
+      as.Date(start_date) + sample(1:100, n(), replace = TRUE),
+      as.Date(NA))) %>%
 
     mutate(
       across(starts_with("out_num_cnt_"),
              ~ sample(0:10, n(), replace = TRUE, prob = rev(1:11)))
+    ) %>%
+
+    mutate(cov_num_latest_efi = if_else(
+      runif(n()) < 0.8,
+      runif(n(), min = 0, max = 20),
+      NA_real_
     )
+    ) %>%
+
+    mutate(cov_dat_latest_efi_date = if_else(
+      !is.na(cov_num_latest_efi),
+      as.Date(start_date) + + sample(1:100, n(), replace = TRUE),
+      as.Date(NA)
+    ))
+
 
 
   return(df)

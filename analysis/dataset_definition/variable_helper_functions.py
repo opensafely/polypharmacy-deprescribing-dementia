@@ -8,7 +8,7 @@ from ehrql import create_dataset, codelist_from_csv, days, case, when, minimum_o
 ## end_date: date to stop searching
 ## limit: number of prescription dates to extract
 ## dataset: dataset to add the columns to
-def get_prescription_dates(codelist, start_date, end_date, limit, dataset):
+def get_prescription_dates(dataset, start_date, end_date, codelist, column_suffix, limit):
     prev_ah_date = start_date
     for i in range(limit):
         ah_date = (medications.where(medications.dmd_code.is_in(codelist))
@@ -17,7 +17,7 @@ def get_prescription_dates(codelist, start_date, end_date, limit, dataset):
         .sort_by(medications.date)
         .first_for_patient()
         .date)
-        dataset.add_column(f"out_dat_ah_pres_{i}", ah_date)
+        dataset.add_column(f"out_dat_{column_suffix}_{i}", ah_date)
         prev_ah_date = ah_date
 
 
@@ -27,7 +27,7 @@ def get_prescription_dates(codelist, start_date, end_date, limit, dataset):
 ## end_date: date to stop searching
 ## limit: number of prescription dates to consider
 ## dataset: dataset to add the columns to
-def get_prescription_gaps(codelist, start_date,end_date, limit, dataset):
+def get_prescription_gaps(dataset, start_date, end_date ,codelist, column_suffix, limit):
     prev_date = start_date
     cnt_0_14 = 0
     cnt_14_30 = 0
@@ -58,13 +58,13 @@ def get_prescription_gaps(codelist, start_date,end_date, limit, dataset):
             cnt_365_plus += when(diff_days >= 365).then(1).otherwise(0)
         prev_date = presc_date
 
-    dataset.add_column("out_num_cnt_gap_0_14", cnt_0_14)
-    dataset.add_column("out_num_cnt_gap_14_30", cnt_14_30)
-    dataset.add_column("out_num_cnt_gap_30_60", cnt_30_60)
-    dataset.add_column("out_num_cnt_gap_60_90", cnt_60_90)
-    dataset.add_column("out_num_cnt_gap_90_180", cnt_90_180)
-    dataset.add_column("out_num_cnt_gap_180_365", cnt_180_365)
-    dataset.add_column("out_num_cnt_gap_365_plus", cnt_365_plus)
+    dataset.add_column(f"out_num_gap_0_14_{column_suffix}", cnt_0_14)
+    dataset.add_column(f"out_num_gap_14_30_{column_suffix}", cnt_14_30)
+    dataset.add_column(f"out_num_gap_30_60_{column_suffix}", cnt_30_60)
+    dataset.add_column(f"out_num_gap_60_90_{column_suffix}", cnt_60_90)
+    dataset.add_column(f"out_num_gap_90_180_{column_suffix}", cnt_90_180)
+    dataset.add_column(f"out_num_gap_180_365_{column_suffix}", cnt_180_365)
+    dataset.add_column(f"out_num_gap_365_plus_{column_suffix}", cnt_365_plus)
 
 ## Helper function to get the last matching clinical event before a given date
 def last_matching_event_clinical_snomed_before(codelist, start_date, where=True):

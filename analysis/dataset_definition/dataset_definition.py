@@ -1,4 +1,4 @@
-from ehrql.tables.tpp import patients, practice_registrations, clinical_events, addresses, ethnicity_from_sus, medications, ons_deaths, apcs
+from ehrql.tables.tpp import patients, practice_registrations, clinical_events, addresses, ethnicity_from_sus, medications, ons_deaths, apcs, decision_support_values
 from ehrql import create_dataset, codelist_from_csv, days, case, when, minimum_of, show
 from datetime import date
 from analysis.dataset_definition.variable_helper_functions import (
@@ -10,6 +10,11 @@ from analysis.dataset_definition.variable_helper_functions import (
     ever_matching_event_clinical_ctv3_before,
     filter_codes_by_category
 )
+from analysis.dataset_definition.create_variables import(
+    add_inex_variables,
+    add_covariates,
+    add_out_variables
+)
 
 # Codelists from codelists.py (which pulls all variables from the codelist folder)
 from codelists import *
@@ -20,189 +25,20 @@ dataset = create_dataset()
 ## Set start and end date (only looking at first year for now)
 start_date = "2015-01-01"
 end_date = "2016-01-01"
+index_date = "2015-01-01"
 
 ## ---------------------------------
 ## Create variables for inclusion / exclusion criteria
-
-# Dementia diagnosis
-dataset.inex_bin_has_dem = (
-    clinical_events.where(clinical_events.snomedct_code.is_in(dementia_codelist))
-    .where(clinical_events.date.is_on_or_before(end_date))
-    ).exists_for_patient()
-
-# Long-term antihypertensive user 
-dataset.inex_bin_antihyp = (medications.where(medications.dmd_code.is_in(antihypertensive_codelist))
-    .where(medications.date.is_on_or_before(start_date - days(365)))
-    .where(medications.date.is_on_or_after(start_date))
-    .count_for_patient()) > 2
-
-# Alive at start date
-dataset.inex_bin_alive = (((patients.date_of_death.is_null()) | (patients.date_of_death.is_after(start_date))) & 
-    ((ons_deaths.date.is_null()) | (ons_deaths.date.is_after(start_date))))
-
-#65 or over at start date
-dataset.inex_bin_over_64 = patients.age_on(start_date)>64
-
-# Registered with practice at within 6 months of start date
-dataset.inex_bin_6m_reg = (practice_registrations.spanning(
-        start_date - days(180), start_date
-        )).exists_for_patient()
-
-#Known sex
-dataset.inex_bin_known_sex = patients.sex != "unknown"
-#Known IMD
-dataset.inex_bin_known_imd = (addresses.for_patient_on(start_date).imd_rounded >= 0)
-#Known region
-dataset.inex_bin_known_region = practice_registrations.for_patient_on(start_date).practice_nuts1_region_name != ""
+add_inex_variables(dataset, index_date, start_date, end_date)
 
 ## ---------------------------------
 ## Create variables for data quality checks
 dataset.qa_num_birth_year = patients.date_of_birth.year
-
 dataset.qa_num_death_year = patients.date_of_death.year
-
 
 ## ---------------------------------
 ## Create covariates
-dataset.cov_num_age = patients.age_on(start_date)
-dataset.cov_cat_sex = patients.sex
-
-### Ethnicity
-tmp_cov_cat_ethnicity = (
-    clinical_events.where(clinical_events.snomedct_code.is_in(ethnicity_snomed))
-    .sort_by(clinical_events.date)
-    .last_for_patient()
-    .snomedct_code
-)
- 
-dataset.cov_cat_ethnicity = tmp_cov_cat_ethnicity.to_category(ethnicity_snomed)
-
-### Deprivation
-dataset.cov_cat_imd = case(
-        when((addresses.for_patient_on(start_date).imd_rounded >= 0) & 
-                (addresses.for_patient_on(start_date).imd_rounded < int(32844 * 1 / 5))).then("1 (most deprived)"),
-        when(addresses.for_patient_on(start_date).imd_rounded < int(32844 * 2 / 5)).then("2"),
-        when(addresses.for_patient_on(start_date).imd_rounded < int(32844 * 3 / 5)).then("3"),
-        when(addresses.for_patient_on(start_date).imd_rounded < int(32844 * 4 / 5)).then("4"),
-        when(addresses.for_patient_on(start_date).imd_rounded < int(32844 * 5 / 5)).then("5 (least deprived)"),
-        otherwise="unknown",
-    )
-
-
-
-dataset.cov_cat_region = practice_registrations.for_patient_on(start_date).practice_nuts1_region_name
-
-# Date of first dementia diagnosis
-dataset.cov_dat_dem = (
-    clinical_events.where(clinical_events.snomedct_code.is_in(dementia_codelist))
-    .where(clinical_events.date.is_on_or_before(end_date))
-    .sort_by(clinical_events.date)
-    .first_for_patient()
-    .date)
-
-# Alzheimer's diagnosis
-dataset.cov_bin_dem_alz = (
-    clinical_events.where(clinical_events.snomedct_code.is_in(alzheimers_codelist))
-    .where(clinical_events.date.is_on_or_before(end_date))
-    ).exists_for_patient()
-
-# Vascular dementia diagnosis
-dataset.cov_bin_dem_vasc = (
-    clinical_events.where(clinical_events.snomedct_code.is_in(vascular_dementia_codelist))
-    .where(clinical_events.date.is_on_or_before(end_date))
-    ).exists_for_patient()
-
-# "Other" dementia diagnosis
-dataset.cov_bin_dem_other = (
-    clinical_events.where(clinical_events.snomedct_code.is_in(other_dementia_codelist))
-    .where(clinical_events.date.is_on_or_before(end_date))
-    ).exists_for_patient()
-
-# Acute MI diagnosis
-dataset.cov_bin_ami = (
-        (last_matching_event_clinical_snomed_before(
-            ami_snomed, start_date
-        ).exists_for_patient()) |
-        (last_matching_event_apc_before(
-            ami_icd10 + ami_prior_icd10, start_date
-        ).exists_for_patient())
-    )
-
-### Ischaemic stroke
-dataset.cov_bin_stroke_isch = (
-    (last_matching_event_clinical_snomed_before(
-        stroke_isch_snomed, start_date
-    ).exists_for_patient()) |
-    (last_matching_event_apc_before(
-        stroke_isch_icd10, start_date
-    ).exists_for_patient())
-)
-
-#Date of CHD diagnosis
-dataset.cov_dat_chd = (
-    clinical_events.where(clinical_events.snomedct_code.is_in(chd_codelist))
-    .where(clinical_events.date.is_on_or_before(end_date))
-    .sort_by(clinical_events.date)
-    .first_for_patient()
-    .date)
-
-### Cancer
-dataset.cov_bin_cancer = (
-    (last_matching_event_clinical_snomed_before(
-        cancer_snomed, start_date
-    ).exists_for_patient()) |
-    (last_matching_event_apc_before(
-        cancer_icd10, start_date
-    ).exists_for_patient())
-)
-
-### Hypertension (Also used for high vascular risk covariate)
-dataset.cov_bin_hypertension = (
-    (last_matching_event_clinical_snomed_before(
-        hypertension_snomed, start_date
-    ).exists_for_patient()) |
-    (last_matching_event_apc_before(
-        hypertension_icd10, start_date
-    ).exists_for_patient())
-)
-
-# Care home status
-dataset.cov_bin_carehome = (
-        addresses.for_patient_on(start_date).care_home_is_potential_match |
-        addresses.for_patient_on(start_date).care_home_requires_nursing |
-        addresses.for_patient_on(start_date).care_home_does_not_require_nursing
-    )
-
-### Smoking status
-tmp_most_recent_smoking_cat = (
-    last_matching_event_clinical_ctv3_before(smoking_clear, start_date)
-    .ctv3_code.to_category(smoking_clear)
-)
-tmp_ever_smoked = ever_matching_event_clinical_ctv3_before(
-    (filter_codes_by_category(smoking_clear, include=["S", "E"])), start_date
-    ).exists_for_patient()
-
-dataset.cov_cat_smoking = case(
-    when(tmp_most_recent_smoking_cat == "S").then("S"),
-    when((tmp_most_recent_smoking_cat == "E") | ((tmp_most_recent_smoking_cat == "N") & (tmp_ever_smoked == True))).then("E"),
-    when((tmp_most_recent_smoking_cat == "N") & (tmp_ever_smoked == False)).then("N"),
-    otherwise="M"
-)
-
-# Number of different medications prescribed in the year prior to start date
-dataset.cov_num_medication_count = ( 
-    medications.where(medications.date.is_on_or_before(start_date))
-    .where(medications.date.is_after(start_date - days(365)))
-    .dmd_code 
-    .count_distinct_for_patient())
-
-dataset.cov_dat_hosp = (
-    apcs.where(apcs.admission_date.is_on_or_before(start_date))
-    .sort_by(apcs.admission_date)
-    .last_for_patient()
-    .admission_date
-)
-
+add_covariates(dataset, index_date, start_date, end_date)
 
 ## ---------------------------------
 ## Exposure variable
@@ -217,30 +53,7 @@ dataset.exp_date_med_rev = (
     .date)
 
 ## Outcome Variables
-## Date of next antihypertensive medication after medication review
-dataset.out_dat_next_ah_med = (
-    medications.where(medications.dmd_code.is_in(antihypertensive_codelist))
-    .where(medications.date.is_after(dataset.exp_date_med_rev))
-    .where(medications.date.is_on_or_before(end_date))
-    .sort_by(medications.date)
-    .first_for_patient()
-    .date)
-
-## Date of previous antihypertensive medication before medication review
-dataset.out_dat_prev_ah_med = (
-    medications.where(medications.dmd_code.is_in(antihypertensive_codelist))
-    .where(medications.date.is_before(dataset.exp_date_med_rev))
-    .where(medications.date.is_on_or_after(start_date))
-    .sort_by(medications.date)
-    .last_for_patient()
-    .date)
-
-
-## Number of days between prescription dates of antihypertensives
-get_prescription_gaps(antihypertensive_codelist, start_date, end_date, 10, dataset)
-
-## get_prescription_dates(antihypertensive_codelist, start_date, end_date, 10, dataset) ## Used this to test get_prescription_gaps
-
+add_out_variables(dataset, index_date, start_date, end_date, ace_inhibitor_codelist, "acei_med")
 
 ##Define population
 dataset.configure_dummy_data(population_size=1000)

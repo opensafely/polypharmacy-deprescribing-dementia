@@ -61,6 +61,16 @@ ref <- function(input) {
     )
   }
 
+  # Handle missing values in cov_cat_smoking
+  if ("cov_cat_smoking" %in% names(input)) {
+    print('Handle missing values in cov_cat_smoking')
+    input$cov_cat_smoking <- if_else(
+      input$cov_cat_smoking %in% c("E", "N", "S"),
+      input$cov_cat_smoking,
+      "M"
+    )
+  }
+
   # Recode missing values in binary variables as FALSE -------------------------
 
   print("Recode missing values in binary variables as FALSE")
@@ -128,6 +138,22 @@ ref <- function(input) {
     print("Set reference level for variable: cov_cat_sex")
     levels(input$cov_cat_sex) <- list("Female" = "female", "Male" = "male", "Intersex" = "intersex")
     input$cov_cat_sex <- relevel(input$cov_cat_sex, ref = "Female")
+  }
+
+  # Set reference level for variable: cov_cat_smoking --------------------------
+
+  if ("cov_cat_smoking" %in% names(input)) {
+    print('Set reference level for variable: cov_cat_smoking')
+    levels(input$cov_cat_smoking) <- list(
+      "Ever smoker" = "E",
+      "Missing" = "M",
+      "Never smoker" = "N",
+      "Current smoker" = "S"
+    )
+    input$cov_cat_smoking <- ordered(
+      input$cov_cat_smoking,
+      levels = c("Never smoker", "Ever smoker", "Current smoker", "Missing")
+    )
   }
 
   print("Set reference level for binaries")
