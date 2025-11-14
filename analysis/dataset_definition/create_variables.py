@@ -227,7 +227,7 @@ def add_covariates(dataset, index_date, end_date):
 #It also creates the columns counting the frequency of size gaps for the medication within the study period.
 def add_out_variables(dataset, index_date, start_date, end_date, medication_codelist, column_suffix):
     ## Date of next antihypertensive medication after medication review
-    out_dat_next_ah_med = (
+    out_dat_next = (
         medications.where(medications.dmd_code.is_in(medication_codelist))
         .where(medications.date.is_after(index_date))
         .where(medications.date.is_on_or_before(end_date))
@@ -236,7 +236,7 @@ def add_out_variables(dataset, index_date, start_date, end_date, medication_code
         .date)
 
     ## Date of previous antihypertensive medication before medication review
-    out_dat_prev_ah_med = (
+    out_dat_prev = (
         medications.where(medications.dmd_code.is_in(medication_codelist))
         .where(medications.date.is_before(index_date))
         .where(medications.date.is_on_or_after(start_date))
@@ -249,9 +249,11 @@ def add_out_variables(dataset, index_date, start_date, end_date, medication_code
     get_prescription_gaps(dataset, start_date, end_date, medication_codelist, column_suffix, 10)
 
     # ---- Add variables to dataset ----
-    out_vars = {name: value for name, value in locals().items() if name.startswith("out_")}
+    dataset.add_column(f"out_dat_next_{column_suffix}", out_dat_next)
+    dataset.add_column(f"out_dat_prev_{column_suffix}", out_dat_prev)
 
-    for name, expr in out_vars.items():
-        dataset.add_column(name, expr)
+
+
+
 
     ##get_prescription_dates(dataset, start_date, end_date, medication_codelist, column_suffix, 10) ## Use this to test get_prescription_gaps

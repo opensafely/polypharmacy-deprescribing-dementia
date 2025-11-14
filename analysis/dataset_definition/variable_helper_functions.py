@@ -109,17 +109,3 @@ def ever_matching_event_clinical_ctv3_before(codelist, start_date, where=True):
 def filter_codes_by_category(codelist, include):
     return {k:v for k,v in codelist.items() if v in include}
 
-def generate_pseudo_random_number(start_date):
-    dob_year = (patients.date_of_birth.year - 1900)
-    dob_month = patients.date_of_birth.month
-    imd = addresses.for_patient_on(start_date).imd_rounded
-    practice_pseudo_id = practice_registrations.for_patient_on(start_date).practice_pseudo_id
-    address_id  = addresses.for_patient_on(start_date).address_id 
-
-    seed_base = (practice_pseudo_id * dob_year * dob_month * imd * address_id )
-    pseudo_rand = (seed_base * 1103515245 + 12345)
-    return pseudo_rand
-
-
-
-

@@ -8,8 +8,7 @@ from analysis.dataset_definition.variable_helper_functions import (
     last_matching_event_apc_before,
     last_matching_event_clinical_ctv3_before,
     ever_matching_event_clinical_ctv3_before,
-    filter_codes_by_category,
-    generate_pseudo_random_number
+    filter_codes_by_category
 )
 from analysis.dataset_definition.create_variables import(
     add_inex_variables,
@@ -70,7 +69,6 @@ index_date = case(
 
 dataset.index_date = index_date
 
-
 ## ---------------------------------
 ## Create variables for inclusion / exclusion criteria at the start of the study period
 add_inex_variables(dataset, start_date)
@@ -86,6 +84,9 @@ add_covariates(dataset, index_date, end_date)
 
 ## Outcome Variables
 add_out_variables(dataset, index_date, start_date, end_date, ace_inhibitor_codelist, "acei_med")
+add_out_variables(dataset, index_date, start_date, end_date, alpha_adrenoceptor_blocking_drugs_codelist, "aab_med")
+add_out_variables(dataset, index_date, start_date, end_date, angiotensin_ii_receptor_blockers_codelist, "arb_med")
+
 
 ##Define population
 dataset.configure_dummy_data(population_size=1000)

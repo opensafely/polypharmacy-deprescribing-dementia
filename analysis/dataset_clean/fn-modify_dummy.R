@@ -200,7 +200,7 @@ modify_dummy <- function(df) {
       as.Date(NA))) %>%
 
     mutate(
-      across(starts_with("out_num_cnt_"),
+      across(starts_with("out_num_gap_"),
              ~ sample(0:10, n(), replace = TRUE, prob = rev(1:11)))
     ) %>%
 
