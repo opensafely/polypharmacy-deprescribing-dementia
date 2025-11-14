@@ -199,7 +199,7 @@ def add_covariates(dataset, index_date, end_date):
 
     # Latest A&E attendance
     cov_dat_AE = (
-        emergency_care_attendances.where(emergency_care_attendances.is_on_or_before(index_date))
+        emergency_care_attendances.where(emergency_care_attendances.arrival_date.is_on_or_before(index_date))
         .sort_by(emergency_care_attendances.arrival_date)
         .last_for_patient()
         .arrival_date
