@@ -194,6 +194,11 @@ modify_dummy <- function(df) {
       as.Date(start_date) + sample(1:100, n(), replace = TRUE),
       as.Date(NA))) %>%
 
+    mutate(cov_dat_AE = if_else(
+      runif(n()) < 0.2,
+      as.Date(start_date) + sample(1:200, n(), replace = TRUE),
+      as.Date(NA))) %>%
+
     mutate(
       across(starts_with("out_num_cnt_"),
              ~ sample(0:10, n(), replace = TRUE, prob = rev(1:11)))
