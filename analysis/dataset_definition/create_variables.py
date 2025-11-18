@@ -182,7 +182,7 @@ def add_covariates(dataset, index_date, end_date):
         otherwise="M"
     )
 
-    # Number of different medications prescribed in the year prior to start date
+    # Number of different medications prescribed in the year prior to index date
     cov_num_medication_count = ( 
         medications.where(medications.date.is_on_or_before(index_date))
         .where(medications.date.is_after(index_date - days(365)))
