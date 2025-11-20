@@ -28,7 +28,7 @@ df <- df %>%
 #------------------------------------------------
 # Create "exposed" variable for medication review
 #------------------------------------------------
-df$exposed <- !is.na(df$exp_date_med_rev)
+df$exposed <- !is.na(df$exp_dat_med_rev)
 
 #------------------------------------------------
 # Select variables of interest (following naming convention)

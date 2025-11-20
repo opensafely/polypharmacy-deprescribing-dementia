@@ -124,7 +124,7 @@ modify_dummy <- function(df) {
 
     ## Adding medication review date
     mutate(
-      exp_date_med_rev = as.Date(ifelse(
+      exp_dat_med_rev = as.Date(ifelse(
         runif(n()) < 0.4,  # ~40% chance
         sample(
           x = seq(as.Date("2015-01-01"), as.Date("2020-01-01"), by = "day"),
@@ -181,12 +181,12 @@ modify_dummy <- function(df) {
 
     mutate(out_dat_next_ah_med = if_else(
       runif(n()) < 0.8, 
-      as.Date(exp_date_med_rev) + sample(1:100, n(), replace = TRUE),
+      as.Date(exp_dat_med_rev) + sample(1:100, n(), replace = TRUE),
       as.Date(NA))) %>%
 
     mutate(out_dat_prev_ah_med = if_else(
       runif(n()) < 0.95,
-      as.Date(exp_date_med_rev) - sample(1:100, n(), replace = TRUE),
+      as.Date(exp_dat_med_rev) - sample(1:100, n(), replace = TRUE),
       as.Date(NA))) %>%
 
     mutate(cov_dat_hosp = if_else(
@@ -215,7 +215,14 @@ modify_dummy <- function(df) {
       !is.na(cov_num_latest_efi),
       as.Date(start_date) + + sample(1:100, n(), replace = TRUE),
       as.Date(NA)
-    ))
+    )) %>%
+
+    mutate(
+      cov_num_medication_count = pmin(15, pmax(1,
+        round(rnorm(n(), mean = 7, sd = 3))
+      ))
+
+    )
 
 
 

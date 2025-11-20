@@ -1,4 +1,4 @@
-from ehrql.tables.tpp import patients, practice_registrations, clinical_events, addresses, ethnicity_from_sus, medications, ons_deaths, apcs, decision_support_values, emergency_care_attendances
+from ehrql.tables.tpp import patients, practice_registrations, clinical_events, addresses, medications, ons_deaths, apcs, decision_support_values, emergency_care_attendances
 from ehrql import create_dataset, codelist_from_csv, days, case, when, minimum_of, show
 from datetime import date
 from analysis.dataset_definition.variable_helper_functions import (
@@ -227,7 +227,7 @@ def add_covariates(dataset, index_date, end_date):
 #It also creates the columns counting the frequency of size gaps for the medication within the study period.
 def add_out_variables(dataset, index_date, start_date, end_date, medication_codelist, column_suffix):
     ## Date of next antihypertensive medication after medication review
-    out_dat_next = (
+    out_dat_next_med = (
         medications.where(medications.dmd_code.is_in(medication_codelist))
         .where(medications.date.is_after(index_date))
         .where(medications.date.is_on_or_before(end_date))
@@ -236,7 +236,7 @@ def add_out_variables(dataset, index_date, start_date, end_date, medication_code
         .date)
 
     ## Date of previous antihypertensive medication before medication review
-    out_dat_prev = (
+    out_dat_prev_med = (
         medications.where(medications.dmd_code.is_in(medication_codelist))
         .where(medications.date.is_before(index_date))
         .where(medications.date.is_on_or_after(start_date))
@@ -249,11 +249,5 @@ def add_out_variables(dataset, index_date, start_date, end_date, medication_code
     get_prescription_gaps(dataset, start_date, end_date, medication_codelist, column_suffix, 10)
 
     # ---- Add variables to dataset ----
-    dataset.add_column(f"out_dat_next_{column_suffix}", out_dat_next)
-    dataset.add_column(f"out_dat_prev_{column_suffix}", out_dat_prev)
-
-
-
-
-
-    ##get_prescription_dates(dataset, start_date, end_date, medication_codelist, column_suffix, 10) ## Use this to test get_prescription_gaps
+    dataset.add_column(f"out_dat_next_{column_suffix}", out_dat_next_med)
+    dataset.add_column(f"out_dat_prev_{column_suffix}", out_dat_prev_med)
