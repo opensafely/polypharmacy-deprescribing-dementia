@@ -122,7 +122,7 @@ def add_covariates(dataset, index_date, end_date):
         )
 
     ### Ischaemic stroke
-    cov_bin_stroke_isch = (
+    cov_bin_stroke = (
         (last_matching_event_clinical_snomed_before(
             stroke_isch_snomed, index_date
         ).exists_for_patient()) |

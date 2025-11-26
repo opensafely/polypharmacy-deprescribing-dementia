@@ -18,7 +18,7 @@ modify_dummy <- function(df) {
       inex_bin_6m_reg        = rbinom(n(), 1, 0.99) == 1,
       inex_bin_antihyp = rbinom(n(), 1, 0.75) == 1,
       cov_bin_carehome = rbinom(n(), 1, 0.2) == 1,
-      cov_bin_acute_mi = rbinom(n(), 1, 0.3) == 1,
+      cov_bin_ami = rbinom(n(), 1, 0.3) == 1,
       cov_bin_stroke = rbinom(n(), 1, 0.3) == 1,
       cov_bin_cancer = rbinom(n(), 1, 0.3) == 1,
       cov_bin_hypertension = rbinom(n(), 1, 0.5) == 1,
