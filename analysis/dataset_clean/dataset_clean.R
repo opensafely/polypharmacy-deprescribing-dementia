@@ -67,7 +67,7 @@ dataset_clean <- ref(dataset_clean)
 
 ## Drop unneeded variables
 dataset_clean <- dataset_clean %>%
-  select(-starts_with("inex"))
+  select(-starts_with("inex"), -starts_with("qa_"))
 
 ## Saved cleaned dataset to output folder
 print("Saving cleaned dataset to output folder")
