@@ -65,6 +65,10 @@ dataset_clean <- dataset_clean$input
 print("Set reference levels and handle missing values")
 dataset_clean <- ref(dataset_clean)
 
+## Drop unneeded variables
+dataset_clean <- dataset_clean %>%
+  select(-starts_with("inex"))
+
 ## Saved cleaned dataset to output folder
 print("Saving cleaned dataset to output folder")
 

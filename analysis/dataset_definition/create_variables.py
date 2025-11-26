@@ -183,7 +183,7 @@ def add_covariates(dataset, index_date, end_date):
     )
 
     # Number of different medications prescribed in the year prior to index date
-    cov_num_medication_count = ( 
+    cov_num_med_count = ( 
         medications.where(medications.date.is_on_or_before(index_date))
         .where(medications.date.is_after(index_date - days(365)))
         .dmd_code 
@@ -214,7 +214,7 @@ def add_covariates(dataset, index_date, end_date):
         .last_for_patient()
     )
     cov_num_latest_efi = latest_efi_record.numeric_value
-    cov_dat_latest_efi_date = latest_efi_record.calculation_date
+    cov_dat_latest_efi = latest_efi_record.calculation_date
     
     # ---- Add all covariates to dataset ----
     covariates = {name: value for name, value in locals().items() if name.startswith("cov_")}

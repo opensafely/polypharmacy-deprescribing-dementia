@@ -176,18 +176,15 @@ modify_dummy <- function(df) {
     ) %>%
     ungroup() %>%
 
-    mutate(cov_num_num_meds =
-             sample(0:10, n(), replace = TRUE, prob = rev(1:11))) %>%
-
-    mutate(out_dat_next_ah_med = if_else(
+    mutate(across(starts_with("out_dat_next"), ~ if_else(
       runif(n()) < 0.8, 
       as.Date(exp_dat_med_rev) + sample(1:100, n(), replace = TRUE),
-      as.Date(NA))) %>%
+      as.Date(NA)))) %>%
 
-    mutate(out_dat_prev_ah_med = if_else(
-      runif(n()) < 0.95,
-      as.Date(exp_dat_med_rev) - sample(1:100, n(), replace = TRUE),
-      as.Date(NA))) %>%
+    mutate(across(starts_with("out_dat_prev"), ~ if_else(
+      runif(n()) < 0.8, 
+      as.Date(exp_dat_med_rev) + sample(1:100, n(), replace = TRUE),
+      as.Date(NA)))) %>%
 
     mutate(cov_dat_hosp = if_else(
       runif(n()) < 0.3,
@@ -211,20 +208,18 @@ modify_dummy <- function(df) {
     )
     ) %>%
 
-    mutate(cov_dat_latest_efi_date = if_else(
+    mutate(cov_dat_latest_efi = if_else(
       !is.na(cov_num_latest_efi),
       as.Date(start_date) + + sample(1:100, n(), replace = TRUE),
       as.Date(NA)
     )) %>%
 
     mutate(
-      cov_num_medication_count = pmin(15, pmax(1,
+      cov_num_med_count = pmin(15, pmax(1,
         round(rnorm(n(), mean = 7, sd = 3))
       ))
 
     )
-
-
 
   return(df)
 
