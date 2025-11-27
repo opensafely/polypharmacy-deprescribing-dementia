@@ -9,16 +9,16 @@ from ehrql import create_dataset, codelist_from_csv, days, case, when, minimum_o
 ## limit: number of prescription dates to extract
 ## dataset: dataset to add the columns to
 def get_prescription_dates(dataset, start_date, end_date, codelist, column_suffix, limit):
-    prev_ah_date = start_date
+    prev_drug_date = start_date
     for i in range(limit):
-        ah_date = (medications.where(medications.dmd_code.is_in(codelist))
-        .where(medications.date.is_after(prev_ah_date))
+        drug_date = (medications.where(medications.dmd_code.is_in(codelist))
+        .where(medications.date.is_after(prev_drug_date))
         .where(medications.date.is_on_or_before(end_date))
         .sort_by(medications.date)
         .first_for_patient()
         .date)
-        dataset.add_column(f"out_dat_{column_suffix}_{i}", ah_date)
-        prev_ah_date = ah_date
+        dataset.add_column(f"out_dat_{column_suffix}_{i}", drug_date)
+        prev_drug_date = drug_date
 
 
 ## This function counts the frequency of gaps between prescriptions within specified time intervals

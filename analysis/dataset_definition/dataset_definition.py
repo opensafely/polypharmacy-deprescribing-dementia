@@ -30,7 +30,7 @@ end_date = date(2016,1,1)
 ## Exposure variable
 
 ## Medication review variables
-dataset.exp_date_med_rev = (
+dataset.exp_dat_med_rev = (
     clinical_events.where(clinical_events.snomedct_code.is_in(medication_review_codelist))
     .where(clinical_events.date.is_on_or_after(start_date))
     .where(clinical_events.date.is_on_or_before(end_date))
@@ -62,7 +62,7 @@ dataset.exp_bin_first_event = (
 #Create index dates
 
 index_date = case(
-    when(dataset.exp_bin_med_rev).then(dataset.exp_date_med_rev),
+    when(dataset.exp_bin_med_rev).then(dataset.exp_dat_med_rev),
     when(dataset.exp_bin_first_event).then(dataset.exp_dat_first_event),
     otherwise=start_date
 )
@@ -83,9 +83,9 @@ dataset.qa_num_death_year = patients.date_of_death.year
 add_covariates(dataset, index_date, end_date)
 
 ## Outcome Variables
-add_out_variables(dataset, index_date, start_date, end_date, ace_inhibitor_codelist, "acei_med")
-add_out_variables(dataset, index_date, start_date, end_date, alpha_adrenoceptor_blocking_drugs_codelist, "aab_med")
-add_out_variables(dataset, index_date, start_date, end_date, angiotensin_ii_receptor_blockers_codelist, "arb_med")
+add_out_variables(dataset, index_date, start_date, end_date, ace_inhibitor_codelist, "acei")
+add_out_variables(dataset, index_date, start_date, end_date, alpha_adrenoceptor_blocking_drugs_codelist, "aab")
+add_out_variables(dataset, index_date, start_date, end_date, angiotensin_ii_receptor_blockers_codelist, "arb")
 
 
 ##Define population

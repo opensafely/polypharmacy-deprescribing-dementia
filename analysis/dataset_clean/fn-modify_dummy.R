@@ -18,7 +18,7 @@ modify_dummy <- function(df) {
       inex_bin_6m_reg        = rbinom(n(), 1, 0.99) == 1,
       inex_bin_antihyp = rbinom(n(), 1, 0.75) == 1,
       cov_bin_carehome = rbinom(n(), 1, 0.2) == 1,
-      cov_bin_acute_mi = rbinom(n(), 1, 0.3) == 1,
+      cov_bin_ami = rbinom(n(), 1, 0.3) == 1,
       cov_bin_stroke = rbinom(n(), 1, 0.3) == 1,
       cov_bin_cancer = rbinom(n(), 1, 0.3) == 1,
       cov_bin_hypertension = rbinom(n(), 1, 0.5) == 1,
@@ -124,7 +124,7 @@ modify_dummy <- function(df) {
 
     ## Adding medication review date
     mutate(
-      exp_date_med_rev = as.Date(ifelse(
+      exp_dat_med_rev = as.Date(ifelse(
         runif(n()) < 0.4,  # ~40% chance
         sample(
           x = seq(as.Date("2015-01-01"), as.Date("2020-01-01"), by = "day"),
@@ -176,18 +176,15 @@ modify_dummy <- function(df) {
     ) %>%
     ungroup() %>%
 
-    mutate(cov_num_num_meds =
-             sample(0:10, n(), replace = TRUE, prob = rev(1:11))) %>%
-
-    mutate(out_dat_next_ah_med = if_else(
+    mutate(across(starts_with("out_dat_next"), ~ if_else(
       runif(n()) < 0.8, 
-      as.Date(exp_date_med_rev) + sample(1:100, n(), replace = TRUE),
-      as.Date(NA))) %>%
+      as.Date(exp_dat_med_rev) + sample(1:100, n(), replace = TRUE),
+      as.Date(NA)))) %>%
 
-    mutate(out_dat_prev_ah_med = if_else(
-      runif(n()) < 0.95,
-      as.Date(exp_date_med_rev) - sample(1:100, n(), replace = TRUE),
-      as.Date(NA))) %>%
+    mutate(across(starts_with("out_dat_prev"), ~ if_else(
+      runif(n()) < 0.8, 
+      as.Date(exp_dat_med_rev) + sample(1:100, n(), replace = TRUE),
+      as.Date(NA)))) %>%
 
     mutate(cov_dat_hosp = if_else(
       runif(n()) < 0.3,
@@ -211,13 +208,18 @@ modify_dummy <- function(df) {
     )
     ) %>%
 
-    mutate(cov_dat_latest_efi_date = if_else(
+    mutate(cov_dat_latest_efi = if_else(
       !is.na(cov_num_latest_efi),
       as.Date(start_date) + + sample(1:100, n(), replace = TRUE),
       as.Date(NA)
-    ))
+    )) %>%
 
+    mutate(
+      cov_num_med_count = pmin(15, pmax(1,
+        round(rnorm(n(), mean = 7, sd = 3))
+      ))
 
+    )
 
   return(df)
 
