@@ -27,3 +27,4 @@ actions:
      moderately_sensitive:
        table_one: output/tables/table1.csv
        table_one_midpoint6: output/tables/table1_midpoint6.csv
+

@@ -19,6 +19,7 @@ print("Load dataset")
 dataset_clean <- read_csv(here("output", "dataset", "input.csv.gz"))
 
 start_date <- as.Date("2015-01-01")
+end_date <- as.Date("2016-01-01")
 
 ## Create object for flowchart
 flow <- data.frame(
@@ -63,6 +64,10 @@ dataset_clean <- dataset_clean$input
 ## Set reference levels and handle missing values
 print("Set reference levels and handle missing values")
 dataset_clean <- ref(dataset_clean)
+
+## Drop unneeded variables
+dataset_clean <- dataset_clean %>%
+  select(-starts_with("inex"), -starts_with("qa_"))
 
 ## Saved cleaned dataset to output folder
 print("Saving cleaned dataset to output folder")

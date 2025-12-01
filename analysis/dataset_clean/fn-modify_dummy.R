@@ -8,7 +8,7 @@ modify_dummy <- function(df) {
     mutate(
       patient_id = ifelse(
         row_number() %in% sample(n(), size = ceiling(0.002 * n())),
-        NA_character_,  
+        NA_character_,
         patient_id
       )
     ) %>%
@@ -18,6 +18,11 @@ modify_dummy <- function(df) {
       inex_bin_6m_reg        = rbinom(n(), 1, 0.99) == 1,
       inex_bin_antihyp = rbinom(n(), 1, 0.75) == 1,
       cov_bin_carehome = rbinom(n(), 1, 0.2) == 1,
+      cov_bin_ami = rbinom(n(), 1, 0.3) == 1,
+      cov_bin_stroke = rbinom(n(), 1, 0.3) == 1,
+      cov_bin_cancer = rbinom(n(), 1, 0.3) == 1,
+      cov_bin_hypertension = rbinom(n(), 1, 0.5) == 1,
+
     ) %>%
 
     ## Ethnicity
@@ -119,7 +124,7 @@ modify_dummy <- function(df) {
 
     ## Adding medication review date
     mutate(
-      exp_date_med_rev = as.Date(ifelse(
+      exp_dat_med_rev = as.Date(ifelse(
         runif(n()) < 0.4,  # ~40% chance
         sample(
           x = seq(as.Date("2015-01-01"), as.Date("2020-01-01"), by = "day"),
@@ -169,7 +174,52 @@ modify_dummy <- function(df) {
         cov_bin_dem_other
       )
     ) %>%
-    ungroup() 
+    ungroup() %>%
+
+    mutate(across(starts_with("out_dat_next"), ~ if_else(
+      runif(n()) < 0.8, 
+      as.Date(exp_dat_med_rev) + sample(1:100, n(), replace = TRUE),
+      as.Date(NA)))) %>%
+
+    mutate(across(starts_with("out_dat_prev"), ~ if_else(
+      runif(n()) < 0.8, 
+      as.Date(exp_dat_med_rev) + sample(1:100, n(), replace = TRUE),
+      as.Date(NA)))) %>%
+
+    mutate(cov_dat_hosp = if_else(
+      runif(n()) < 0.3,
+      as.Date(start_date) + sample(1:100, n(), replace = TRUE),
+      as.Date(NA))) %>%
+
+    mutate(cov_dat_AE = if_else(
+      runif(n()) < 0.2,
+      as.Date(start_date) + sample(1:200, n(), replace = TRUE),
+      as.Date(NA))) %>%
+
+    mutate(
+      across(starts_with("out_num_gap_"),
+             ~ sample(0:10, n(), replace = TRUE, prob = rev(1:11)))
+    ) %>%
+
+    mutate(cov_num_latest_efi = if_else(
+      runif(n()) < 0.8,
+      runif(n(), min = 0, max = 20),
+      NA_real_
+    )
+    ) %>%
+
+    mutate(cov_dat_latest_efi = if_else(
+      !is.na(cov_num_latest_efi),
+      as.Date(start_date) + + sample(1:100, n(), replace = TRUE),
+      as.Date(NA)
+    )) %>%
+
+    mutate(
+      cov_num_med_count = pmin(15, pmax(1,
+        round(rnorm(n(), mean = 7, sd = 3))
+      ))
+
+    )
 
   return(df)
 
