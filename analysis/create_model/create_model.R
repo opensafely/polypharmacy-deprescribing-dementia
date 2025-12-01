@@ -9,39 +9,56 @@ library(tidyr)
 library(skimr)
 
 
-source("analysis/create_model/fn-prepare_model_input.R")
+source("analysis/create_model/fn-calculate_outcomes.R")
+source("analysis/create_model/fn-derive_covariates.R")
+
 
 print("Load cleaned dataset")
 df <- readr::read_rds(here("output", "dataset_clean", "input_clean.rds"))
 
+df <- df %>%
+  select(-starts_with("out_num_gap"))
+
 df <- calculate_outcomes(df, 30)
+
+df <- df %>%
+  select(-starts_with("out_dat"),-starts_with("exp_dat"),-starts_with("gap"))
+
+df <- derive_covariates(df)
 
 
 # Fit the logistic regression model
 model <- glm(
-  out_bin_stopped_arb_med ~ exp_bin_review +
+  out_bin_stop_acei ~ exp_bin_med_rev +
     cov_num_age +
     cov_cat_sex +
     cov_cat_ethnicity +
     cov_cat_imd +
     cov_cat_region +
-    cov_dat_dem +
+    cov_num_days_since_dem +
     cov_bin_dem_alz +
     cov_bin_dem_vasc +
     cov_bin_dem_other +
     cov_bin_ami +
-    cov_bin_stroke_isch +
     cov_dat_chd +
     cov_bin_cancer +
     cov_bin_hypertension +
     cov_bin_carehome +
     cov_cat_smoking +
-    cov_num_medication_count +
-    cov_dat_hosp +
-    cov_dat_AE +
+    cov_num_med_count +
+    cov_num_days_since_hosp +
+    cov_num_days_since_AE +
     cov_num_latest_efi,
-  data = df_period,
+  df,
   family = binomial(link = "logit")
 )
 
-summary(model)
+summary (model)
+# -------- Save the model output --------
+model_out <- as.data.frame(summary(model)$coefficients)
+
+
+readr::write_csv(
+  model_out,
+  here::here("output", "tables", "model_outputs.csv")
+)

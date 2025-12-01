@@ -35,3 +35,10 @@ actions:
      moderately_sensitive:
        prescription_gaps: output/tables/prescription_gaps.csv
 
+  create_model_output:
+    run: r:v2 analysis/create_model/create_model.R
+    needs: [clean_dataset]
+    outputs:
+      moderately_sensitive:
+        model_outputs: output/tables/model_outpus.csv
+
