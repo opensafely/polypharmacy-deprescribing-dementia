@@ -11,12 +11,7 @@ calculate_outcomes <- function(input, gap){
 
     prev_col <- paste0("out_dat_prev_", cls)
     next_col <- paste0("out_dat_next_", cls)
-    out_col  <- paste0("out_bin_stop_", cls)
-
-    if (!(prev_col %in% names(input))) {
-      warning(paste("Missing prev date for:", cls))
-      next
-    }
+    out_col  <- paste0("out_bin_stopped_", cls)
 
     # compute gap and stopping indicator
     input <- input %>%
