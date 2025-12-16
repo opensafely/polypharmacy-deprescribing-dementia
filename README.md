@@ -21,7 +21,7 @@ Deatils of the purpose for each file in this repository are outlined below
     - The [`dataset_definition`](./analysis/dataset_definition/) directory contains the scripts for generating the initial raw dataset for the project. 
         - [`codelists.py`](./analysis/dataset_definition/codelists.py) loads each codelist that is needed.
         - [`create_variables.py`] contains functions for creating variables for the inclusion / exclusion criteria, covariates and outcome variables
-        - [`dataset_definition.py`](./analysis/dataset_definition/dataset_definition.py) calls functions from [`create_variables.py`] and defines the variables that will be used for analysis and the poulation defintion.
+        - The `dataset_definition_*.py` files define the study population and analysis variables for different stages of the pipeline. Each script generates a specific dataset using EHRQL, in some cases building on outputs from earlier data generation or cleaning steps.
         - [`variable_helper_functions.py`] contains various functions to help facilitate other scripts in this directory.
     - The [`dataset_clean`](./analysis/dataset_clean/) directory contains the scripts for cleaning the raw dataset into an analysis ready dataset. 
         - [`dataset_clean.R`](./analysis/dataset_clean/dataset_clean.R) is the main script whcih calls functions from each of the other scripts in this folder.
