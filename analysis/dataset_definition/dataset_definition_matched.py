@@ -19,9 +19,8 @@ class input_matched(PatientFrame):
 ## Create dataset
 dataset = create_dataset()
 
-## Set start and end date (only looking at first year for now)
-start_date = date(2015,1,1)
-end_date = date(2020,3,1)
+#Get study dates
+from analysis.dataset_definition.study_dates import *
 
 ## ---------------------------------
 ## Exposure variable
@@ -48,5 +47,5 @@ add_covariates(dataset, input_matched.index_date, end_date)
 
 
 ##Define population
-dataset.configure_dummy_data(population_size=100)
+dataset.configure_dummy_data(population_size=5000)
 dataset.define_population(input_matched.exists_for_patient())

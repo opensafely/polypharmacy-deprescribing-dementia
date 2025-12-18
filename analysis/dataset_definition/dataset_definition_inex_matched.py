@@ -17,9 +17,8 @@ class input_inex(PatientFrame):
 ## Create dataset
 dataset = create_dataset()
 
-## Set start and end date (only looking at first year for now)
-start_date = date(2015,1,1)
-end_date = date(2020,3,1)
+#Get study dates
+from analysis.dataset_definition.study_dates import *
 
 ## ---------------------------------
 ## Create variables for inclusion / exclusion criteria at the start of the study period
@@ -32,5 +31,5 @@ dataset.qa_num_death_year = patients.date_of_death.year
 dataset.index_date = input_inex.index_date
 
 ##Define population
-dataset.configure_dummy_data(population_size=1000)
+dataset.configure_dummy_data(population_size=5000)
 dataset.define_population(input_inex.exists_for_patient())
