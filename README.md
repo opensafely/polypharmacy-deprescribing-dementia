@@ -36,6 +36,18 @@ Deatils of the purpose for each file in this repository are outlined below
 
 - [`create_table1.R`](./analysis/table1/create_table1.R) generates a csv file for table one for the study. This uses the output of [`dataset_clean.R`](./analysis/dataset_clean/dataset_clean.R) to describe the patient characteristics, displaying the proportion of study population in each variable category.
 
+- **Suffixes used in dataset scripts**  
+  The `dataset_definition_*.py` and `dataset_clean_*.R` files use consistent suffixes to indicate the dataset or stage they relate to:
+
+  - `_inex_prematch` - initial dataset applying inclusion/exclusion criteria before any matching.
+  - `_hist` - dataset including historical data variables.
+  - `_match` - dataset prepared for matching.
+  - `_inex_matched` - dataset after matching with inclusion/exclusion criteria applied.
+  - `_matched_full` - dataset after matching with including all variables needed for the modelling.
+
+  These suffixes help track the flow of data through the pipeline, showing which datasets are inputs to later cleaning, matching, or analysis steps.
+
+
 
 
 # About the OpenSAFELY framework
