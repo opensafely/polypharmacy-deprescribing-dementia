@@ -28,7 +28,7 @@ patients <- generate_patients(
   n_patients = 1000,
   min_age = 0,
   max_age = 110,
-  mean_age = 75,
+  mean_age = 85,
   sd_age = 10,
   sex_probs = c(0.48, 0.48, 0.02, 0.02),
   proportion_dead = 0.1,
@@ -109,14 +109,36 @@ for (i in seq_along(dmd_vars)) {
     medications=medications,
     patients = patients,
     codelist = codelist,
-    avg_gap_days = 60,
-    gap_sd_days = 30,
+    avg_gap_days = 30,
+    gap_sd_days = 15,
     stop_prob = 0.05,
     restart_prob = 0.5,
     long_gap_prob = 0.2,
     max_start_offset_days = 500,
     start_date = as.Date("2014-01-01"),
     end_date = as.Date("2025-12-31"),
+    seed = base_seed + i
+  )
+}
+
+
+# Loop over each DMD codelist
+for (i in seq_along(dmd_vars)) {
+  var <- dmd_vars[i]
+  codelist <- get(var)
+  
+  medications <- add_medications(
+    medications=medications,
+    patients = patients,
+    codelist = codelist,
+    avg_gap_days = 20,
+    gap_sd_days = 1,
+    stop_prob = 0,
+    restart_prob = 0,
+    long_gap_prob = 0,
+    max_start_offset_days = 0,
+    start_date = as.Date("2014-01-01"),
+    end_date = as.Date("2015-12-31"),
     seed = base_seed + i
   )
 }
@@ -141,7 +163,7 @@ tables <- list(
   addresses = addresses,
   ons_deaths = ons_deaths,
   decision_support_values = decision_support_values,
-  medications = medications,
+  medications = medications
 )
 
 # Loop over each table
@@ -155,5 +177,6 @@ for(name in names(tables)) {
   write.csv(df,
             file = file.path(out_dir, paste0(name, ".csv")),
             row.names = FALSE,
-            na = "")
+            na = "",
+            quote = FALSE)
 }
