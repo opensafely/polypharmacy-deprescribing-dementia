@@ -1,0 +1,3 @@
+patient_id,apcs_ident,admission_date,discharge_date,discharge_destination,discharge_method,spell_core_hrg_sus,admission_method,primary_diagnosis,secondary_diagnosis
+1,1001,2025-01-10,2025-01-15,19,1,AA12,1,I21.9,E11.9
+2,2002,2025-03-05,2025-03-12,54,1,BB34,2,J18.9,I50.0

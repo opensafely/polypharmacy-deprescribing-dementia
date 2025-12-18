@@ -1,4 +1,4 @@
-from ehrql.tables.tpp import patients, practice_registrations, clinical_events, addresses, ethnicity_from_sus, medications, ons_deaths, apcs, decision_support_values, emergency_care_attendances
+from ehrql.tables.tpp import patients, practice_registrations, clinical_events, addresses, medications, ons_deaths, apcs, decision_support_values, emergency_care_attendances
 from ehrql import create_dataset, codelist_from_csv, days, case, when, minimum_of, show
 from datetime import datetime, date
 from analysis.dataset_definition.variable_helper_functions import (
@@ -24,7 +24,7 @@ dataset = create_dataset()
 
 ## Set start and end date (only looking at first year for now)
 start_date = date(2015,1,1)
-end_date = date(2016,1,1)
+end_date = date(2020,3,1)
 
 ## ---------------------------------
 ## Exposure variable

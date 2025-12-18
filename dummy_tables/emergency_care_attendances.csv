@@ -1,0 +1,4 @@
+id,patient_id,arrival_date,discharge_destination,diagnosis_01
+1,101,2025-01-15,123456,A1111
+2,205,2025-03-22,234567,B2222
+3,333,2025-07-10,345678,C3333
