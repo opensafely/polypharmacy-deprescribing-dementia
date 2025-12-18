@@ -31,5 +31,5 @@ dataset.qa_num_death_year = patients.date_of_death.year
 dataset.index_date = input_inex.index_date
 
 ##Define population
-dataset.configure_dummy_data(population_size=5000)
+dataset.configure_dummy_data(population_size=1000)
 dataset.define_population(input_inex.exists_for_patient())

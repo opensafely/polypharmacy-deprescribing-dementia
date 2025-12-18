@@ -47,5 +47,5 @@ add_covariates(dataset, input_matched.index_date, end_date)
 
 
 ##Define population
-dataset.configure_dummy_data(population_size=5000)
+dataset.configure_dummy_data(population_size=1000)
 dataset.define_population(input_matched.exists_for_patient())

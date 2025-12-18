@@ -24,5 +24,5 @@ dataset.qa_num_birth_year = patients.date_of_birth.year
 dataset.qa_num_death_year = patients.date_of_death.year
 
 ##Define population
-dataset.configure_dummy_data(population_size=5000)
+dataset.configure_dummy_data(population_size=1000)
 dataset.define_population(patients.date_of_birth.is_not_null())
