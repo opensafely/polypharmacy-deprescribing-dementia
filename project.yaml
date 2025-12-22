@@ -41,4 +41,4 @@ actions:
     needs: [clean_dataset]
     outputs:
       moderately_sensitive:
-        model_outputs: output/tables/model_outpus.csv
+        model_outputs: output/tables/model_outputs.csv
