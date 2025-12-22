@@ -79,7 +79,11 @@ summary (model)
 model_out <- as.data.frame(summary(model)$coefficients)
 
 
-readr::write_csv(
-  model_out,
-  here::here("output", "tables", "model_outputs.csv")
-)
+# readr::write_csv(
+#   model_out,
+#   here::here("output", "tables", "model_outputs.csv")
+# )
+
+
+dir.create(here("output", "tables"), recursive = TRUE, showWarnings = FALSE)
+write_csv(model_out, here("output", "tables", "model_outputs.txt"))
