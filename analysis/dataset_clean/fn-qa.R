@@ -30,6 +30,16 @@ qa <- function(input, flow) {
   )
   print(flow[nrow(flow), ])
 
+  # # Known IMD
+  # input <- input[
+  #   (input$cov_cat_imd != "unknown"),
+  # ]
+  # flow[nrow(flow) + 1, ] <- c(
+  #   "Quality assurance: Known IMD",
+  #   nrow(input)
+  # )
+  # print(flow[nrow(flow), ])
+
   #Describe data ----
   print("Describe data")
 

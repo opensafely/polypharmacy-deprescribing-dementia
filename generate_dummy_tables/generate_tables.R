@@ -14,35 +14,26 @@ source("generate_dummy_tables/fn-generate_ons_deaths.R")
 source("generate_dummy_tables/fn-add_clinical_events.R")
 
 
-# Load the codelist CSV
-
-
-mi_codelist <- read_csv("codelists/nhsd-primary-care-domain-refsets-mi_cod.csv", show_col_types = FALSE) %>%
-  rename(
-    snomedct_code = code, 
-    term = term              
-  ) %>% select(snomedct_code, term)
-
+# Load the codelist CSV RUN fn-load_codelists.csv
 
 patients <- generate_patients(
   n_patients = 1000,
   min_age = 0,
   max_age = 110,
   mean_age = 85,
-  sd_age = 10,
+  sd_age = 5,
   sex_probs = c(0.48, 0.48, 0.02, 0.02),
-  proportion_dead = 0.1,
-  min_death_age = 40,
-  max_death_age = 110,
+  proportion_dead = 0.15,
+
   seed = 123
 )
 
 ## Generate practice registrations
 practice_registrations <- generate_practice_registrations(
   patients = patients,
-  n_practices = 150,
+  n_practices = 10,
   max_registrations_per_patient = 3,
-  prob_multiple_registrations = 0.2,
+  prob_multiple_registrations = 0.4,
   prob_gap = 0.1,
   prob_overlap = 0.05,
   seed = 456
@@ -61,6 +52,7 @@ clinical_events <- generate_clinical_events(
 
 snomed_vars <- ls(pattern = "_snomed")
 # Loop over each snomed codelist
+
 for (i in seq_along(snomed_vars)) {
   var <- snomed_vars[i]
   codelist <- get(var)
@@ -68,13 +60,28 @@ for (i in seq_along(snomed_vars)) {
   clinical_events <- add_clinical_events(
     clinical_events = clinical_events,
     patients = patients,
-    codelist = codelist,
+    codelist=codelist,
+    start_date = as.Date("2014-01-01"),
+    end_date = as.Date("2025-12-31"),
     min_events_per_patient = 0,
-    max_events_per_patient = 3,
-    seed = 123
+    max_events_per_patient = 30,
+    numeric_value_mean = 50,
+    event_prevalence = 0.3, 
+    numeric_value_sd = 10
   )
 }
 
+clinical_events <- add_clinical_events(
+  clinical_events = clinical_events,
+  patients = patients,
+  codelist=medication_review_codelist_snomed,
+  start_date = as.Date("2014-01-01"),
+  end_date = as.Date("2025-12-31"),
+  min_events_per_patient = 0,
+  max_events_per_patient = 30,
+  event_prevalence = 0.5, 
+  numeric_value_mean = 50,
+  numeric_value_sd = 10)
 
 addresses <- generate_addresses(patients, seed = 123)
 ons_deaths <- generate_ons_deaths(patients, seed = 123)
@@ -133,10 +140,10 @@ for (i in seq_along(dmd_vars)) {
     codelist = codelist,
     avg_gap_days = 20,
     gap_sd_days = 1,
-    stop_prob = 0,
-    restart_prob = 0,
-    long_gap_prob = 0,
-    max_start_offset_days = 0,
+    stop_prob = 0.001,
+    restart_prob = 0.2,
+    long_gap_prob = 0.001,
+    max_start_offset_days = 1,
     start_date = as.Date("2014-01-01"),
     end_date = as.Date("2015-12-31"),
     seed = base_seed + i
@@ -154,6 +161,8 @@ convert_logical_to_char <- function(df) {
   df[logical_cols] <- lapply(df[logical_cols], function(x) ifelse(x, "T", "F"))
   df
 }
+
+clinical_events <- clinical_events[ , setdiff(names(clinical_events), "consultation_id")]
 
 # List of tables to save
 tables <- list(

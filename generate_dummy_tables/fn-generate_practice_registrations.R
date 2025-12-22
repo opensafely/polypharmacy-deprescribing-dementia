@@ -5,12 +5,12 @@ generate_practice_registrations <- function(
     n_practices = 200,
     
     ## Registrations per patient
-    max_registrations_per_patient = 3,
-    prob_multiple_registrations = 0.15,
+    max_registrations_per_patient = 5,
+    prob_multiple_registrations = 0.1,
     
-    ## Stability controls (NEW)
-    prob_single_stable_registration = 0.85,
-    min_stable_registration_days = 365,
+    ## Stability controls
+    prob_single_stable_registration = 0.9,
+    min_stable_registration_days = 365*10,
     
     ## Timing
     min_registration_length_days = 5 * 365,

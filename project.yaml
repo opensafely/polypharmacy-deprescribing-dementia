@@ -29,3 +29,16 @@ actions:
        table_one: output/tables/table1.csv
        table_one_midpoint6: output/tables/table1_midpoint6.csv
 
+  create_histograms_table:
+   run: r:v2 analysis/tables/create_histograms_table.R
+   needs: [clean_dataset]
+   outputs:
+     moderately_sensitive:
+       histograms_table: output/tables/histograms_table.csv
+
+  create_model_output:
+    run: r:v2 analysis/create_model/create_model.R
+    needs: [clean_dataset]
+    outputs:
+      moderately_sensitive:
+        model_outputs: output/tables/model_outpus.csv

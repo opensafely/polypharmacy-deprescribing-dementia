@@ -2,11 +2,13 @@ add_clinical_events <- function(
     clinical_events,
     patients,
     codelist,
-    min_events_per_patient = 1,
-    max_events_per_patient = 5,
+    start_date = as.Date("2014-01-01"),
+    end_date = as.Date("2025-12-31"),
+    min_events_per_patient = 0,
+    max_events_per_patient = 30,
+    event_prevalence = 1.0,   # NEW: proportion of patients with >=1 event
     numeric_value_mean = 50,
     numeric_value_sd = 10,
-    reference_date = as.Date("2025-12-31"),
     seed = NULL
 ) {
   
@@ -14,7 +16,12 @@ add_clinical_events <- function(
   
   stopifnot(
     all(c("patient_id", "date_of_birth") %in% names(patients)),
-    "snomedct_code" %in% names(codelist)
+    "snomedct_code" %in% names(codelist),
+    inherits(start_date, "Date"),
+    inherits(end_date, "Date"),
+    start_date <= end_date,
+    event_prevalence >= 0,
+    event_prevalence <= 1
   )
   
   # Start consultation IDs after the max in the existing table
@@ -31,11 +38,20 @@ add_clinical_events <- function(
     
     patient <- patients[i, ]
     
-    # Number of new events for this patient
-    n_events <- sample(min_events_per_patient:max_events_per_patient, 1)
+    # Decide whether this patient ever gets the event
+    has_event <- runif(1) < event_prevalence
+    if (!has_event) next
     
-    earliest_date <- patient$date_of_birth
-    latest_date <- reference_date
+    # Number of new events for this patient
+    n_events <- sample(
+      max(1, min_events_per_patient):max_events_per_patient,
+      1
+    )
+    
+    # Determine valid event window
+    earliest_date <- max(start_date, patient$date_of_birth, na.rm = TRUE)
+    latest_date <- end_date
+    
     if (!is.na(patient$date_of_death)) {
       latest_date <- min(latest_date, patient$date_of_death)
     }
@@ -44,21 +60,21 @@ add_clinical_events <- function(
     
     for (j in seq_len(n_events)) {
       
-      # Random event date
-      event_date <- as.Date(runif(1, as.numeric(earliest_date), as.numeric(latest_date)), origin = "1970-01-01")
+      # Random event date within window
+      event_date <- as.Date(
+        runif(
+          1,
+          as.numeric(earliest_date),
+          as.numeric(latest_date)
+        ),
+        origin = "1970-01-01"
+      )
       
-      # Random SNOMED CT code
-      snomedct_code <- sample(codelist$snomedct_code, 1)
-      
-      # Random numeric value
-      numeric_value <- rnorm(1, numeric_value_mean, numeric_value_sd)
-      
-      # Create new event
       events[[event_id]] <- data.frame(
         patient_id = patient$patient_id,
         date = event_date,
-        snomedct_code = snomedct_code,
-        numeric_value = numeric_value,
+        snomedct_code = sample(codelist$snomedct_code, 1),
+        numeric_value = rnorm(1, numeric_value_mean, numeric_value_sd),
         consultation_id = consultation_id_counter,
         stringsAsFactors = FALSE
       )
@@ -68,9 +84,9 @@ add_clinical_events <- function(
     }
   }
   
-  new_events <- do.call(rbind, events)
+  if (length(events) == 0) {
+    return(clinical_events)
+  }
   
-  # Combine with existing clinical events
-  combined_events <- rbind(clinical_events, new_events)
-  combined_events
+  rbind(clinical_events, do.call(rbind, events))
 }

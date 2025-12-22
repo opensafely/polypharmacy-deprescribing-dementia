@@ -9,15 +9,15 @@ generate_patients <- function(
     
     ## Sex distribution (must sum to 1)
     sex_levels = c("female", "male", "intersex", "unknown"),
-    sex_probs  = c(0.49, 0.49, 0.01, 0.01),
+    sex_probs  = c(0.48, 0.48, 0.02, 0.02),
     
     ## Mortality
-    proportion_dead = 0.4,
-    min_death_age = 40,
-    max_death_age = 100,
+    proportion_dead = 0.1,
+    min_death_date = as.Date("2000-01-01"),
+    max_death_date = as.Date("2025-12-31"),
     
     ## Reference date for age calculation
-    reference_date = as.Date("2030-12-31"),
+    reference_date = as.Date("2025-12-31"),
     
     ## QA edge cases
     n_future_birth = 1,
@@ -57,7 +57,6 @@ generate_patients <- function(
     max = max_age
   )
   
-  ages <- floor(ages)
   
   ## Date of birth (first day of month)
   dob_raw <- reference_date - round(ages * 365.25)
@@ -71,32 +70,23 @@ generate_patients <- function(
     prob = sex_probs
   )
   
-  ## Death indicator
-  is_dead <- rbinom(n_patients, 1, proportion_dead)
+  ## ---- Deaths ----
   
-  ## Death ages
-  death_age <- rep(NA_real_, n_patients)
-  
-  death_age[is_dead == 1] <- rtruncnorm(
-    n = sum(is_dead),
-    mean = mean(c(min_death_age, max_death_age)),
-    sd = (max_death_age - min_death_age) / 6,
-    min = min_death_age,
-    max = max_death_age
-  )
-  
-  ## Death dates
   date_of_death <- rep(as.Date(NA), n_patients)
   
-  death_dates <- date_of_birth + round(death_age * 365.25)
+  n_dead <- round(n_patients * proportion_dead)
+  dead_idx <- sample(seq_len(n_patients), n_dead)
   
-  ## --- FIX IS HERE ---
-  ## use which() to ignore NAs in the comparison
-  future_death_indices <- which(death_dates > reference_date)
-  death_dates[future_death_indices] <- death_dates[future_death_indices] - 3652
-  ## -------------------
+  sampled_death_dates <- as.Date(
+    runif(
+      n_dead,
+      as.numeric(min_death_date),
+      as.numeric(max_death_date)
+    ),
+    origin = "1970-01-01"
+  )
   
-  date_of_death[is_dead == 1] <- death_dates[is_dead == 1]
+  date_of_death[dead_idx] <- sampled_death_dates
   
   ## ---- Inject QA failures ----
   
