@@ -11,7 +11,7 @@ from analysis.dataset_definition.variable_helper_functions import (
     ever_matching_event_clinical_ctv3_before,
     filter_codes_by_category
 )
-from analysis.dataset_definition.create_variables import(
+from analysis.dataset_definition.add_variables import(
     add_inex_variables,
     add_covariates,
     add_out_variables

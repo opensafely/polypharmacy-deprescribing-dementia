@@ -62,7 +62,7 @@ actions:
         #describe_ref: output/describe/ref_dataset_matched_inex.txt
 
   generate_dataset_matched_full:
-    run: ehrql:v1 generate-dataset analysis/dataset_definition/dataset_definition_matched.py --output output/dataset/input_matched_full.csv.gz
+    run: ehrql:v1 generate-dataset analysis/dataset_definition/dataset_definition_matched_full.py --output output/dataset/input_matched_full.csv.gz
     needs: [clean_dataset_matched]
     outputs:
       highly_sensitive:

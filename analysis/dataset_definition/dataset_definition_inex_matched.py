@@ -3,7 +3,7 @@ from ehrql import create_dataset, codelist_from_csv, days, case, when, minimum_o
 from ehrql.query_language import table_from_file , PatientFrame, Series
 from datetime import datetime, date
 
-from analysis.dataset_definition.create_variables import(
+from analysis.dataset_definition.add_variables import(
     add_inex_variables
 )
 

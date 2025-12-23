@@ -40,11 +40,10 @@ Deatils of the purpose for each file in this repository are outlined below
 - **Suffixes used in dataset scripts**  
   The `dataset_definition_*.py` and `dataset_clean_*.R` files use consistent suffixes to indicate the dataset or stage they relate to:
 
-  - `_inex_prematch` - initial dataset applying inclusion/exclusion criteria before any matching.
-  - `_hist` - dataset including historical data variables.
+  - `_inex*` - dataset containing inclusion/exclusion and QA variables.
+  - `_hist` - dataset containing variables for generating medication gap histograms.
   - `_match` - dataset prepared for matching.
-  - `_inex_matched` - dataset after matching with inclusion/exclusion criteria applied.
-  - `_matched_full` - dataset after matching with including all variables needed for the modelling.
+  - `_matched*` - dataset after matching.
 
   These suffixes help track the flow of data through the pipeline, showing which datasets are inputs to later cleaning, matching, or analysis steps.
 

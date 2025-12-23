@@ -2,7 +2,7 @@ from ehrql.tables.tpp import patients, practice_registrations, clinical_events, 
 from ehrql import create_dataset, codelist_from_csv, days, case, when, minimum_of, show
 from datetime import datetime, date
 
-from analysis.dataset_definition.create_variables import(
+from analysis.dataset_definition.add_variables import(
     add_inex_variables
 )
 # Codelists from codelists.py (which pulls all variables from the codelist folder)
