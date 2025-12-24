@@ -1,5 +1,6 @@
 from ehrql.tables.tpp import patients, practice_registrations, clinical_events, addresses, ethnicity_from_sus, medications, ons_deaths, apcs, decision_support_values, emergency_care_attendances
 from ehrql import create_dataset, codelist_from_csv, days, case, when, minimum_of, show
+from ehrql.query_language import table_from_file , PatientFrame, Series
 from datetime import datetime, date
 from analysis.dataset_definition.variable_helper_functions import (
     get_prescription_dates, 
@@ -10,7 +11,7 @@ from analysis.dataset_definition.variable_helper_functions import (
     ever_matching_event_clinical_ctv3_before,
     filter_codes_by_category
 )
-from analysis.dataset_definition.create_variables import(
+from analysis.dataset_definition.add_variables import(
     add_inex_variables,
     add_covariates,
     add_out_variables
@@ -18,13 +19,16 @@ from analysis.dataset_definition.create_variables import(
 
 # Codelists from codelists.py (which pulls all variables from the codelist folder)
 from codelists import *
+@table_from_file("output/dataset_clean/input_clean_inex_prematch.csv")
+class input_inex(PatientFrame):
+    inex_bin_has_dem = Series(str)
+
 
 ## Create dataset
 dataset = create_dataset()
 
-## Set start and end date (only looking at first year for now)
-start_date = date(2015,1,1)
-end_date = date(2016,1,1)
+#Get study dates
+from analysis.dataset_definition.study_dates import *
 
 ## ---------------------------------
 ## Exposure variable
@@ -38,45 +42,7 @@ dataset.exp_dat_med_rev = (
     .first_for_patient()
     .date)
 
-dataset.exp_bin_med_rev = (
-    clinical_events.where(clinical_events.snomedct_code.is_in(medication_review_codelist))
-    .where(clinical_events.date.is_on_or_after(start_date))
-    .where(clinical_events.date.is_on_or_before(end_date))
-    .exists_for_patient())
-
-dataset.exp_dat_first_event = (
-    clinical_events
-    .where(clinical_events.date.is_on_or_after(start_date))
-    .where(clinical_events.date.is_on_or_before(end_date))
-    .sort_by(clinical_events.date)
-    .first_for_patient()
-    .date
-)
-dataset.exp_bin_first_event = (
-    clinical_events
-    .where(clinical_events.date.is_on_or_after(start_date))
-    .where(clinical_events.date.is_on_or_before(end_date))
-    .exists_for_patient()
-)
-
-#Create index dates
-
-index_date = case(
-    when(dataset.exp_bin_med_rev).then(dataset.exp_dat_med_rev),
-    when(dataset.exp_bin_first_event).then(dataset.exp_dat_first_event),
-    otherwise=start_date
-)
-
-dataset.index_date = index_date
-
-## ---------------------------------
-## Create variables for inclusion / exclusion criteria at the start of the study period
-add_inex_variables(dataset, start_date)
-
-## ---------------------------------
-## Create variables for data quality checks
-dataset.qa_num_birth_year = patients.date_of_birth.year
-dataset.qa_num_death_year = patients.date_of_death.year
+index_date = start_date
 
 ## ---------------------------------
 ## Create covariates on index date
@@ -90,4 +56,4 @@ add_out_variables(dataset, index_date, start_date, end_date, angiotensin_ii_rece
 
 ##Define population
 dataset.configure_dummy_data(population_size=1000)
-dataset.define_population(patients.date_of_birth.is_not_null())
+dataset.define_population(input_inex.exists_for_patient())

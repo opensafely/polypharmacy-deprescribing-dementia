@@ -1,30 +1,85 @@
 version: '4.0'
 
 actions:
-  generate_dataset:
-    run: ehrql:v1 generate-dataset analysis/dataset_definition/dataset_definition.py --output output/dataset/input.csv.gz
+  generate_dataset_inex_prematch:
+    run: ehrql:v1 generate-dataset analysis/dataset_definition/dataset_definition_inex_prematch.py --output output/dataset/input_inex_prematch.csv.gz
     outputs:
       highly_sensitive:
-        dataset: output/dataset/input.csv.gz
+        dataset: output/dataset/input_inex_prematch.csv.gz
 
-  clean_dataset:
-    run: r:v2 analysis/dataset_clean/dataset_clean.R
-    needs: [generate_dataset]
+  clean_dataset_prematch:
+    run: r:v2 analysis/dataset_clean/dataset_clean_prematch.R
+    needs: [generate_dataset_inex_prematch]
     outputs:
       highly_sensitive:
-        dataset: output/dataset_clean/input_clean.rds
+        dataset: output/dataset_clean/input_clean_inex_prematch.csv
       moderately_sensitive:
-        flow: output/dataset_clean/flow.csv
-        describe_inex: output/describe/inex_dataset.txt
-        describe_preprocessed: output/describe/preprocessed_dataset.txt
-        describe_qa: output/describe/qa_dataset.txt
-        describe_ref: output/describe/ref_dataset.txt
-  
-  create_table_1:
-   run: r:v2 analysis/tables/create_table1.R
-   needs: [clean_dataset]
-   outputs:
-     moderately_sensitive:
-       table_one: output/tables/table1.csv
-       table_one_midpoint6: output/tables/table1_midpoint6.csv
+        flow_prematch: output/dataset_clean/flow_inex_prematch.csv
+        #describe_inex_prematch: output/describe/inex_dataset_prematch.txt
+        #describe_preprocessed_prematch: output/describe/preprocessed_dataset_prematch.txt
+        #describe_qa_prematch: output/describe/qa_dataset_prematch.txt
+        #describe_ref_prematch: output/describe/ref_dataset_prematch.txt
 
+  generate_dataset_hist:
+    run: ehrql:v1 generate-dataset analysis/dataset_definition/dataset_definition_hist.py --output output/dataset/input_hist.csv.gz
+    needs: [clean_dataset_prematch]
+    outputs:
+      highly_sensitive:
+        dataset: output/dataset/input_hist.csv.gz
+    
+  generate_dataset_match:
+    run: ehrql:v1 generate-dataset analysis/dataset_definition/dataset_definition_match.py --output output/dataset/input_match.csv.gz
+    needs: [clean_dataset_prematch]
+    outputs:
+      highly_sensitive:
+        dataset: output/dataset/input_match.csv.gz
+
+  match:
+    run: r:v2 analysis/dataset_clean/match.R
+    needs: [generate_dataset_match]
+    outputs:
+      highly_sensitive:
+        dataset: output/dataset_clean/input_matched.csv
+
+  generate_dataset_inex_matched:
+    run: ehrql:v1 generate-dataset analysis/dataset_definition/dataset_definition_inex_matched.py --output output/dataset/input_inex_matched.csv.gz
+    needs: [match]
+    outputs:
+      highly_sensitive:
+        dataset: output/dataset/input_inex_matched.csv.gz
+
+  clean_dataset_matched:
+    run: r:v2 analysis/dataset_clean/dataset_clean_matched.R
+    needs: [generate_dataset_inex_matched]
+    outputs:
+      highly_sensitive:
+        dataset: output/dataset_clean/input_clean_inex_matched.csv
+      moderately_sensitive:
+        flow: output/dataset_clean/flow_inex_matched.csv
+        #describe_inex: output/describe/inex_dataset.txt
+        #describe_preprocessed: output/describe/preprocessed_dataset_matched_inex.txt
+        #describe_qa: output/describe/qa_dataset_matched_inex.txt
+        #describe_ref: output/describe/ref_dataset_matched_inex.txt
+
+  generate_dataset_matched_full:
+    run: ehrql:v1 generate-dataset analysis/dataset_definition/dataset_definition_matched_full.py --output output/dataset/input_matched_full.csv.gz
+    needs: [clean_dataset_matched]
+    outputs:
+      highly_sensitive:
+        dataset: output/dataset/input_matched_full.csv.gz
+
+
+  # create_table_1:
+  #  run: r:v2 analysis/tables/create_table1.R
+  #  needs: [clean_dataset]
+  #  outputs:
+  #    moderately_sensitive:
+  #      table_one: output/tables/table1.csv
+  #      table_one_midpoint6: output/tables/table1_midpoint6.csv
+
+  # generate_project_dag:
+  #   run: python:v2 python analysis/project_dag.py --yaml-path project.yaml --output-path project.dag.md
+  #   outputs:
+  #     moderately_sensitive:
+  #       counts: project.dag.md
+  
