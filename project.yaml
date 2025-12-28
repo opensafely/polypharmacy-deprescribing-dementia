@@ -2,7 +2,7 @@ version: '4.0'
 
 actions:
   generate_dataset_inex_prematch:
-    run: ehrql:v1 generate-dataset analysis/dataset_definition/dataset_definition_inex_prematch.py --output output/dataset/input_inex_prematch.csv.gz
+    run: ehrql:v1 generate-dataset analysis/dataset_definition/dataset_definition_inex_prematch.py --output output/dataset/input_inex_prematch.csv.gz --dummy-tables dummy_tables
     outputs:
       highly_sensitive:
         dataset: output/dataset/input_inex_prematch.csv.gz
@@ -21,14 +21,14 @@ actions:
         #describe_ref_prematch: output/describe/ref_dataset_prematch.txt
 
   generate_dataset_hist:
-    run: ehrql:v1 generate-dataset analysis/dataset_definition/dataset_definition_hist.py --output output/dataset/input_hist.csv.gz
+    run: ehrql:v1 generate-dataset analysis/dataset_definition/dataset_definition_hist.py --output output/dataset/input_hist.csv.gz --dummy-tables dummy_tables
     needs: [clean_dataset_prematch]
     outputs:
       highly_sensitive:
         dataset: output/dataset/input_hist.csv.gz
     
   generate_dataset_match:
-    run: ehrql:v1 generate-dataset analysis/dataset_definition/dataset_definition_match.py --output output/dataset/input_match.csv.gz
+    run: ehrql:v1 generate-dataset analysis/dataset_definition/dataset_definition_match.py --output output/dataset/input_match.csv.gz --dummy-tables dummy_tables
     needs: [clean_dataset_prematch]
     outputs:
       highly_sensitive:
@@ -42,7 +42,7 @@ actions:
         dataset: output/dataset_clean/input_matched.csv
 
   generate_dataset_inex_matched:
-    run: ehrql:v1 generate-dataset analysis/dataset_definition/dataset_definition_inex_matched.py --output output/dataset/input_inex_matched.csv.gz
+    run: ehrql:v1 generate-dataset analysis/dataset_definition/dataset_definition_inex_matched.py --output output/dataset/input_inex_matched.csv.gz --dummy-tables dummy_tables
     needs: [match]
     outputs:
       highly_sensitive:
@@ -62,7 +62,7 @@ actions:
         #describe_ref: output/describe/ref_dataset_matched_inex.txt
 
   generate_dataset_matched_full:
-    run: ehrql:v1 generate-dataset analysis/dataset_definition/dataset_definition_matched_full.py --output output/dataset/input_matched_full.csv.gz
+    run: ehrql:v1 generate-dataset analysis/dataset_definition/dataset_definition_matched_full.py --output output/dataset/input_matched_full.csv.gz --dummy-tables dummy_tables
     needs: [clean_dataset_matched]
     outputs:
       highly_sensitive:
