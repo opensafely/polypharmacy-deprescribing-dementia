@@ -78,7 +78,6 @@ actions:
         describe_preprocessed: output/describe/preprocessed_dataset_hist.txt
         describe_ref: output/describe/ref_dataset_hist.txt
 
-
   create_table_1:
    run: r:v2 analysis/tables/create_table1.R
    needs: [clean_dataset_hist]
