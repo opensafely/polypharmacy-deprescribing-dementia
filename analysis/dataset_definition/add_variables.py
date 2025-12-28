@@ -44,9 +44,9 @@ def add_inex_variables(dataset, start_date):
     #Known sex
     inex_bin_known_sex = patients.sex != "unknown"
     #Known IMD
-    inex_bin_known_imd = (addresses.for_patient_on(start_date).imd_rounded >= 0)
+    inex_bin_known_imd = addresses.for_patient_on(start_date).imd_rounded.is_not_null()
     #Known region
-    inex_bin_known_region = practice_registrations.for_patient_on(start_date).practice_nuts1_region_name != ""
+    inex_bin_known_region = practice_registrations.for_patient_on(start_date).practice_nuts1_region_name.is_not_null()
 
 
     #Add all variables to the dataset
