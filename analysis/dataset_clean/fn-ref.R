@@ -164,9 +164,5 @@ ref <- function(input) {
     function(x) factor(x, levels = c("FALSE", "TRUE"))
   )
 
-  #Describe data ----
-  print("Describe data")
-
-  describe_data(df = input, name = "ref_dataset")
   return(input)
 }

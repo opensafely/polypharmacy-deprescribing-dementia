@@ -40,11 +40,6 @@ preprocess <- function(df) {
       across(all_of(cat_cols), ~ as.character(.))
     )
 
-  #Describe data ----
-  print("Describe data")
-
-  describe_data(df = df, name = "preprocessed_dataset")
-
   return(df)
 
 }

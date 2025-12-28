@@ -31,10 +31,6 @@ inex <- function(input, flow) {
   }
 
 
-  #Describe data ----
-  print("Describe data")
-  describe_data(df = input, name = "inex_dataset")
-
   return(list(input = input, flow = flow))
 
 }

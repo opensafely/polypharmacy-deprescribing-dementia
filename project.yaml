@@ -15,10 +15,10 @@ actions:
         dataset: output/dataset_clean/input_clean_inex_prematch.csv
       moderately_sensitive:
         flow_prematch: output/dataset_clean/flow_inex_prematch.csv
-        #describe_inex_prematch: output/describe/inex_dataset_prematch.txt
-        #describe_preprocessed_prematch: output/describe/preprocessed_dataset_prematch.txt
-        #describe_qa_prematch: output/describe/qa_dataset_prematch.txt
-        #describe_ref_prematch: output/describe/ref_dataset_prematch.txt
+        describe_inex_prematch: output/describe/inex_dataset_prematch.txt
+        describe_preprocessed_prematch: output/describe/preprocessed_dataset_prematch.txt
+        describe_qa_prematch: output/describe/qa_dataset_prematch.txt
+        describe_ref_prematch: output/describe/ref_dataset_prematch.txt
 
   generate_dataset_hist:
     run: ehrql:v1 generate-dataset analysis/dataset_definition/dataset_definition_hist.py --output output/dataset/input_hist.csv.gz --dummy-tables dummy_tables
@@ -56,10 +56,10 @@ actions:
         dataset: output/dataset_clean/input_clean_inex_matched.csv
       moderately_sensitive:
         flow: output/dataset_clean/flow_inex_matched.csv
-        #describe_inex: output/describe/inex_dataset.txt
-        #describe_preprocessed: output/describe/preprocessed_dataset_matched_inex.txt
-        #describe_qa: output/describe/qa_dataset_matched_inex.txt
-        #describe_ref: output/describe/ref_dataset_matched_inex.txt
+        describe_inex: output/describe/inex_dataset_matched.txt
+        describe_preprocessed: output/describe/preprocessed_dataset_matched.txt
+        describe_qa: output/describe/qa_dataset_matched.txt
+        describe_ref: output/describe/ref_dataset_matched.txt
 
   generate_dataset_matched_full:
     run: ehrql:v1 generate-dataset analysis/dataset_definition/dataset_definition_matched_full.py --output output/dataset/input_matched_full.csv.gz --dummy-tables dummy_tables

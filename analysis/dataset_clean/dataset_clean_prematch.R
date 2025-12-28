@@ -41,6 +41,10 @@ source("analysis/utility.R")
 print("Preprocessing dataset")
 dataset_clean <- preprocess(dataset_clean)
 
+#Describe data ----
+print("Describe preprocessed data")
+describe_data(df = dataset_clean, name = "preprocessed_dataset_prematch")
+
 ## Run quality assurance script
 print("Running quality assurance")
 
@@ -49,6 +53,10 @@ dataset_clean <- qa(dataset_clean, flow)
 flow <- dataset_clean$flow
 dataset_clean <- dataset_clean$input
 
+#Describe data ----
+print("Describe QAd data")
+describe_data(df = dataset_clean, name = "qa_dataset_prematch")
+
 ## Run inclusion and exclusion criteria
 print("Applying inclusion and exclusion criteria")
 dataset_clean <- inex(dataset_clean, flow)
@@ -56,9 +64,17 @@ dataset_clean <- inex(dataset_clean, flow)
 flow <- dataset_clean$flow
 dataset_clean <- dataset_clean$input
 
+#Describe data ----
+print("Describe inex data")
+describe_data(df = dataset_clean, name = "inex_dataset_prematch")
+
 ## Set reference levels and handle missing values
 print("Set reference levels and handle missing values")
 dataset_clean <- ref(dataset_clean)
+
+#Describe data ----
+print("Describe inex data")
+describe_data(df = dataset_clean, name = "ref_dataset_prematch")
 
 ## Drop unneeded variables
 #dataset_clean <- dataset_clean %>%

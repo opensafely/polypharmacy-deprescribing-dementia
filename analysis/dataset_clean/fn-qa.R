@@ -30,10 +30,5 @@ qa <- function(input, flow) {
   )
   print(flow[nrow(flow), ])
 
-  #Describe data ----
-  print("Describe data")
-
-  describe_data(df = input, name = "qa_dataset")
-
   return(list(input = input, flow = flow))
 }
