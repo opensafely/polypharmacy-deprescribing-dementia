@@ -13,7 +13,7 @@ source("analysis/utility.R")
 # Load data
 #------------------------------------------------
 print("Load cleaned dataset")
-df <- readr::read_rds(here("output", "dataset_clean", "input_clean.rds"))
+df <- readr::read_rds(here("output", "dataset_clean", "input_clean_hist.rds"))
 
 
 #------------------------------------------------
