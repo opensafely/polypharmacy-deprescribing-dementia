@@ -51,10 +51,10 @@ dataset_clean <- dataset_clean$input
 
 ## Run inclusion and exclusion criteria
 print("Applying inclusion and exclusion criteria")
-#dataset_clean <- inex(dataset_clean, flow)
+dataset_clean <- inex(dataset_clean, flow)
 
-# flow <- dataset_clean$flow
-# dataset_clean <- dataset_clean$input
+flow <- dataset_clean$flow
+dataset_clean <- dataset_clean$input
 
 ## Set reference levels and handle missing values
 print("Set reference levels and handle missing values")
