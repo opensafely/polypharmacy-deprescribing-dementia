@@ -46,7 +46,6 @@ dataset_clean <- preprocess(dataset_clean, suffix = "hist")
 print("Set reference levels and handle missing values")
 dataset_clean <- ref(dataset_clean, suffix = "hist")
 
-
 ## Drop unneeded variables
 #dataset_clean <- dataset_clean %>%
 #  select(-starts_with("inex"), -starts_with("qa_"))

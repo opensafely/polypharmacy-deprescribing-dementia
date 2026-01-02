@@ -55,5 +55,5 @@ add_out_variables(dataset, index_date, start_date, end_date, angiotensin_ii_rece
 
 
 ##Define population
-dataset.configure_dummy_data(population_size=1000)
+dataset.configure_dummy_data()
 dataset.define_population(input_inex.exists_for_patient())

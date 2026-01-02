@@ -161,7 +161,7 @@ def add_covariates(dataset, index_date, end_date):
         ).exists_for_patient())
     )
 
-    ### Hypertension (Also used for high vascular risk covariate)
+    ### Hypertension 
     cov_bin_hypertension = (
         (last_matching_event_clinical_snomed_before(
             hypertension_snomed, index_date
@@ -258,7 +258,7 @@ def add_out_variables(dataset, index_date, start_date, end_date, medication_code
 
 
     ## Number of days between prescription dates of antihypertensives
-    get_prescription_gaps(dataset, start_date, end_date, medication_codelist, column_suffix, 10)
+    get_prescription_gaps(dataset, start_date, end_date, medication_codelist, column_suffix, 100)
 
     # ---- Add variables to dataset ----
     dataset.add_column(f"out_dat_next_{column_suffix}", out_dat_next_med)
