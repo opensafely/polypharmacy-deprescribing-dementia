@@ -1,4 +1,4 @@
-preprocess <- function(df) {
+preprocess <- function(df, suffix = "", describe = TRUE) {
   df_dataset <- df
   # Get column names ----
   print("Get column names")
@@ -39,6 +39,18 @@ preprocess <- function(df) {
       across(all_of(num_cols), ~ as.numeric(.)),
       across(all_of(cat_cols), ~ as.character(.))
     )
+
+  # Describe data ----
+  if (isTRUE(describe)) {
+    print("Describe preprocessed data")
+    describe_data(
+      df = df,
+      name = paste0(
+        "preprocessed_dataset",
+        if (nzchar(suffix)) paste0("_", suffix) else ""
+      )
+    )
+  }
 
   return(df)
 

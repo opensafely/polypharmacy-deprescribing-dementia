@@ -39,20 +39,13 @@ source("analysis/utility.R")
 
 ## Preprocess the data
 print("Preprocessing dataset")
-dataset_clean <- preprocess(dataset_clean)
-
-#Describe data ----
-print("Describe preprocessed data")
-describe_data(df = dataset_clean, name = "preprocessed_dataset_hist")
+dataset_clean <- preprocess(dataset_clean, suffix = "hist")
 
 
 ## Set reference levels and handle missing values
 print("Set reference levels and handle missing values")
-dataset_clean <- ref(dataset_clean)
+dataset_clean <- ref(dataset_clean, suffix = "hist")
 
-#Describe data ----
-print("Describe ref data")
-describe_data(df = dataset_clean, name = "ref_dataset_hist")
 
 ## Drop unneeded variables
 #dataset_clean <- dataset_clean %>%

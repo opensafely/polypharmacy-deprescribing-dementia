@@ -1,4 +1,4 @@
-ref <- function(input) {
+ref <- function(input, suffix = "", describe = TRUE) {
 
   # Handle missing values in cov_cat_sex ---------------------------------------
   print("Handle missing values in cov_cat_sex")
@@ -164,5 +164,16 @@ ref <- function(input) {
     function(x) factor(x, levels = c("FALSE", "TRUE"))
   )
 
+  # Describe data ----
+  if (isTRUE(describe)) {
+    print("Describe ref data")
+    describe_data(
+      df = input,
+      name = paste0(
+        "ref_dataset",
+        if (nzchar(suffix)) paste0("_", suffix) else ""
+      )
+    )
+  }
   return(input)
 }

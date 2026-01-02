@@ -1,4 +1,4 @@
-qa <- function(input, flow) {
+qa <- function(input, flow, suffix = "", describe = TRUE) {
   # Apply quality assurance to dataset
 
   # Remove records with missing patient id ----
@@ -30,5 +30,16 @@ qa <- function(input, flow) {
   )
   print(flow[nrow(flow), ])
 
+  # Describe data ----
+  if (isTRUE(describe)) {
+    print("Describe qa data")
+    describe_data(
+      df = input,
+      name = paste0(
+        "qa_dataset",
+        if (nzchar(suffix)) paste0("_", suffix) else ""
+      )
+    )
+  }
   return(list(input = input, flow = flow))
 }
