@@ -21,7 +21,7 @@ from analysis.dataset_definition.add_variables import(
 from codelists import *
 @table_from_file("output/dataset_clean/input_clean_inex_prematch.csv")
 class input_inex(PatientFrame):
-    inex_bin_has_dem = Series(str)
+    qa_num_birth_year = Series(str)
 
 
 ## Create dataset

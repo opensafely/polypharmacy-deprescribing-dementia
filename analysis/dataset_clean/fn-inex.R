@@ -41,7 +41,9 @@ inex <- function(input, flow, suffix = "", describe = TRUE) {
       )
     )
   }
-
+  ## Drop variables that are no longer needed
+  input <- input %>% select(-starts_with("inex"))
+  
   return(list(input = input, flow = flow))
 
 }
