@@ -12,7 +12,7 @@ from analysis.dataset_definition.add_variables import(
 # Codelists from codelists.py (which pulls all variables from the codelist folder)
 from codelists import *
 
-@table_from_file("output/dataset_clean/input_clean_inex_matched.csv")
+@table_from_file("output/dataset_clean/input_clean_matched.csv")
 class input_matched(PatientFrame):
     index_date = Series(date)
 
@@ -47,5 +47,5 @@ add_covariates(dataset, input_matched.index_date, end_date)
 
 
 ##Define population
-dataset.configure_dummy_data(population_size=1000)
+dataset.configure_dummy_data()
 dataset.define_population(input_matched.exists_for_patient())

@@ -20,9 +20,9 @@ from analysis.dataset_definition.add_variables import(
 # Codelists from codelists.py (which pulls all variables from the codelist folder)
 from codelists import *
 
-@table_from_file("output/dataset_clean/input_clean_inex_prematch.csv")
+@table_from_file("output/dataset_clean/input_clean_prematch.csv")
 class input_inex(PatientFrame):
-    inex_bin_has_dem = Series(str)
+    qa_num_birth_year = Series(str)
 
 ## Create dataset
 dataset = create_dataset()
@@ -45,5 +45,5 @@ dataset.exp_dat_med_rev = (
 dataset.mat_num_practice_id = practice_registrations.for_patient_on(start_date).practice_pseudo_id
 
 ##Define population
-dataset.configure_dummy_data(population_size=1000)
+dataset.configure_dummy_data()
 dataset.define_population(input_inex.exists_for_patient())

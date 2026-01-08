@@ -24,10 +24,22 @@ def add_inex_variables(dataset, start_date):
         ).exists_for_patient()
 
     # Long-term antihypertensive user 
-    inex_bin_antihyp = (medications.where(medications.dmd_code.is_in(antihypertensive_codelist))
+    inex_bin_antihyp = ((medications.where(medications.dmd_code.is_in(ace_inhibitor_codelist))
         .where(medications.date.is_on_or_after(start_date - days(365)))
         .where(medications.date.is_on_or_before(start_date))
-        .count_for_patient()) > 2
+        .count_for_patient()) > 2) | ((medications.where(medications.dmd_code.is_in(alpha_adrenoceptor_blocking_drugs_codelist))
+        .where(medications.date.is_on_or_after(start_date - days(365)))
+        .where(medications.date.is_on_or_before(start_date))
+        .count_for_patient()) > 2) | ((medications.where(medications.dmd_code.is_in(angiotensin_ii_receptor_blockers_codelist))
+        .where(medications.date.is_on_or_after(start_date - days(365)))
+        .where(medications.date.is_on_or_before(start_date))
+        .count_for_patient()) > 2) | ((medications.where(medications.dmd_code.is_in(beta_blockers_codelist))
+        .where(medications.date.is_on_or_after(start_date - days(365)))
+        .where(medications.date.is_on_or_before(start_date))
+        .count_for_patient()) > 2) | ((medications.where(medications.dmd_code.is_in(calcium_channel_blockers_codelist))
+        .where(medications.date.is_on_or_after(start_date - days(365)))
+        .where(medications.date.is_on_or_before(start_date))
+        .count_for_patient()) > 2)
 
     # Alive at start date
     inex_bin_alive = (((patients.date_of_death.is_null()) | (patients.date_of_death.is_after(start_date))) & 
@@ -44,9 +56,9 @@ def add_inex_variables(dataset, start_date):
     #Known sex
     inex_bin_known_sex = patients.sex != "unknown"
     #Known IMD
-    inex_bin_known_imd = (addresses.for_patient_on(start_date).imd_rounded >= 0)
+    inex_bin_known_imd = addresses.for_patient_on(start_date).imd_rounded.is_not_null()
     #Known region
-    inex_bin_known_region = practice_registrations.for_patient_on(start_date).practice_nuts1_region_name != ""
+    inex_bin_known_region = practice_registrations.for_patient_on(start_date).practice_nuts1_region_name.is_not_null()
 
 
     #Add all variables to the dataset
@@ -149,7 +161,7 @@ def add_covariates(dataset, index_date, end_date):
         ).exists_for_patient())
     )
 
-    ### Hypertension (Also used for high vascular risk covariate)
+    ### Hypertension 
     cov_bin_hypertension = (
         (last_matching_event_clinical_snomed_before(
             hypertension_snomed, index_date
@@ -246,7 +258,7 @@ def add_out_variables(dataset, index_date, start_date, end_date, medication_code
 
 
     ## Number of days between prescription dates of antihypertensives
-    get_prescription_gaps(dataset, start_date, end_date, medication_codelist, column_suffix, 10)
+    get_prescription_gaps(dataset, start_date, end_date, medication_codelist, column_suffix, 100)
 
     # ---- Add variables to dataset ----
     dataset.add_column(f"out_dat_next_{column_suffix}", out_dat_next_med)

@@ -10,7 +10,7 @@
 # Known IMD
 # Known region
 
-inex <- function(input, flow) {
+inex <- function(input, flow, suffix = "", describe = TRUE) {
   ## Apply exclusion criteria
   print("Apply exclusion criteria")
 
@@ -30,11 +30,20 @@ inex <- function(input, flow) {
     print(flow[nrow(flow), ])
   }
 
-
-  #Describe data ----
-  print("Describe data")
-  describe_data(df = input, name = "inex_dataset")
-
+  # Describe data ----
+  if (isTRUE(describe)) {
+    print("Describe inex data")
+    describe_data(
+      df = input,
+      name = paste0(
+        "inex",
+        if (nzchar(suffix)) paste0("-", suffix) else ""
+      )
+    )
+  }
+  ## Drop variables that are no longer needed
+  input <- input %>% select(-starts_with("inex"))
+  
   return(list(input = input, flow = flow))
 
 }

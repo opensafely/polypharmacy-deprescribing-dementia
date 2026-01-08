@@ -41,6 +41,7 @@ def get_prescription_gaps(dataset, start_date, end_date ,codelist, column_suffix
         presc_date = (medications.where(medications.dmd_code.is_in(codelist))
         .where(medications.date.is_after(prev_date))
         .where(medications.date.is_on_or_before(end_date))
+        .where(medications.date.is_not_null())
         .sort_by(medications.date)
         .first_for_patient()
         .date)
