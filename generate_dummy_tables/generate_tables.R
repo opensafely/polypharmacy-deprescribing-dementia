@@ -152,7 +152,7 @@ for (i in seq_along(dmd_vars)) {
 
 # apcs
 # Output folder
-out_dir <- "C:/Users/zh24495/OneDrive - University of Bristol/Documents/GitHub/polypharmacy-deprescribing-dementia/dummy_tables"
+out_dir <- here("dummy_tables")
 dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
 
 # Helper function to convert logicals to "T"/"F" (without touching other columns)
