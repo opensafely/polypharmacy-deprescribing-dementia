@@ -52,7 +52,8 @@ add_covariates(dataset, index_date, end_date)
 add_out_variables(dataset, index_date, start_date, end_date, ace_inhibitor_codelist, "acei")
 add_out_variables(dataset, index_date, start_date, end_date, alpha_adrenoceptor_blocking_drugs_codelist, "aab")
 add_out_variables(dataset, index_date, start_date, end_date, angiotensin_ii_receptor_blockers_codelist, "arb")
-
+add_out_variables(dataset, index_date, start_date, end_date, beta_blockers_codelist, "bb")
+add_out_variables(dataset, index_date, start_date, end_date, calcium_channel_blockers_codelist, "ccb")
 
 ##Define population
 dataset.configure_dummy_data()
