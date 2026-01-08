@@ -36,8 +36,8 @@ qa <- function(input, flow, suffix = "", describe = TRUE) {
     describe_data(
       df = input,
       name = paste0(
-        "qa_dataset",
-        if (nzchar(suffix)) paste0("_", suffix) else ""
+        "qa",
+        if (nzchar(suffix)) paste0("-", suffix) else ""
       )
     )
   }

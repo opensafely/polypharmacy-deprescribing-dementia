@@ -16,7 +16,7 @@ dir_create(here::here(dataclean_dir))
 
 ## Load dataset
 print("Load dataset")
-dataset_clean <- read_csv(here("output", "dataset", "input_inex_prematch.csv.gz"))
+dataset_clean <- read_csv(here("output", "dataset", "input_prematch.csv.gz"))
 
 start_date <- as.Date("2015-01-01")
 end_date <- as.Date("2020-03-01")
@@ -67,9 +67,9 @@ dataset_clean <- ref(dataset_clean, suffix = "prematch")
 ## Saved cleaned dataset to output folder
 print("Saving cleaned dataset to output folder")
 
-write_csv(dataset_clean, file = here::here(dataclean_dir, "input_clean_inex_prematch.csv"))
+write_csv(dataset_clean, file = here::here(dataclean_dir, "input_clean_prematch.csv"))
 
 
 ## Saved flowchart data to output folder
 print("Saving flowchart data to output folder")
-write_csv(flow, here::here(dataclean_dir, "flow_inex_prematch.csv"))
+write_csv(flow, here::here(dataclean_dir, "flow_prematch.csv"))

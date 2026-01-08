@@ -170,8 +170,8 @@ ref <- function(input, suffix = "", describe = TRUE) {
     describe_data(
       df = input,
       name = paste0(
-        "ref_dataset",
-        if (nzchar(suffix)) paste0("_", suffix) else ""
+        "ref",
+        if (nzchar(suffix)) paste0("-", suffix) else ""
       )
     )
   }

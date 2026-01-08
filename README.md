@@ -37,6 +37,8 @@ Deatils of the purpose for each file in this repository are outlined below
 
 - [`create_table1.R`](./analysis/table1/create_table1.R) generates a csv file for table one for the study. This uses the output of [`dataset_clean.R`](./analysis/dataset_clean/dataset_clean.R) to describe the patient characteristics, displaying the proportion of study population in each variable category.
 
+- The data in [`dummy_tables`](./dummy_tables) was generated using a combination of R scripts and manual data entry. The scripts used will be added to the main branch in a later push.
+
 - **Suffixes used in dataset scripts**  
   The `dataset_definition_*.py` and `dataset_clean_*.R` files use consistent suffixes to indicate the dataset or stage they relate to:
 

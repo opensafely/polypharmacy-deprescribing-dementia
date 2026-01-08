@@ -1,24 +1,24 @@
 version: '4.0'
 
 actions:
-  generate_dataset_inex_prematch:
-    run: ehrql:v1 generate-dataset analysis/dataset_definition/dataset_definition_inex_prematch.py --output output/dataset/input_inex_prematch.csv.gz --dummy-tables dummy_tables
+  generate_dataset_prematch:
+    run: ehrql:v1 generate-dataset analysis/dataset_definition/dataset_definition_prematch.py --output output/dataset/input_prematch.csv.gz --dummy-tables dummy_tables
     outputs:
       highly_sensitive:
-        dataset: output/dataset/input_inex_prematch.csv.gz
+        dataset: output/dataset/input_prematch.csv.gz
 
   clean_dataset_prematch:
     run: r:v2 analysis/dataset_clean/dataset_clean_prematch.R
-    needs: [generate_dataset_inex_prematch]
+    needs: [generate_dataset_prematch]
     outputs:
       highly_sensitive:
-        dataset: output/dataset_clean/input_clean_inex_prematch.csv
+        dataset: output/dataset_clean/input_clean_prematch.csv
       moderately_sensitive:
-        flow_prematch: output/dataset_clean/flow_inex_prematch.csv
-        describe_inex_prematch: output/describe/inex_dataset_prematch.txt
-        describe_preprocessed_prematch: output/describe/preprocessed_dataset_prematch.txt
-        describe_qa_prematch: output/describe/qa_dataset_prematch.txt
-        describe_ref_prematch: output/describe/ref_dataset_prematch.txt
+        flow_prematch: output/dataset_clean/flow_prematch.csv
+        describe_inex_prematch: output/describe/inex-prematch.txt
+        describe_preprocessed_prematch: output/describe/preprocessed-prematch.txt
+        describe_qa_prematch: output/describe/qa-prematch.txt
+        describe_ref_prematch: output/describe/ref-prematch.txt
 
   generate_dataset_hist:
     run: ehrql:v1 generate-dataset analysis/dataset_definition/dataset_definition_hist.py --output output/dataset/input_hist.csv.gz --dummy-tables dummy_tables
@@ -41,25 +41,25 @@ actions:
       highly_sensitive:
         dataset: output/dataset_clean/input_matched.csv
 
-  generate_dataset_inex_matched:
-    run: ehrql:v1 generate-dataset analysis/dataset_definition/dataset_definition_inex_matched.py --output output/dataset/input_inex_matched.csv.gz --dummy-tables dummy_tables
+  generate_dataset_matched:
+    run: ehrql:v1 generate-dataset analysis/dataset_definition/dataset_definition_matched.py --output output/dataset/input_matched.csv.gz --dummy-tables dummy_tables
     needs: [match]
     outputs:
       highly_sensitive:
-        dataset: output/dataset/input_inex_matched.csv.gz
+        dataset: output/dataset/input_matched.csv.gz
 
   clean_dataset_matched:
     run: r:v2 analysis/dataset_clean/dataset_clean_matched.R
-    needs: [generate_dataset_inex_matched]
+    needs: [generate_dataset_matched]
     outputs:
       highly_sensitive:
-        dataset: output/dataset_clean/input_clean_inex_matched.csv
+        dataset: output/dataset_clean/input_clean_matched.csv
       moderately_sensitive:
-        flow: output/dataset_clean/flow_inex_matched.csv
-        describe_inex: output/describe/inex_dataset_matched.txt
-        describe_preprocessed: output/describe/preprocessed_dataset_matched.txt
-        describe_qa: output/describe/qa_dataset_matched.txt
-        describe_ref: output/describe/ref_dataset_matched.txt
+        flow: output/dataset_clean/flow_matched.csv
+        describe_inex: output/describe/inex-matched.txt
+        describe_preprocessed: output/describe/preprocessed-matched.txt
+        describe_qa: output/describe/qa-matched.txt
+        describe_ref: output/describe/ref-matched.txt
 
   generate_dataset_matched_full:
     run: ehrql:v1 generate-dataset analysis/dataset_definition/dataset_definition_matched_full.py --output output/dataset/input_matched_full.csv.gz --dummy-tables dummy_tables
@@ -75,8 +75,8 @@ actions:
       highly_sensitive:
         dataset: output/dataset_clean/input_clean_hist.rds
       moderately_sensitive:
-        describe_preprocessed: output/describe/preprocessed_dataset_hist.txt
-        describe_ref: output/describe/ref_dataset_hist.txt
+        describe_preprocessed: output/describe/preprocessed-hist.txt
+        describe_ref: output/describe/ref-hist.txt
 
   create_table_1:
    run: r:v2 analysis/tables/create_table1.R

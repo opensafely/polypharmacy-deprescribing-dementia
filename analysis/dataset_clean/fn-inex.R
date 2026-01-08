@@ -36,8 +36,8 @@ inex <- function(input, flow, suffix = "", describe = TRUE) {
     describe_data(
       df = input,
       name = paste0(
-        "inex_dataset",
-        if (nzchar(suffix)) paste0("_", suffix) else ""
+        "inex",
+        if (nzchar(suffix)) paste0("-", suffix) else ""
       )
     )
   }

@@ -46,8 +46,8 @@ preprocess <- function(df, suffix = "", describe = TRUE) {
     describe_data(
       df = df,
       name = paste0(
-        "preprocessed_dataset",
-        if (nzchar(suffix)) paste0("_", suffix) else ""
+        "preprocessed",
+        if (nzchar(suffix)) paste0("-", suffix) else ""
       )
     )
   }
