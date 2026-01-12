@@ -1,4 +1,4 @@
-from ehrql.tables.tpp import patients, practice_registrations, clinical_events, addresses, medications, ons_deaths, apcs, decision_support_values, emergency_care_attendances, appointments
+from ehrql.tables.tpp import patients, practice_registrations, clinical_events, addresses, medications, ons_deaths, apcs, decision_support_values, emergency_care_attendances
 from ehrql import create_dataset, codelist_from_csv, days, case, when, minimum_of, show
 from datetime import date
 from analysis.dataset_definition.variable_helper_functions import (
@@ -227,23 +227,6 @@ def add_covariates(dataset, index_date, end_date):
     )
     cov_num_latest_efi = latest_efi_record.numeric_value
     cov_dat_latest_efi = latest_efi_record.calculation_date
-
-        ### Consultation rate in preceeding year - don't have permission to use appointments table currently.
-    # tmp_cov_num_consrate = appointments.where(
-    #     appointments.status.is_in([
-    #         "Arrived",
-    #         "In Progress",
-    #         "Finished",
-    #         "Visit",
-    #         "Waiting",
-    #         "Patient Walked Out",
-    #         ]) & appointments.start_date.is_on_or_between(index_date - days(365), index_date)
-    #         ).count_for_patient()    
-
-    # cov_num_consrate = case(
-    #     when(tmp_cov_num_consrate <= 365).then(tmp_cov_num_consrate),
-    #     otherwise=365,
-    # )
     
     # ---- Add all covariates to dataset ----
     covariates = {name: value for name, value in locals().items() if name.startswith("cov_")}
