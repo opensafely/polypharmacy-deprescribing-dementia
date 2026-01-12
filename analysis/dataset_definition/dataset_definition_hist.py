@@ -1,4 +1,4 @@
-from ehrql.tables.tpp import patients, practice_registrations, clinical_events, addresses, ethnicity_from_sus, medications, ons_deaths, apcs, decision_support_values, emergency_care_attendances
+from ehrql.tables.tpp import patients, practice_registrations, clinical_events, addresses, ethnicity_from_sus, medications, ons_deaths, apcs, decision_support_values, emergency_care_attendances, appointments
 from ehrql import create_dataset, codelist_from_csv, days, case, when, minimum_of, show
 from ehrql.query_language import table_from_file , PatientFrame, Series
 from datetime import datetime, date
