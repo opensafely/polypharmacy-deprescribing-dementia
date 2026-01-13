@@ -10,6 +10,8 @@ library(purrr)
 library(lubridate)
 library(tidyr)
 library(skimr)
+library(MatchIt)
+
 
 ## Define clean dataset output folder ------------------------------------------
 dataclean_dir <- "output/dataset_clean"
@@ -22,13 +24,50 @@ dataset_clean <- read_csv(here("output", "dataset", "input_match.csv.gz"))
 start_date <- as.Date("2015-01-01")
 end_date <- as.Date("2020-03-01")
 
-##Create index_dates
+## Set variables up as we need
 dataset_clean <- dataset_clean %>%
   mutate(
     exp_dat_med_rev = as.Date(exp_dat_med_rev),
-    index_date = coalesce(exp_dat_med_rev, start_date)
+    exposed = if_else(!is.na(exp_dat_med_rev), 0L, 1L),
+    index_date = if_else(exposed == 1, exp_dat_med_rev, as.Date(NA))
   )
+
+##Create index_dates
+# dataset_clean <- dataset_clean %>%
+#   mutate(
+#     exp_dat_med_rev = as.Date(exp_dat_med_rev),
+#     index_date = coalesce(exp_dat_med_rev, start_date)
+#   )
+
+## Matching process
+print("Matching process")
+
+m <- matchit(
+  exposed ~ 1,                          # practice-only matching
+  data    = dataset_clean,
+  method  = "nearest",
+  exact   = ~ mat_num_practice_id,
+  ratio   = 5,                           # many-to-one (adjust if needed)
+  replace = FALSE
+)
+
+matched <- match.data(m)
+
+## Assign index dates to unexposed patients
+matched <- matched %>%
+  group_by(subclass) %>%
+  mutate(
+    index_date = if_else(
+      exposed == 0,
+      index_date[exposed == 1][1],
+      index_date
+    )
+  ) %>%
+  ungroup()
+
+matched <- matched %>%
+  select(-any_of(c("distance", "weights")))
 
 ## Saving cleaned dataset to output folder
 print("Saving matched dataset to output folder")
-write_csv(dataset_clean, file = here::here(dataclean_dir, "input_matched.csv"))
+write_csv(matched, file = here::here(dataclean_dir, "input_matched.csv"))
