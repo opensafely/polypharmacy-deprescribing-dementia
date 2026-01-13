@@ -39,6 +39,9 @@ def add_inex_variables(dataset, start_date):
         .count_for_patient()) > 2) | ((medications.where(medications.dmd_code.is_in(calcium_channel_blockers_codelist))
         .where(medications.date.is_on_or_after(start_date - days(365)))
         .where(medications.date.is_on_or_before(start_date))
+        .count_for_patient()) > 2) | ((medications.where(medications.dmd_code.is_in(centrally_acting_antihypertensives_codelist))
+        .where(medications.date.is_on_or_after(start_date - days(365)))
+        .where(medications.date.is_on_or_before(start_date))
         .count_for_patient()) > 2)
 
     # Alive at start date

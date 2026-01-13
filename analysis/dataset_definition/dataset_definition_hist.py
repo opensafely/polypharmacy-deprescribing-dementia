@@ -54,6 +54,7 @@ add_out_variables(dataset, index_date, start_date, end_date, alpha_adrenoceptor_
 add_out_variables(dataset, index_date, start_date, end_date, angiotensin_ii_receptor_blockers_codelist, "arb")
 add_out_variables(dataset, index_date, start_date, end_date, beta_blockers_codelist, "bb")
 add_out_variables(dataset, index_date, start_date, end_date, calcium_channel_blockers_codelist, "ccb")
+add_out_variables(dataset, index_date, start_date, end_date, centrally_acting_antihypertensives_codelist, "caa")
 
 ##Define population
 dataset.configure_dummy_data()

@@ -65,6 +65,12 @@ calcium_channel_blockers_codelist = codelist_from_csv(
     column="code"
 )
 
+## Centrally acting antihypertensives codes
+centrally_acting_antihypertensives_codelist = codelist_from_csv(
+    "codelists/user-robert_porteous-centrally-acting-antihypertensives.csv",
+    column="code"
+)
+
 ## Chronic Heart Disease codes
 chd_codelist = codelist_from_csv(
     "codelists/primis-covid19-vacc-uptake-chd_cov.csv",
