@@ -87,7 +87,7 @@ actions:
        table_one_midpoint6: output/tables/table1_hist_midpoint6.csv
 
   create_prescription_gaps_table:
-   run: r:v2 analysis/tables/create_prescription_gaps_table.R
+   run: r:v2 analysis/tables/create_table_prescription_gaps.R
    needs: [clean_dataset_hist]
    outputs:
      moderately_sensitive:
