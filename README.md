@@ -32,10 +32,12 @@ Deatils of the purpose for each file in this repository are outlined below
         - The function in [`fn-inex.R`](./analysis/dataset_clean/fn-inex.R) applies the inclusion and excusion criteria for the study.
         - [`fn-ref.R`](./analysis/dataset_clean/fn-ref.R) is the function that sets the reference levels for factors. 
 - [`utility.R`] contains miscellaneous functions used in the analysis.
+- [`create_table1_hist.R`](./analysis/table1/create_table1.R) generates a csv file for table one for the study population used to generate the histograms. This uses the output of [`dataset_clean_hist.R`](./analysis/dataset_clean/dataset_clean.R) to describe the patient characteristics, displaying the proportion of study population in each variable category.
+- [`create_table_prescription_gaps.R`] generates a csv file containing table with the data we will use to generate histograms which show the frquency of gaps between prescriptions of each medication type.
 
 - The [`project.yaml`](./project.yaml) file lists all actions to be run in OpenSAFELY and their run order
 
-- [`create_table1.R`](./analysis/table1/create_table1.R) generates a csv file for table one for the study. This uses the output of [`dataset_clean.R`](./analysis/dataset_clean/dataset_clean.R) to describe the patient characteristics, displaying the proportion of study population in each variable category.
+
 
 - The data in [`dummy_tables`](./dummy_tables) was generated using a combination of R scripts and manual data entry. The scripts used will be added to the main branch in a later push.
 
