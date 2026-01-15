@@ -92,6 +92,7 @@ actions:
    outputs:
      moderately_sensitive:
        prescription_gaps: output/tables/prescription_gaps.csv
+       prescription_gaps_midpoint6: output/tables/prescription_gaps_midpoint6.csv
 
   # generate_project_dag:
   #   run: python:v2 python analysis/project_dag.py --yaml-path project.yaml --output-path project.dag.md
