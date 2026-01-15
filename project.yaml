@@ -78,13 +78,13 @@ actions:
         describe_preprocessed: output/describe/preprocessed-hist.txt
         describe_ref: output/describe/ref-hist.txt
 
-  create_table_1_hist:
-   run: r:v2 analysis/tables/create_table_1_hist.R
+  create_table1_hist:
+   run: r:v2 analysis/tables/create_table1_hist.R
    needs: [clean_dataset_hist]
    outputs:
      moderately_sensitive:
-       table_one: output/tables/table_1_hist.csv
-       table_one_midpoint6: output/tables/table_1_hist_midpoint6.csv
+       table_one: output/tables/table1_hist.csv
+       table_one_midpoint6: output/tables/table1_hist_midpoint6.csv
 
   create_prescription_gaps_table:
    run: r:v2 analysis/tables/create_prescription_gaps_table.R
