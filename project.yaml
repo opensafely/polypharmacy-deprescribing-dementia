@@ -78,13 +78,21 @@ actions:
         describe_preprocessed: output/describe/preprocessed-hist.txt
         describe_ref: output/describe/ref-hist.txt
 
-  create_table_1:
-   run: r:v2 analysis/tables/create_table1.R
+  create_table1_hist:
+   run: r:v2 analysis/tables/create_table1_hist.R
    needs: [clean_dataset_hist]
    outputs:
      moderately_sensitive:
-       table_one: output/tables/table1.csv
-       table_one_midpoint6: output/tables/table1_midpoint6.csv
+       table_one: output/tables/table1_hist.csv
+       table_one_midpoint6: output/tables/table1_hist_midpoint6.csv
+
+  create_prescription_gaps_table:
+   run: r:v2 analysis/tables/create_table_prescription_gaps.R
+   needs: [clean_dataset_hist]
+   outputs:
+     moderately_sensitive:
+       prescription_gaps: output/tables/prescription_gaps.csv
+       prescription_gaps_midpoint6: output/tables/prescription_gaps_midpoint6.csv
 
   # generate_project_dag:
   #   run: python:v2 python analysis/project_dag.py --yaml-path project.yaml --output-path project.dag.md

@@ -137,7 +137,7 @@ df <- bind_rows(
 #------------------------------------------------
 print("Save table 1 to output/tables")
 dir.create(here("output", "tables"), recursive = TRUE, showWarnings = FALSE)
-write_csv(df, here("output", "tables", "table1.csv"))
+write_csv(df, here("output", "tables", "table1_hist.csv"))
 
 
 #------------------------------------------------
@@ -209,4 +209,4 @@ df <- dplyr::rename(
 
 # Save rounded / redacted table
 print("Save redacted / midpoint rounded table 1 to output/tables")
-write_csv(df, here("output", "tables", "table1_midpoint6.csv"))
+write_csv(df, here("output", "tables", "table1_hist_midpoint6.csv"))

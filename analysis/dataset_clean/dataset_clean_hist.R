@@ -46,14 +46,8 @@ dataset_clean <- preprocess(dataset_clean, suffix = "hist")
 print("Set reference levels and handle missing values")
 dataset_clean <- ref(dataset_clean, suffix = "hist")
 
-## Drop unneeded variables
-#dataset_clean <- dataset_clean %>%
-#  select(-starts_with("inex"), -starts_with("qa_"))
-
 ## Saved cleaned dataset to output folder
 print("Saving cleaned dataset to output folder")
-
-#write_csv(dataset_clean, file = here::here(dataclean_dir, "input_clean_hist.csv"))
 
 saveRDS(dataset_clean,
         file = here::here(dataclean_dir, "input_clean_hist.rds"),
