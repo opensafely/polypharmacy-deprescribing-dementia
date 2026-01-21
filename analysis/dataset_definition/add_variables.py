@@ -261,7 +261,7 @@ def add_out_variables(dataset, index_date, start_date, end_date, medication_code
 
 
     ## Number of days between prescription dates of antihypertensives
-    get_prescription_gaps(dataset, start_date, end_date, medication_codelist, column_suffix, 10)
+    get_prescription_gaps(dataset, start_date, end_date, medication_codelist, column_suffix, 100)
 
     # ---- Add variables to dataset ----
     dataset.add_column(f"out_dat_next_{column_suffix}", out_dat_next_med)
