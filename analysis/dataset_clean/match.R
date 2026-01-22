@@ -28,16 +28,9 @@ end_date <- as.Date("2020-03-01")
 dataset_clean <- dataset_clean %>%
   mutate(
     exp_dat_med_rev = as.Date(exp_dat_med_rev),
-    exposed = if_else(!is.na(exp_dat_med_rev), 0L, 1L),
+    exposed = if_else(!is.na(exp_dat_med_rev), 1L, 0L),
     index_date = if_else(exposed == 1, exp_dat_med_rev, as.Date(NA))
   )
-
-##Create index_dates
-# dataset_clean <- dataset_clean %>%
-#   mutate(
-#     exp_dat_med_rev = as.Date(exp_dat_med_rev),
-#     index_date = coalesce(exp_dat_med_rev, start_date)
-#   )
 
 ## Matching process
 print("Matching process")
