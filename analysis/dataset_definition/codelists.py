@@ -67,7 +67,13 @@ calcium_channel_blockers_codelist = codelist_from_csv(
 
 ## Centrally acting antihypertensives codes
 centrally_acting_antihypertensives_codelist = codelist_from_csv(
-    "codelists/user-robert_porteous-centrally-acting-antihypertensives.csv",
+    "codelists/user-robert_porteous-centrally-acting-antihypertensives-dmd.csv",
+    column="code"
+)
+
+## Potassium sparing diuretics codes
+potassium_sparing_diuretics_codelist = codelist_from_csv(
+    "codelists/user-robert_porteous-potassium-sparing-diuretics-aldosterone-antagonists-and-compounds-dmd.csv",
     column="code"
 )
 
