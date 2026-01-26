@@ -1,0 +1,39 @@
+version: '4.0'
+
+actions:
+
+  ## # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+  ## DO NOT EDIT project.yaml DIRECTLY 
+  ## This file is created by create_project_actions.R 
+  ## Edit and run create_project_actions.R to update the project.yaml 
+  ## # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+  ## Generate cohort - precovid 
+
+  generate_cohort_precovid:
+    run: |-
+      ehrql:v1 generate-dataset analysis/dataset_definition/measures_cohorts.py --output output/dataset_definition/input_precovid.csv.gz
+        --cohort precovid
+    outputs:
+      highly_sensitive:
+        dataset: output/dataset_definition/input_precovid.csv.gz
+
+  ## Generate cohort - covid 
+
+  generate_cohort_covid:
+    run: |-
+      ehrql:v1 generate-dataset analysis/dataset_definition/measures_cohorts.py --output output/dataset_definition/input_covid.csv.gz
+        --cohort covid
+    outputs:
+      highly_sensitive:
+        dataset: output/dataset_definition/input_covid.csv.gz
+
+  ## Generate cohort - postcovid 
+
+  generate_cohort_postcovid:
+    run: |-
+      ehrql:v1 generate-dataset analysis/dataset_definition/measures_cohorts.py --output output/dataset_definition/input_postcovid.csv.gz
+        --cohort postcovid
+    outputs:
+      highly_sensitive:
+        dataset: output/dataset_definition/input_postcovid.csv.gz
+

@@ -1,7 +1,7 @@
 version: '4.0'
 
 actions:
-  generate_dataset_prematch:
+  generate_dataset_prematch_covid:
     run: ehrql:v1 generate-dataset analysis/dataset_definition/dataset_definition_prematch.py --output output/dataset/input_prematch.csv.gz --dummy-tables dummy_tables -- --cohort covid
     outputs:
       highly_sensitive:
@@ -26,7 +26,7 @@ actions:
     outputs:
       highly_sensitive:
         dataset: output/dataset/input_hist.csv.gz
-    
+
   generate_dataset_match:
     run: ehrql:v1 generate-dataset analysis/dataset_definition/dataset_definition_match.py --output output/dataset/input_match.csv.gz --dummy-tables dummy_tables
     needs: [clean_dataset_prematch]
@@ -99,4 +99,3 @@ actions:
   #   outputs:
   #     moderately_sensitive:
   #       counts: project.dag.md
-  
