@@ -37,12 +37,17 @@ def get_prescription_gaps(dataset, start_date, end_date ,codelist, column_suffix
     cnt_180_365 = 0
     cnt_365_plus = 0
 
-    for i in range (limit):
-        presc_date = (medications.where(medications.dmd_code.is_in(codelist))
-        .where(medications.date.is_after(prev_date))
+    base_rx = (
+        medications.where(medications.dmd_code.is_in(codelist))
+        .where(medications.date.is_after(start_date))
         .where(medications.date.is_on_or_before(end_date))
-        .where(medications.date.is_not_null())
         .sort_by(medications.date)
+    )
+
+    for i in range (limit):
+        presc_date = (base_rx
+        .where(base_rx.date.is_after(prev_date))
+        .where(base_rx.date.is_not_null())
         .first_for_patient()
         .date)
 
