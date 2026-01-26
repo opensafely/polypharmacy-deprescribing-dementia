@@ -34,4 +34,5 @@ bristol/smoke-and-eversmoke/16ff650f
 opensafely/smoking-clear/2020-04-29
 opensafely/smoking-unclear/2020-04-29
 
-user/robert_porteous/centrally-acting-antihypertensives/7ad63a6b
+user/robert_porteous/centrally-acting-antihypertensives-dmd/50c62ae6
+user/robert_porteous/potassium-sparing-diuretics-aldosterone-antagonists-and-compounds-dmd/69d59e1b

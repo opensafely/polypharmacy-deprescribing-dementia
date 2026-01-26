@@ -39,10 +39,13 @@ def add_inex_variables(dataset, start_date):
         .count_for_patient()) > 2) | ((medications.where(medications.dmd_code.is_in(calcium_channel_blockers_codelist))
         .where(medications.date.is_on_or_after(start_date - days(365)))
         .where(medications.date.is_on_or_before(start_date))
-        .count_for_patient()) > 2) #| ((medications.where(medications.dmd_code.is_in(centrally_acting_antihypertensives_codelist))
-        #.where(medications.date.is_on_or_after(start_date - days(365)))
-        #.where(medications.date.is_on_or_before(start_date))
-        #.count_for_patient()) > 2)
+        .count_for_patient()) > 2) | ((medications.where(medications.dmd_code.is_in(centrally_acting_antihypertensives_codelist))
+        .where(medications.date.is_on_or_after(start_date - days(365)))
+        .where(medications.date.is_on_or_before(start_date))
+        .count_for_patient()) > 2) | ((medications.where(medications.dmd_code.is_in(potassium_sparing_diuretics_codelist))
+        .where(medications.date.is_on_or_after(start_date - days(365)))
+        .where(medications.date.is_on_or_before(start_date))
+        .count_for_patient()) > 2)
 
     # Alive at start date
     inex_bin_alive = (((patients.date_of_death.is_null()) | (patients.date_of_death.is_after(start_date))) & 
@@ -258,7 +261,6 @@ def add_out_variables(dataset, index_date, start_date, end_date, medication_code
         .sort_by(medications.date)
         .last_for_patient()
         .date)
-
 
     ## Number of days between prescription dates of antihypertensives
     get_prescription_gaps(dataset, start_date, end_date, medication_codelist, column_suffix, 100)
