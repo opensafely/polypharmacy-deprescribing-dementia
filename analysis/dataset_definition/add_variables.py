@@ -261,14 +261,6 @@ def add_out_variables(dataset, index_date, start_date, end_date, medication_code
         .sort_by(medications.date)
         .last_for_patient()
         .date)
-    
-    out_num_presc = (
-        medications.where(medications.dmd_code.is_in(medication_codelist))
-        .where(medications.date.is_on_or_after(start_date))
-        .where(medications.date.is_on_or_before(end_date))
-        .count_for_patient())
-
-
 
     ## Number of days between prescription dates of antihypertensives
     get_prescription_gaps(dataset, start_date, end_date, medication_codelist, column_suffix, 100)
@@ -276,4 +268,3 @@ def add_out_variables(dataset, index_date, start_date, end_date, medication_code
     # ---- Add variables to dataset ----
     dataset.add_column(f"out_dat_next_{column_suffix}", out_dat_next_med)
     dataset.add_column(f"out_dat_prev_{column_suffix}", out_dat_prev_med)
-    dataset.add_column(f"out_num_presc_{column_suffix}", out_num_presc)
