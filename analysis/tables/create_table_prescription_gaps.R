@@ -69,3 +69,33 @@ write_csv(
   region_sums,
   here("output", "tables", "prescription_gaps.csv")
 )
+
+#------------------------------------------------
+# Create midpoint 6 rounded version
+#------------------------------------------------
+print("Creating redacted / midpoint rounded prescription gaps")
+
+region_sums_midpoint6 <- region_sums %>%
+  mutate(
+    across(
+      starts_with("out_num_gap_"),
+      ~ roundmid_any(.x),
+      .names = "{.col}_midpoint6"
+    )
+  )
+
+region_sums_midpoint6 <- region_sums_midpoint6 %>%
+  select(
+    cov_cat_region,
+    ends_with("_midpoint6")
+  )
+
+#------------------------------------------------
+# Save rounded table
+#------------------------------------------------
+print("Save redacted / midpoint rounded prescription gaps to output/tables")
+
+write_csv(
+  region_sums_midpoint6,
+  here("output", "tables", "prescription_gaps_midpoint6.csv")
+)
