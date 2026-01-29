@@ -13,6 +13,7 @@ from codelists import *
 @table_from_file("output/dataset_clean/input_matched.csv")
 class input_inex(PatientFrame):
     index_date = Series(date)
+    exposed = Series(int)
 
 ## Create dataset
 dataset = create_dataset()
@@ -29,6 +30,7 @@ add_inex_variables(dataset, input_inex.index_date)
 dataset.qa_num_birth_year = patients.date_of_birth.year
 dataset.qa_num_death_year = patients.date_of_death.year
 dataset.index_date = input_inex.index_date
+dataset.exp_bin_med_rev = input_inex.exposed
 
 ##Define population
 dataset.configure_dummy_data(population_size=1000)

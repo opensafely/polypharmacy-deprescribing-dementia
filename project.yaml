@@ -40,6 +40,9 @@ actions:
     outputs:
       highly_sensitive:
         dataset: output/dataset_clean/input_matched.csv
+      moderately_sensitive:
+        matching_report: output/dataset_clean/matching_report.csv
+        describe_match: output/describe/match.txt
 
   generate_dataset_matched:
     run: ehrql:v1 generate-dataset analysis/dataset_definition/dataset_definition_matched.py --output output/dataset/input_matched.csv.gz --dummy-tables dummy_tables
