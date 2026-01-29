@@ -63,4 +63,4 @@ matched <- matched %>%
 
 ## Saving cleaned dataset to output folder
 print("Saving matched dataset to output folder")
-write_csv(matched, file = here::here(dataclean_dir, "input_matched.csv"))
+write_csv(matched, file = here::here(dataclean_dir, "input_matched.csv"), na = "")
