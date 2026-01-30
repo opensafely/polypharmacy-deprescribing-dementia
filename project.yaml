@@ -97,6 +97,24 @@ actions:
        prescription_gaps: output/tables/prescription_gaps.csv
        prescription_gaps_midpoint6: output/tables/prescription_gaps_midpoint6.csv
 
+  clean_dataset_matched_full:
+    run: r:v2 analysis/dataset_clean/dataset_clean_matched_full.R
+    needs: [generate_dataset_matched_full]
+    outputs:
+      highly_sensitive:
+        dataset: output/dataset_clean/input_clean_matched_full.rds
+      moderately_sensitive:
+        describe_preprocessed: output/describe/preprocessed-matched-full.txt
+        describe_ref: output/describe/ref-matched-full.txt
+
+  create_table1_matched_full:
+   run: r:v2 analysis/tables/create_table1_matched_full.R
+   needs: [clean_dataset_matched_full]
+   outputs:
+     moderately_sensitive:
+       table_one_matched_full: output/tables/table1_matched_full.csv
+       table_one_midpoint6_matched_full: output/tables/table1_matched_full_midpoint6.csv
+
   # generate_project_dag:
   #   run: python:v2 python analysis/project_dag.py --yaml-path project.yaml --output-path project.dag.md
   #   outputs:
