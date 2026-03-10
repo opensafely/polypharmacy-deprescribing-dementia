@@ -41,7 +41,7 @@ for year in range(2017, 2025):
     dataset.add_column(f"desc_dat_med_rev_{year}", med_rev_dat)
 
 #Add region variable for regional analysis
-dataset.desc_cat_region = practice_registrations.for_patient_on(index_date).practice_nuts1_region_name
+dataset.desc_cat_region = practice_registrations.for_patient_on(start_date).practice_nuts1_region_name
 
 ##Define population
 dataset.configure_dummy_data()
