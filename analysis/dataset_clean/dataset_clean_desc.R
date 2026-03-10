@@ -16,7 +16,7 @@ dir_create(here::here(dataclean_dir))
 
 ## Load dataset
 print("Load dataset")
-dataset_clean <- read_csv(here("output", "dataset", "input_prematch.csv.gz"))
+dataset_clean <- read_csv(here("output", "dataset", "input_desc.csv.gz"))
 
 start_date <- as.Date("2015-01-01")
 end_date <- as.Date("2024-12-31")
@@ -39,32 +39,16 @@ source("analysis/utility.R")
 
 ## Preprocess the data
 print("Preprocessing dataset")
-dataset_clean <- preprocess(dataset_clean, suffix = "prematch")
+dataset_clean <- preprocess(dataset_clean, suffix = "desc")
 
-## Run quality assurance script
-print("Running quality assurance")
-
-# This function returns a list with two elements: input and flow
-dataset_clean <- qa(dataset_clean, flow, suffix = "prematch")
-flow <- dataset_clean$flow
-dataset_clean <- dataset_clean$input
-
-## Run inclusion and exclusion criteria
-print("Applying inclusion and exclusion criteria")
-dataset_clean <- inex(dataset_clean, flow, suffix = "prematch")
-
-flow <- dataset_clean$flow
-dataset_clean <- dataset_clean$input
 
 ## Set reference levels and handle missing values
 print("Set reference levels and handle missing values")
-dataset_clean <- ref(dataset_clean, suffix = "prematch")
+dataset_clean <- ref(dataset_clean, suffix = "desc")
 
 ## Saved cleaned dataset to output folder
 print("Saving cleaned dataset to output folder")
 
-write_csv(dataset_clean, file = here::here(dataclean_dir, "input_clean_prematch.csv"))
-
-## Saved flowchart data to output folder
-print("Saving flowchart data to output folder")
-write_csv(flow, here::here(dataclean_dir, "flow_prematch.csv"))
+saveRDS(dataset_clean,
+        file = here::here(dataclean_dir, "input_clean_desc.rds"),
+        compress = TRUE)

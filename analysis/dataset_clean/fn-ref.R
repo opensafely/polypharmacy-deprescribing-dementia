@@ -24,9 +24,6 @@ ref <- function(input, suffix = "", describe = TRUE) {
       input$cov_cat_imd,
       "missing"
     )
-    if ("missing" %in% unique(input$cov_cat_imd)) {
-      stop("cov_cat_imd contains missing values.")
-    }
   }  
 
   # Handle missing values in cov_cat_ethnicity ---------------------------------
