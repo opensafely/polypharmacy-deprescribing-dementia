@@ -18,7 +18,7 @@ dir_create(here::here(dataclean_dir))
 print("Load dataset")
 dataset_clean <- read_csv(here("output", "dataset", "input_prematch.csv.gz"))
 
-start_date <- as.Date("2015-01-01")
+start_date <- as.Date("2017-01-01")
 end_date <- as.Date("2024-12-31")
 
 ## Create object for flowchart

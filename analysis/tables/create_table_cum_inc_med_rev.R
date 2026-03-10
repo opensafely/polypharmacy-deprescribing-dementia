@@ -14,7 +14,8 @@ source("analysis/utility.R")
 print("Load cleaned dataset")
 df <- read_rds(here("output", "dataset_clean", "input_clean_desc.rds"))
 
-# Reshape data -----------------------------------------------------------------
+# Reshape data into long format for cumulative incidence stuff
+print("Reshape data")
 df <- df %>%
   pivot_longer(
     cols = matches("^(desc_dat_med_rev|inex_bin_all)_\\d{4}$"),
@@ -36,6 +37,7 @@ df <- df %>%
   )
 
 # Kaplan-Meier model -----------------------------------------------------------
+print("Fit KM")
 km_fit <- survfit(Surv(time, event) ~ factor(year), data = df)
 
 # Tidy survival output ---------------------------------------------------------
@@ -47,12 +49,13 @@ km_df <- tidy(km_fit) %>%
 
 
 # Table of cumulative incidence summarised weekyl
+print("Aggregate data to weekly")
 weekly_table <- km_df %>%
   mutate(
     week = floor(time / 7) + 1   # convert days to week number
   ) %>%
   group_by(year, week) %>%
-  summarise(                    # last day in that week
+  summarise(
     n_events = sum(n.event, na.rm = TRUE),
     cum_inc = max(cum_inc),               # cumulative incidence at week end
     .groups = "drop"
@@ -61,6 +64,7 @@ weekly_table <- km_df %>%
 
 
 # Plot -------------------------------------------------------------------------
+print("create cumulative incidence plot")
 plot_med_reviews <- ggplot(weekly_table, aes(week, cum_inc, colour = factor(year))) +
   geom_step(linewidth = 1) +
   scale_y_continuous(labels = percent) +
@@ -79,11 +83,12 @@ plot_med_reviews <- ggplot(weekly_table, aes(week, cum_inc, colour = factor(year
 
 
 # Save plot --------------------------------------------------------------------
+print("save plots and table")
 dir.create(here("output", "plots"), recursive = TRUE, showWarnings = FALSE)
 dir.create(here("output", "tables"), recursive = TRUE, showWarnings = FALSE)
 
 ggsave(
-  here("output", "plots", "medication_review_cumulative_incidence.png"),
+  here("output", "plots", "med_rev_cum_inc.png"),
   plot_med_reviews,
   width = 10,
   height = 6
@@ -92,9 +97,8 @@ ggsave(
 # Save table
 write_csv(
   weekly_table,
-  here("output", "tables", "medication_review_weekly_counts.csv")
+  here("output", "tables", "med_rev_weekly_counts.csv")
 )
-
 
 #------------------------------------------------
 # Created redacted / midpoint rounded version
@@ -127,6 +131,7 @@ weekly_table <- weekly_table %>%
   select(year, week, n_events_midpoint6, cum_inc_midpoint6)
 
 # Plot -------------------------------------------------------------------------
+print("save rounded plot")
 plot_med_reviews <- ggplot(weekly_table, aes(week, cum_inc_midpoint6, colour = factor(year))) +
   geom_step(linewidth = 1) +
   scale_y_continuous(labels = percent) +
@@ -143,16 +148,16 @@ plot_med_reviews <- ggplot(weekly_table, aes(week, cum_inc_midpoint6, colour = f
     plot.title = element_text(hjust = 0.5, face = "bold")
   )
 
-
+print("save table and plot")
 # Save table
 write_csv(
   weekly_table,
-  here("output", "tables", "medication_review_weekly_counts_midpoint6.csv")
+  here("output", "tables", "med_rev_weekly_counts_midpoint6.csv")
 )
 
 # Save plot
 ggsave(
-  here("output", "plots", "medication_review_cumulative_incidence_midpoint6.png"),
+  here("output", "plots", "med_rev_cum_inc_midpoint6.png"),
   plot_med_reviews,
   width = 10,
   height = 6

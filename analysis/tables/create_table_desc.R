@@ -31,6 +31,7 @@ years <- 2015:2024
 #------------------------------------------------
 # Measure #1 Count of eligible patients (N) - split by region
 #------------------------------------------------
+print("Calculating number of eligible patients per region for each year")
 table_desc_region <- df %>%
   group_by(desc_cat_region) %>%
   summarise(
@@ -44,6 +45,8 @@ table_desc_region <- df %>%
 # Measure #2 Count patients who have medication review
 # inex_bin_all TRUE AND desc_bin_med_rev TRUE - split by region
 #------------------------------------------------
+print("Calculating patients who had medication review")
+
 joint_counts_region <- df %>%
   group_by(desc_cat_region) %>%
   summarise(
@@ -62,6 +65,8 @@ table_desc_region <- bind_rows(table_desc_region, joint_counts_region)
 # Measure #3 Total number of medication reviews
 # Sum of desc_num_med_rev where inex_bin_all TRUE - split by region
 #------------------------------------------------
+print("Calculating number of medication reviews")
+
 medrev_counts_region <- df %>%
   group_by(desc_cat_region) %>%
   summarise(
@@ -79,6 +84,8 @@ table_desc_region <- bind_rows(table_desc_region, medrev_counts_region)
 #------------------------------------------------
 # Reorder columns so row_type is first
 #------------------------------------------------
+print("Reordering columns")
+
 table_desc_region <- table_desc_region %>%
   select(row_type, desc_cat_region, everything())
 
@@ -110,16 +117,3 @@ print("Save table_desc_region_midpoint6 to output/tables")
 dir.create(here("output", "tables"), recursive = TRUE, showWarnings = FALSE)
 
 write_csv(table_desc_region_midpoint6, here("output", "tables", "table_desc_region_midpoint6.csv"))
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -20,13 +20,8 @@ dataset = create_dataset()
 #Get study dates
 from analysis.dataset_definition.study_dates import *
 
-#Set index date for any functions we use
-index_date = start_date
-
-
-##
 ## Add inex variables for 2015 through 2024
-for year in range(2015, 2025):
+for year in range(2017, 2025):
     add_inex_variables(dataset, date(year, 1, 1), 1,year)
     
     med_rev=(clinical_events.where(clinical_events.snomedct_code.is_in(medication_review_codelist))
@@ -41,9 +36,11 @@ for year in range(2015, 2025):
     .first_for_patient()
     .date)
     
+    # Add medication review variables for each year
     dataset.add_column(f"desc_num_med_rev_{year}", med_rev)
     dataset.add_column(f"desc_dat_med_rev_{year}", med_rev_dat)
 
+#Add region variable for regional analysis
 dataset.desc_cat_region = practice_registrations.for_patient_on(index_date).practice_nuts1_region_name
 
 ##Define population

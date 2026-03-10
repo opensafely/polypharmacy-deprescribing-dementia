@@ -42,10 +42,10 @@ actions:
     needs: [clean_dataset_desc]
     outputs:
       moderately_sensitive: 
-        medication_review_incidence_table: output/tables/medication_review_weekly_counts.csv
-        medication_review_incidence_table_midpoint6: output/tables/medication_review_weekly_counts_midpoint6.csv
-        medication_review_incidence: output/plots/medication_review_cumulative_incidence.png
-        medication_review_incidence_midpoint6: output/plots/medication_review_cumulative_incidence_midpoint6.png
+        medication_review_incidence_table: output/tables/med_rev_weekly_counts.csv
+        medication_review_incidence_table_midpoint6: output/tables/med_rev_weekly_counts_midpoint6.csv
+        medication_review_incidence: output/plots/med_rev_cum_inc.png
+        medication_review_incidence_midpoint6: output/plots/med_rev_cum_inc_midpoint6.png
 
   create_table_desc:
     run: r:v2 analysis/tables/create_table_desc.R
