@@ -42,8 +42,8 @@ actions:
     needs: [clean_dataset_desc]
     outputs:
       moderately_sensitive: 
-        medication_review_incidence_table: output/tables/med_rev_weekly_counts.csv
-        medication_review_incidence_table_midpoint6: output/tables/med_rev_weekly_counts_midpoint6.csv
+        medication_review_incidence_table: output/tables/med_rev_cum_inc.csv
+        medication_review_incidence_table_midpoint6: output/tables/med_rev_cum_inc_midpoint6.csv
         medication_review_incidence: output/plots/med_rev_cum_inc.png
         medication_review_incidence_midpoint6: output/plots/med_rev_cum_inc_midpoint6.png
 

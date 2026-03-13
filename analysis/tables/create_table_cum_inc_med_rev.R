@@ -72,6 +72,8 @@ weekly_table <- surv_df %>%
 
 
 # Plot -------------------------------------------------------------------------
+# Note: plots are created as "supporting info" in this instance. We will use the 
+# tables to create plots as needed in post
 print("create cumulative incidence plot")
 
 plot_med_reviews <- ggplot(weekly_table, aes(date_ref, cum_inc, colour = factor(year))) +
@@ -109,7 +111,7 @@ ggsave(
 # Save table
 write_csv(
   weekly_table %>% select(-date_ref),
-  here("output", "tables", "med_rev_weekly_counts_midpoint6.csv")
+  here("output", "tables", "med_rev_cum_inc_midpoint6.csv")
 )
 
 #------------------------------------------------
@@ -169,7 +171,7 @@ print("save table and plot")
 # Save table
 write_csv(
   weekly_table %>% select(-date_ref),
-  here("output", "tables", "med_rev_weekly_counts_midpoint6.csv")
+  here("output", "tables", "med_rev_cum_inc_midpoint6.csv")
 )
 
 # Save plot
