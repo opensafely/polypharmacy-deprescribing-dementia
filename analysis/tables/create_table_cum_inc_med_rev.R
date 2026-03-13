@@ -62,7 +62,12 @@ weekly_table <- surv_df %>%
     cum_inc = max(cum_inc),               # cumulative incidence at week end
     .groups = "drop"
   ) %>%
-  arrange(year, week)
+  arrange(year, week) %>%
+  group_by(year) %>%
+  mutate(
+    cum_events = cumsum(n_events)   # cumulative number of events
+  ) %>%
+  ungroup()
 
 
 # Plot -------------------------------------------------------------------------
@@ -121,16 +126,15 @@ weekly_table <- weekly_table %>%
 # Calculated rounded values
 weekly_table <- weekly_table %>%
   mutate(
-    n_events_midpoint6 = roundmid_any(n_events)
+    cum_events_midpoint6 = roundmid_any(cum_events)
   ) %>%
   group_by(year) %>%
   arrange(week, .by_group = TRUE) %>%
   mutate(
-    cum_events_midpoint6 = cumsum(n_events_midpoint6),
     cum_inc_midpoint6 = cum_events_midpoint6 / n_eligible
   ) %>%
   ungroup() %>%
-  select(year, week, n_events_midpoint6, cum_inc_midpoint6)
+  select(year, week, cum_events_midpoint6, cum_inc_midpoint6)
 
 # Plot -------------------------------------------------------------------------
 print("save rounded plot")
