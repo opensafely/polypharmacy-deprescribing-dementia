@@ -22,6 +22,7 @@ from analysis.dataset_definition.study_dates import *
 
 ## Add inex variables for 2015 through 2024
 for year in range(2017, 2025):
+    #Add collapsed in/ex variable for each year in the study
     add_inex_variables(dataset, date(year, 1, 1), 1,year)
     
     med_rev=(clinical_events.where(clinical_events.snomedct_code.is_in(medication_review_codelist))

@@ -72,6 +72,8 @@ def add_inex_variables(dataset, start_date, collapse_vars=0, column_suffix=""):
         for name, value in locals().items() if name.startswith("inex_")
     }
 
+    # This caluse makes use of the collapse_vars variable. Allows us to just return one variable that is TRUE if
+    # the patient meets all eligibility criteria on a given date. 
     if collapse_vars == 0:
 
         # Add them all to the dataset

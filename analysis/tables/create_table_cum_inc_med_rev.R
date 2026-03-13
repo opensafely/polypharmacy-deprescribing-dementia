@@ -15,6 +15,7 @@ print("Load cleaned dataset")
 df <- read_rds(here("output", "dataset_clean", "input_clean_desc.rds"))
 
 # Reshape data into long format for cumulative incidence stuff
+# ------------------------------------------------------------------------------
 print("Reshape data")
 df <- df %>%
   pivot_longer(
@@ -22,6 +23,7 @@ df <- df %>%
     names_to = c(".value", "year"),
     names_pattern = "(.*)_(\\d{4})"
   ) %>%
+  # separate by year
   mutate(
     year = as.numeric(year),
     event_date = as.Date(desc_dat_med_rev),
@@ -36,12 +38,12 @@ df <- df %>%
                    as.numeric(end_date - start_date))
   )
 
-# Kaplan-Meier model -----------------------------------------------------------
-print("Fit KM")
-km_fit <- survfit(Surv(time, event) ~ factor(year), data = df)
+# Use survfit ------------------------------------------------------------------
+print("Fit survfit")
+surv_fit <- survfit(Surv(time, event) ~ factor(year), data = df)
 
 # Tidy survival output ---------------------------------------------------------
-km_df <- tidy(km_fit) %>%
+surv_df <- tidy(surv_fit) %>%
   mutate(
     year = as.numeric(str_remove(strata, "factor\\(year\\)=")),
     cum_inc = 1 - estimate
@@ -50,7 +52,7 @@ km_df <- tidy(km_fit) %>%
 
 # Table of cumulative incidence summarised weekyl
 print("Aggregate data to weekly")
-weekly_table <- km_df %>%
+weekly_table <- surv_df %>%
   mutate(
     week = floor(time / 7) + 1   # convert days to week number
   ) %>%
