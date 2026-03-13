@@ -111,7 +111,7 @@ ggsave(
 # Save table
 write_csv(
   weekly_table %>% select(-date_ref),
-  here("output", "tables", "med_rev_cum_inc_midpoint6.csv")
+  here("output", "tables", "med_rev_cum_inc.csv")
 )
 
 #------------------------------------------------
