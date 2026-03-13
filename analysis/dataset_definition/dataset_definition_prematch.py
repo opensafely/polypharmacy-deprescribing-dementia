@@ -3,7 +3,7 @@ from ehrql import create_dataset, codelist_from_csv, days, case, when, minimum_o
 from datetime import datetime, date
 
 from analysis.dataset_definition.add_variables import(
-    add_inex_variables
+    add_inex_variables_prematch
 )
 # Codelists from codelists.py (which pulls all variables from the codelist folder)
 from codelists import *
@@ -15,8 +15,8 @@ dataset = create_dataset()
 from analysis.dataset_definition.study_dates import *
 
 ## ---------------------------------
-## Create variables for inclusion / exclusion criteria at the start of the study period
-add_inex_variables(dataset, start_date)
+## Create variables for inclusion / exclusion criteria during the study period
+add_inex_variables_prematch(dataset, start_date, end_date)
 
 ## ---------------------------------
 ## Create variables for data quality checks

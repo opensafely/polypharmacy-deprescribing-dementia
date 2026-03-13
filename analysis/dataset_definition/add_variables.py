@@ -15,7 +15,7 @@ from analysis.dataset_definition.variable_helper_functions import (
 from codelists import *
 
 ## Create function to add all variables for inclusion and exclusion criteria.
-def add_inex_variables(dataset, start_date):
+def add_inex_variables(dataset, start_date, collapse_vars=0, column_suffix=""):
     
     # Dementia diagnosis
     inex_bin_has_dem = (
@@ -66,6 +66,75 @@ def add_inex_variables(dataset, start_date):
     #Known region
     inex_bin_known_region = practice_registrations.for_patient_on(start_date).practice_nuts1_region_name.is_not_null()
 
+    # Add all variables to the dataset
+    inex_vars = {
+        name: value
+        for name, value in locals().items() if name.startswith("inex_")
+    }
+
+    # This caluse makes use of the collapse_vars variable. Allows us to just return one variable that is TRUE if
+    # the patient meets all eligibility criteria on a given date. 
+    if collapse_vars == 0:
+
+        # Add them all to the dataset
+        for name, expr in inex_vars.items():
+            dataset.add_column(name, expr)
+
+    else:
+        # Combine all expressions using logical AND
+        combined_expr = None
+
+        for expr in inex_vars.values():
+            if combined_expr is None:
+                combined_expr = expr
+            else:
+                combined_expr = combined_expr & expr
+
+        # Only add if at least one variable exists
+        if combined_expr is not None:
+            dataset.add_column(f"inex_bin_all_{column_suffix}", combined_expr)
+
+def add_inex_variables_prematch(dataset,start_date,end_date):
+    
+    # Dementia diagnosis before end date
+    inex_bin_has_dem = (
+        clinical_events.where(clinical_events.snomedct_code.is_in(dementia_codelist))
+        .where(clinical_events.date.is_on_or_before(end_date))
+        ).exists_for_patient()
+    
+    # More than 2 antihypertensive 
+    inex_bin_antihyp = ((medications.where(medications.dmd_code.is_in(ace_inhibitor_codelist))
+        .where(medications.date.is_on_or_after(start_date))
+        .where(medications.date.is_on_or_before(end_date))
+        .count_for_patient()) > 2) | ((medications.where(medications.dmd_code.is_in(alpha_adrenoceptor_blocking_drugs_codelist))
+        .where(medications.date.is_on_or_after(start_date))
+        .where(medications.date.is_on_or_before(end_date))
+        .count_for_patient()) > 2) | ((medications.where(medications.dmd_code.is_in(angiotensin_ii_receptor_blockers_codelist))
+        .where(medications.date.is_on_or_after(start_date))
+        .where(medications.date.is_on_or_before(end_date))
+        .count_for_patient()) > 2) | ((medications.where(medications.dmd_code.is_in(beta_blockers_codelist))
+        .where(medications.date.is_on_or_after(start_date))
+        .where(medications.date.is_on_or_before(end_date))
+        .count_for_patient()) > 2) | ((medications.where(medications.dmd_code.is_in(calcium_channel_blockers_codelist))
+        .where(medications.date.is_on_or_after(start_date))
+        .where(medications.date.is_on_or_before(end_date))
+        .count_for_patient()) > 2) | ((medications.where(medications.dmd_code.is_in(centrally_acting_antihypertensives_codelist))
+        .where(medications.date.is_on_or_after(start_date))
+        .where(medications.date.is_on_or_before(end_date))
+        .count_for_patient()) > 2) | ((medications.where(medications.dmd_code.is_in(potassium_sparing_diuretics_codelist))
+        .where(medications.date.is_on_or_after(start_date))
+        .where(medications.date.is_on_or_before(end_date))
+        .count_for_patient()) > 2)
+    
+    # Alive at any time during study
+    inex_bin_alive = (((patients.date_of_death.is_null()) | (patients.date_of_death.is_after(start_date))) & 
+        ((ons_deaths.date.is_null()) | (ons_deaths.date.is_after(start_date))))
+    
+    #65 or over at any time
+    inex_bin_over_64 = patients.age_on(end_date)>64
+
+    #Known sex
+    inex_bin_known_sex = (patients.sex == "male") | (patients.sex == "female")
 
     #Add all variables to the dataset
     inex_vars = {name: value for name, value in locals().items() if name.startswith("inex_")}
@@ -73,7 +142,6 @@ def add_inex_variables(dataset, start_date):
     # Add them all to the dataset
     for name, expr in inex_vars.items():
         dataset.add_column(name, expr)
-
 
 def add_covariates(dataset, index_date, end_date):
 

@@ -34,6 +34,8 @@ Deatils of the purpose for each file in this repository are outlined below
 - [`utility.R`] contains miscellaneous functions used in the analysis.
 - [`create_table1_hist.R`](./analysis/table1/create_table1.R) generates a csv file for table one for the study population used to generate the histograms. This uses the output of [`dataset_clean_hist.R`](./analysis/dataset_clean/dataset_clean.R) to describe the patient characteristics, displaying the proportion of study population in each variable category.
 - [`create_table_prescription_gaps.R`] generates a csv file containing table with the data we will use to generate histograms which show the frquency of gaps between prescriptions of each medication type.
+- [`create_table_cum_inc_med_rev.R'] generates a csv file containing a table which will be used to create cumulative incidence graphs for medication reviews by year. It also generates the plots to be viewed directly in the opensafely environment.
+- [`create_table_desc`] generates a csv file containing a table of descriptive measures describing yearly medication review rates in the full study period. This table will be expanded to include other measures including prescribing and deprescribing rate of antihypertensives.
 
 - The [`project.yaml`](./project.yaml) file lists all actions to be run in OpenSAFELY and their run order
 
@@ -45,6 +47,7 @@ Deatils of the purpose for each file in this repository are outlined below
   The `dataset_definition_*.py` and `dataset_clean_*.R` files use consistent suffixes to indicate the dataset or stage they relate to:
 
   - `_inex*` - dataset containing inclusion/exclusion and QA variables.
+  - `_desc` - dataset containing variables for generating descriptive analyses (cumulative incidence graphs and exposure / outcome rates in the population)
   - `_hist` - dataset containing variables for generating medication gap histograms.
   - `_match` - dataset prepared for matching.
   - `_matched*` - dataset after matching.
