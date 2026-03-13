@@ -54,31 +54,37 @@ surv_df <- tidy(surv_fit) %>%
 print("Aggregate data to weekly")
 weekly_table <- surv_df %>%
   mutate(
-    week = floor(time / 7) + 1   # convert days to week number
+    week = floor(time / 7) + 1
   ) %>%
   group_by(year, week) %>%
   summarise(
     n_events = sum(n.event, na.rm = TRUE),
-    cum_inc = max(cum_inc),               # cumulative incidence at week end
+    cum_inc = max(cum_inc),
     .groups = "drop"
   ) %>%
   arrange(year, week) %>%
   group_by(year) %>%
   mutate(
-    cum_events = cumsum(n_events)   # cumulative number of events
+    cum_events = cumsum(n_events),
+    date_ref = as.Date("2000-01-01") + (week - 1) * 7
   ) %>%
   ungroup()
 
 
 # Plot -------------------------------------------------------------------------
 print("create cumulative incidence plot")
-plot_med_reviews <- ggplot(weekly_table, aes(week, cum_inc, colour = factor(year))) +
+
+plot_med_reviews <- ggplot(weekly_table, aes(date_ref, cum_inc, colour = factor(year))) +
   geom_step(linewidth = 1) +
-  scale_y_continuous(labels = percent) +
-  scale_x_continuous(limits = c(0, 53)) +
+  scale_y_continuous(labels = scales::percent) +
+  scale_x_date(
+    date_labels = "%b",
+    date_breaks = "1 month",
+    limits = as.Date(c("2000-01-01", "2000-12-31"))
+  ) +
   labs(
     title = "Cumulative incidence of medication reviews by year",
-    x = "Weeks since start of year",
+    x = "Calendar time",
     y = "Patients with medication review (%)",
     colour = "Year"
   ) +
@@ -87,7 +93,6 @@ plot_med_reviews <- ggplot(weekly_table, aes(week, cum_inc, colour = factor(year
     legend.position = "right",
     plot.title = element_text(hjust = 0.5, face = "bold")
   )
-
 
 # Save plot --------------------------------------------------------------------
 print("save plots and table")
@@ -103,8 +108,8 @@ ggsave(
 
 # Save table
 write_csv(
-  weekly_table,
-  here("output", "tables", "med_rev_weekly_counts.csv")
+  weekly_table %>% select(-date_ref),
+  here("output", "tables", "med_rev_weekly_counts_midpoint6.csv")
 )
 
 #------------------------------------------------
@@ -134,17 +139,23 @@ weekly_table <- weekly_table %>%
     cum_inc_midpoint6 = cum_events_midpoint6 / n_eligible
   ) %>%
   ungroup() %>%
-  select(year, week, cum_events_midpoint6, cum_inc_midpoint6)
+  select(year, week, date_ref, cum_events_midpoint6, cum_inc_midpoint6)
 
 # Plot -------------------------------------------------------------------------
 print("save rounded plot")
-plot_med_reviews <- ggplot(weekly_table, aes(week, cum_inc_midpoint6, colour = factor(year))) +
+print("save rounded plot")
+
+plot_med_reviews <- ggplot(weekly_table, aes(date_ref, cum_inc_midpoint6, colour = factor(year))) +
   geom_step(linewidth = 1) +
   scale_y_continuous(labels = percent) +
-  scale_x_continuous(limits = c(0, 53)) +
+  scale_x_date(
+    date_labels = "%b",
+    date_breaks = "1 month",
+    limits = as.Date(c("2000-01-01", "2000-12-31"))
+  ) +
   labs(
     title = "Cumulative incidence of medication reviews by year (rounded)",
-    x = "Weeks since start of year",
+    x = "Calendar time",
     y = "Patients with medication review (%)",
     colour = "Year"
   ) +
@@ -157,7 +168,7 @@ plot_med_reviews <- ggplot(weekly_table, aes(week, cum_inc_midpoint6, colour = f
 print("save table and plot")
 # Save table
 write_csv(
-  weekly_table,
+  weekly_table %>% select(-date_ref),
   here("output", "tables", "med_rev_weekly_counts_midpoint6.csv")
 )
 
