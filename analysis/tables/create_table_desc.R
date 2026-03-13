@@ -103,9 +103,13 @@ write_csv(table_desc_region, here("output", "tables", "table_desc_region.csv"))
 print("Creating redacted / midpoint rounded version of table_desc_region")
 
 table_desc_region_midpoint6 <- table_desc_region %>%
+  rename_with(
+    ~ paste0(.x, "_midpoint6"),
+    matches("^\\d{4}$")   # selects year columns
+  ) %>%
   mutate(
     across(
-      matches("^\\d{4}$"),   # selects year columns
+      matches("^\\d{4}_midpoint6$"),
       ~ roundmid_any(.x)
     )
   )

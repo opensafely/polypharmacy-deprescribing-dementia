@@ -1,5 +1,5 @@
-from ehrql.tables.tpp import patients, practice_registrations, clinical_events, addresses, ethnicity_from_sus, medications, ons_deaths, apcs, decision_support_values, emergency_care_attendances, appointments
-from ehrql import create_dataset, codelist_from_csv, days, case, when, minimum_of
+from ehrql.tables.tpp import practice_registrations, clinical_events
+from ehrql import create_dataset, days
 from ehrql.query_language import table_from_file , PatientFrame, Series
 from datetime import date
 
@@ -19,6 +19,9 @@ dataset = create_dataset()
 
 #Get study dates
 from analysis.dataset_definition.study_dates import *
+
+#Add region variable for regional analysis
+dataset.desc_cat_region = practice_registrations.for_patient_on(start_date).practice_nuts1_region_name
 
 ## Add inex variables for 2015 through 2024
 for year in range(2017, 2025):
@@ -41,8 +44,7 @@ for year in range(2017, 2025):
     dataset.add_column(f"desc_num_med_rev_{year}", med_rev)
     dataset.add_column(f"desc_dat_med_rev_{year}", med_rev_dat)
 
-#Add region variable for regional analysis
-dataset.desc_cat_region = practice_registrations.for_patient_on(start_date).practice_nuts1_region_name
+
 
 ##Define population
 dataset.configure_dummy_data()
