@@ -16,7 +16,12 @@ dir_create(here::here(dataclean_dir))
 
 ## Load dataset
 print("Load dataset")
-dataset_clean <- read_csv(here("output", "dataset", "input_desc.csv.gz"))
+dataset_clean <- readr::read_csv(
+  here::here("output", "dataset", "input_desc.csv.gz"),
+  col_types = readr::cols(
+    patient_id = readr::col_character()
+  )
+)
 
 start_date <- as.Date("2017-01-01")
 end_date <- as.Date("2024-12-31")

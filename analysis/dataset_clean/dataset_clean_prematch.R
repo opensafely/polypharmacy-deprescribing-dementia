@@ -7,7 +7,6 @@ library(purrr)
 library(lubridate)
 library(tidyr)
 library(skimr)
-library(arrow)
 
 ## Define clean dataset output folder ------------------------------------------
 print("Creating output/dataset_clean output folder")
@@ -66,12 +65,7 @@ print("Set reference levels and handle missing values")
 dataset_clean <- ref(dataset_clean, suffix = "prematch")
 
 ## Saved cleaned dataset to output folder
-# print("Saving cleaned dataset to output folder")
-# dataset_clean <- dataset_clean |>
-#   dplyr::mutate(
-#     patient_id = as.character(patient_id)
-#   )
-
+print("Saving cleaned dataset to output folder")
 write_csv(dataset_clean, file = here::here(dataclean_dir, "input_clean_prematch.csv.gz"))
 
 ## Saved flowchart data to output folder
