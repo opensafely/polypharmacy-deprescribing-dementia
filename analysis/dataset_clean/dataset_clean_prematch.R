@@ -7,6 +7,7 @@ library(purrr)
 library(lubridate)
 library(tidyr)
 library(skimr)
+library(arrow)
 
 ## Define clean dataset output folder ------------------------------------------
 print("Creating output/dataset_clean output folder")
@@ -63,7 +64,10 @@ dataset_clean <- ref(dataset_clean, suffix = "prematch")
 ## Saved cleaned dataset to output folder
 print("Saving cleaned dataset to output folder")
 
-write_csv(dataset_clean, file = here::here(dataclean_dir, "input_clean_prematch.csv"))
+write_parquet(
+  dataset_clean,
+  sink = here::here(dataclean_dir, "input_clean_prematch.parquet")
+)
 
 ## Saved flowchart data to output folder
 print("Saving flowchart data to output folder")
