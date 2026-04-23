@@ -9,9 +9,9 @@ from analysis.dataset_definition.add_variables import(
 
 # Codelists from codelists.py (which pulls all variables from the codelist folder)
 from codelists import *
-@table_from_file("output/dataset_clean/input_clean_prematch.parquet")
+@table_from_file("output/dataset_clean/input_clean_prematch.csv.gz")
 class input_inex(PatientFrame):
-    qa_num_birth_year = Series(str)
+    qa_num_birth_year = Series(int)
 
 
 ## Create dataset

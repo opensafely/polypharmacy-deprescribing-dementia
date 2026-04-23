@@ -12,7 +12,7 @@ actions:
     needs: [generate_dataset_prematch]
     outputs:
       highly_sensitive:
-        dataset: output/dataset_clean/input_clean_prematch.parquet
+        dataset: output/dataset_clean/input_clean_prematch.csv.gz
       moderately_sensitive:
         flow_prematch: output/dataset_clean/flow_prematch.csv
         describe_inex_prematch: output/describe/inex-prematch.txt

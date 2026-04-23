@@ -17,8 +17,12 @@ dir_create(here::here(dataclean_dir))
 
 ## Load dataset
 print("Load dataset")
-dataset_clean <- read_csv(here("output", "dataset", "input_prematch.csv.gz"))
-
+dataset_clean <- readr::read_csv(
+  here::here("output", "dataset", "input_prematch.csv.gz"),
+  col_types = readr::cols(
+    patient_id = readr::col_character()
+  )
+)
 start_date <- as.Date("2017-01-01")
 end_date <- as.Date("2024-12-31")
 
@@ -62,12 +66,13 @@ print("Set reference levels and handle missing values")
 dataset_clean <- ref(dataset_clean, suffix = "prematch")
 
 ## Saved cleaned dataset to output folder
-print("Saving cleaned dataset to output folder")
+# print("Saving cleaned dataset to output folder")
+# dataset_clean <- dataset_clean |>
+#   dplyr::mutate(
+#     patient_id = as.character(patient_id)
+#   )
 
-write_parquet(
-  dataset_clean,
-  sink = here::here(dataclean_dir, "input_clean_prematch.parquet")
-)
+write_csv(dataset_clean, file = here::here(dataclean_dir, "input_clean_prematch.csv.gz"))
 
 ## Saved flowchart data to output folder
 print("Saving flowchart data to output folder")
