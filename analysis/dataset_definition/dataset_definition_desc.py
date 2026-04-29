@@ -1,3 +1,4 @@
+from analysis.dataset_definition.variable_helper_functions import get_stopping_dates, get_prescription_dates
 from ehrql.tables.tpp import practice_registrations, clinical_events
 from ehrql import create_dataset, days
 from ehrql.query_language import table_from_file , PatientFrame, Series
@@ -21,30 +22,30 @@ dataset = create_dataset()
 from analysis.dataset_definition.study_dates import *
 
 #Add region variable for regional analysis
-dataset.desc_cat_region = practice_registrations.for_patient_on(start_date).practice_nuts1_region_name
+#dataset.desc_cat_region = practice_registrations.for_patient_on(start_date).practice_nuts1_region_name
 
 ## Add inex variables for 2015 through 2024
-for year in range(2017, 2025):
-    #Add collapsed in/ex variable for each year in the study
-    add_inex_variables(dataset, date(year, 1, 1), 1,year)
+# for year in range(2017, 2025):
+#     #Add collapsed in/ex variable for each year in the study
+#     add_inex_variables(dataset, date(year, 1, 1), 1,year)
     
-    med_rev=(clinical_events.where(clinical_events.snomedct_code.is_in(medication_review_codelist))
-        .where(clinical_events.date.is_on_or_after(date(year, 1, 1)))
-        .where(clinical_events.date.is_before(date(year, 1, 1)+days(365)))
-        .count_for_patient())
+#     med_rev=(clinical_events.where(clinical_events.snomedct_code.is_in(medication_review_codelist))
+#         .where(clinical_events.date.is_on_or_after(date(year, 1, 1)))
+#         .where(clinical_events.date.is_before(date(year, 1, 1)+days(365)))
+#         .count_for_patient())
     
-    med_rev_dat=(clinical_events.where(clinical_events.snomedct_code.is_in(medication_review_codelist))
-    .where(clinical_events.date.is_on_or_after(date(year, 1, 1)))
-    .where(clinical_events.date.is_before(date(year, 1, 1)+days(365)))
-    .sort_by(clinical_events.date)
-    .first_for_patient()
-    .date)
+#     med_rev_dat=(clinical_events.where(clinical_events.snomedct_code.is_in(medication_review_codelist))
+#     .where(clinical_events.date.is_on_or_after(date(year, 1, 1)))
+#     .where(clinical_events.date.is_before(date(year, 1, 1)+days(365)))
+#     .sort_by(clinical_events.date)
+#     .first_for_patient()
+#     .date)
     
-    # Add medication review variables for each year
-    dataset.add_column(f"desc_num_med_rev_{year}", med_rev)
-    dataset.add_column(f"desc_dat_med_rev_{year}", med_rev_dat)
+#     # Add medication review variables for each year
+#     dataset.add_column(f"desc_num_med_rev_{year}", med_rev)
+#     dataset.add_column(f"desc_dat_med_rev_{year}", med_rev_dat)
 
-
+get_stopping_dates(dataset, start_date, end_date ,ace_inhibitor_codelist, "antichol", 5, 90)
 
 ##Define population
 dataset.configure_dummy_data()
