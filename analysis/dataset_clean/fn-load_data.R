@@ -1,8 +1,9 @@
-## This function performs the initial loading of the dataset. 
+## This function performs the initial loading of the dataset.
 # It also performs basic preprocessing to ensure that the data is in the correct
 # format for subsequent cleaning steps.
 
 load_data <- function(filename, suffix = "", describe = TRUE) {
+  
   # Get column names ----
   print("Get column names")
   file_path <- paste0("output/dataset/", filename)
@@ -19,15 +20,12 @@ load_data <- function(filename, suffix = "", describe = TRUE) {
   print(all_cols)
 
   # Define column classes ----
-  print('Define column classes')
+  print("Define column classes")
 
   cat_cols <- c("patient_id", grep("_cat", all_cols, value = TRUE))
   bin_cols <- c(grep("_bin", all_cols, value = TRUE))
-  num_cols <- c(
-    grep("_num", all_cols, value = TRUE),
-    grep("vax_jcvi_age_", all_cols, value = TRUE)
-  )
-  date_cols <- grep("_date", all_cols, value = TRUE)
+  num_cols <- c(grep("_num", all_cols, value = TRUE))
+  date_cols <- grep("_dat", all_cols, value = TRUE)
 
   message("Column classes identified")
 
