@@ -7,6 +7,14 @@ library(purrr)
 library(lubridate)
 library(tidyr)
 library(skimr)
+library(data.table)
+## Source functions
+lapply(
+  list.files("analysis/dataset_clean", full.names = TRUE, pattern = "fn-"),
+  source
+)
+source("analysis/utility.R")
+
 
 ## Define clean dataset output folder ------------------------------------------
 print("Creating output/dataset_clean output folder")
@@ -16,7 +24,7 @@ dir_create(here::here(dataclean_dir))
 
 ## Load dataset
 print("Load dataset")
-dataset_clean <- read_csv(here("output", "dataset", "input_prematch.csv.gz"))
+dataset_clean <- load_data("input_prematch.csv.gz", suffix = "prematch", describe = TRUE) 
 
 start_date <- as.Date("2017-01-01")
 end_date <- as.Date("2024-12-31")
@@ -27,19 +35,6 @@ flow <- data.frame(
   N = nrow(dataset_clean),
   stringsAsFactors = FALSE
 )
-
-## Source functions
-lapply(
-  list.files("analysis/dataset_clean", full.names = TRUE, pattern = "fn-"),
-  source
-)
-
-source("analysis/utility.R")
-
-
-## Preprocess the data
-print("Preprocessing dataset")
-dataset_clean <- preprocess(dataset_clean, suffix = "prematch")
 
 ## Run quality assurance script
 print("Running quality assurance")
@@ -62,8 +57,7 @@ dataset_clean <- ref(dataset_clean, suffix = "prematch")
 
 ## Saved cleaned dataset to output folder
 print("Saving cleaned dataset to output folder")
-
-write_csv(dataset_clean, file = here::here(dataclean_dir, "input_clean_prematch.csv"))
+write_csv(dataset_clean, file = here::here(dataclean_dir, "input_clean_prematch.csv.gz"))
 
 ## Saved flowchart data to output folder
 print("Saving flowchart data to output folder")
