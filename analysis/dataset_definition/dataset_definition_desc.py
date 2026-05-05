@@ -22,30 +22,38 @@ dataset = create_dataset()
 from analysis.dataset_definition.study_dates import *
 
 #Add region variable for regional analysis
-#dataset.desc_cat_region = practice_registrations.for_patient_on(start_date).practice_nuts1_region_name
+dataset.desc_cat_region = practice_registrations.for_patient_on(start_date).practice_nuts1_region_name
 
-## Add inex variables for 2015 through 2024
-# for year in range(2017, 2025):
-#     #Add collapsed in/ex variable for each year in the study
-#     add_inex_variables(dataset, date(year, 1, 1), 1,year)
+# Add inex variables for 2015 through 2024
+for year in range(2017, 2025):
+    #Add collapsed in/ex variable for each year in the study
+    add_inex_variables(dataset, date(year, 1, 1), 1,year)
     
-#     med_rev=(clinical_events.where(clinical_events.snomedct_code.is_in(medication_review_codelist))
-#         .where(clinical_events.date.is_on_or_after(date(year, 1, 1)))
-#         .where(clinical_events.date.is_before(date(year, 1, 1)+days(365)))
-#         .count_for_patient())
+    med_rev=(clinical_events.where(clinical_events.snomedct_code.is_in(medication_review_codelist))
+        .where(clinical_events.date.is_on_or_after(date(year, 1, 1)))
+        .where(clinical_events.date.is_before(date(year, 1, 1)+days(365)))
+        .count_for_patient())
     
-#     med_rev_dat=(clinical_events.where(clinical_events.snomedct_code.is_in(medication_review_codelist))
-#     .where(clinical_events.date.is_on_or_after(date(year, 1, 1)))
-#     .where(clinical_events.date.is_before(date(year, 1, 1)+days(365)))
-#     .sort_by(clinical_events.date)
-#     .first_for_patient()
-#     .date)
+    med_rev_dat=(clinical_events.where(clinical_events.snomedct_code.is_in(medication_review_codelist))
+    .where(clinical_events.date.is_on_or_after(date(year, 1, 1)))
+    .where(clinical_events.date.is_before(date(year, 1, 1)+days(365)))
+    .sort_by(clinical_events.date)
+    .first_for_patient()
+    .date)
     
-#     # Add medication review variables for each year
-#     dataset.add_column(f"desc_num_med_rev_{year}", med_rev)
-#     dataset.add_column(f"desc_dat_med_rev_{year}", med_rev_dat)
+    # Add medication review variables for each year
+    dataset.add_column(f"desc_num_med_rev_{year}", med_rev)
+    dataset.add_column(f"desc_dat_med_rev_{year}", med_rev_dat)
 
-get_stopping_dates(dataset, start_date, end_date ,ace_inhibitor_codelist, "antichol", 5, 90)
+    # Add variables for date of first stop for each year for each medication class
+    get_stopping_dates(dataset, date(year, 1, 1), date(year, 1, 1)+days(365) ,ace_inhibitor_codelist, f"desc_dat_stop_acei_{year}", 10, 90)
+    get_stopping_dates(dataset, date(year, 1, 1), date(year, 1, 1)+days(365) ,alpha_adrenoceptor_blocking_drugs_codelist, f"desc_dat_stop_aab_{year}", 10, 90)
+    get_stopping_dates(dataset, date(year, 1, 1), date(year, 1, 1)+days(365) ,angiotensin_ii_receptor_blockers_codelist, f"desc_dat_stop_arb_{year}", 10, 90)
+    get_stopping_dates(dataset, date(year, 1, 1), date(year, 1, 1)+days(365) ,beta_blockers_codelist, f"desc_dat_stop_bb_{year}", 10, 90)
+    get_stopping_dates(dataset, date(year, 1, 1), date(year, 1, 1)+days(365) ,calcium_channel_blockers_codelist, f"desc_dat_stop_ccb_{year}", 10, 90)
+    get_stopping_dates(dataset, date(year, 1, 1), date(year, 1, 1)+days(365) ,centrally_acting_antihypertensives_codelist, f"desc_dat_stop_caa_{year}", 10, 90)
+    get_stopping_dates(dataset, date(year, 1, 1), date(year, 1, 1)+days(365) ,potassium_sparing_diuretics_codelist, f"desc_dat_stop_psd_{year}", 10, 90)
+
 
 ##Define population
 dataset.configure_dummy_data()

@@ -47,6 +47,14 @@ actions:
         medication_review_incidence: output/plots/med_rev_cum_inc.png
         medication_review_incidence_midpoint6: output/plots/med_rev_cum_inc_midpoint6.png
 
+  create_cum_inc_stop:
+    run: r:v2 analysis/tables/create_table_cum_inc_stop.R
+    needs: [clean_dataset_desc]
+    outputs:
+      moderately_sensitive: 
+        medication_review_incidence_table: output/tables/stop_any_cum_inc.csv
+        medication_review_incidence: output/plots/stop_any_cum_inc.png
+
   create_table_desc:
     run: r:v2 analysis/tables/create_table_desc.R
     needs: [clean_dataset_desc]

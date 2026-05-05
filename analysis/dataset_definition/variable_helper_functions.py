@@ -117,6 +117,9 @@ def ever_matching_event_clinical_ctv3_before(codelist, start_date, where=True):
 def filter_codes_by_category(codelist, include):
     return {k:v for k,v in codelist.items() if v in include}
 
+
+#this function identifies the first date within a time period on which a patient "stops" a medication of a given codelist,
+#defined by a specified gap size between prescriptions, and adds this as a column to the dataset
 def get_stopping_dates(dataset, start_date, end_date ,codelist, column_suffix,limit, gap_size):
     
     #filter medications table to just prescriptions of interest within the date range, sorted by date
@@ -128,12 +131,9 @@ def get_stopping_dates(dataset, start_date, end_date ,codelist, column_suffix,li
     )
 
     #get first prescription date for which it is possible to observe a stopping event (i.e. first prescription date after start date + gap size)
-    first_presc_date = (
-        base_rx.where(base_rx.dmd_code.is_in(codelist))
-        .sort_by(base_rx.date)
-    ).first_for_patient().date
-    dataset.add_column(f"out_dat_first_presc_{column_suffix}", first_presc_date)
+    first_presc_date = base_rx.first_for_patient().date
 
+    #create stop_dates object to store all dates a patient stops a drug
     stop_dates = []
     stop_dates = stop_dates + [date(2100, 1, 1)]
 
@@ -146,10 +146,8 @@ def get_stopping_dates(dataset, start_date, end_date ,codelist, column_suffix,li
             .where(base_rx.date.is_not_null())
             .first_for_patient()
             .date)
-        dataset.add_column(f"out_dat_{column_suffix}_{i}", presc_date)
 
         diff_days = (presc_date - prev_date).days
-        dataset.add_column(f"out_num_gap_{column_suffix}_{i}", diff_days)
 
         stop_date = when(
             (
@@ -158,14 +156,8 @@ def get_stopping_dates(dataset, start_date, end_date ,codelist, column_suffix,li
             ) 
         ).then(prev_date + days(gap_size)).otherwise(None)
 
-        dataset.add_column(f"out_bin_stop_{column_suffix}_{i}", (diff_days >= gap_size) |(presc_date.is_null()))
-
-        dataset.add_column(f"out_dat_stop_{column_suffix}_{i}", stop_date)
-
-        prev_date = when(presc_date.is_not_null()).then(presc_date).otherwise(prev_date)
-
         prev_date = presc_date
         stop_dates = stop_dates + [stop_date]
 
     stop_date = minimum_of(*stop_dates)
-    dataset.add_column(f"out_dat_stop_{column_suffix}", stop_date)
+    dataset.add_column(f"{column_suffix}", stop_date)
