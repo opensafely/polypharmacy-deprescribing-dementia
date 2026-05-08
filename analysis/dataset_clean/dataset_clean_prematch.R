@@ -62,3 +62,17 @@ write_csv(dataset_clean, file = here::here(dataclean_dir, "input_clean_prematch.
 ## Saved flowchart data to output folder
 print("Saving flowchart data to output folder")
 write_csv(flow, here::here(dataclean_dir, "flow_prematch.csv"))
+
+## Create midpoint rounded version of flowchart data
+print("Creating midpoint rounded flowchart data")
+
+flow_midpoint6 <- flow %>%
+  mutate(
+    N = roundmid_any(N)
+  )
+
+## Save rounded flowchart data
+write_csv(
+  flow_midpoint6,
+  here::here(dataclean_dir, "flow_prematch_midpoint6.csv")
+)
