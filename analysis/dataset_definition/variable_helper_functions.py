@@ -169,3 +169,81 @@ def get_stopping_dates(dataset, start_date, end_date ,codelist, column_suffix,li
 
     stop_date = minimum_of(*stop_dates)
     dataset.add_column(f"{column_suffix}", stop_date)
+
+def get_stopping_dates_after_event(dataset, start_date, end_date ,med_codelist, event_codelist, column_suffix, limit, gap_size):
+
+    #filter medications table to just prescriptions of interest within the date range, sorted by date
+    base_rx = (
+        medications.where(medications.dmd_code.is_in(med_codelist))
+        .where(medications.date.is_after(start_date - days(365)))
+        .where(medications.date.is_on_or_before(end_date + days(gap_size)))
+        .sort_by(medications.date)
+    )
+
+
+    events = (
+    clinical_events
+    .where(clinical_events.snomedct_code.is_in(event_codelist))
+    .where(clinical_events.date.is_on_or_between(start_date, end_date))
+    .sort_by(clinical_events.date)
+    )
+
+    stop_dates = []
+    stop_dates = stop_dates + [date(2100, 1, 1)]
+    prev_event_date = start_date
+
+    for i in range(limit):
+
+        # next event
+        event_date = (
+            events
+            .where(events.date.is_after(prev_event_date))
+            .first_for_patient()
+            .date
+        )
+
+        # last prescription BEFORE event
+        last_rx_before_event = (
+            base_rx
+            .where(base_rx.date.is_before(event_date))
+            .sort_by(base_rx.date)
+            .last_for_patient()
+            .date
+        )
+
+        # first prescription AFTER event
+        first_rx_after_event = (
+            base_rx
+            .where(base_rx.date.is_on_or_after(event_date))
+            .first_for_patient()
+            .date
+        )
+
+        # calculate gap spanning review
+        diff_days = (
+            first_rx_after_event - last_rx_before_event
+        ).days
+
+        # stopping event
+        stop_date = when(
+            (
+                last_rx_before_event.is_not_null()
+            ) &
+            (
+                (diff_days >= gap_size) |
+                (first_rx_after_event.is_null())
+            )
+        ).then(
+            event_date
+        ).otherwise(None)
+
+        stop_dates = stop_dates + [stop_date]
+
+        prev_event_date = event_date
+
+    first_stop_after_event = minimum_of(*stop_dates)
+
+    dataset.add_column(
+        f"{column_suffix}",
+        first_stop_after_event
+    )
