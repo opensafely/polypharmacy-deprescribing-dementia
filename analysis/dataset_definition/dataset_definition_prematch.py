@@ -1,3 +1,6 @@
+## This script defines a dataset that narrows down the full population to those who could potentially be included in the study at any point during the study period.
+## As well as inclusion = exclusion criteira, we also derive criteria for QA 
+
 from ehrql.tables.tpp import patients, practice_registrations, clinical_events, addresses, ethnicity_from_sus, medications, ons_deaths, apcs, decision_support_values, emergency_care_attendances
 from ehrql import create_dataset, codelist_from_csv, days, case, when, minimum_of, show
 from datetime import datetime, date

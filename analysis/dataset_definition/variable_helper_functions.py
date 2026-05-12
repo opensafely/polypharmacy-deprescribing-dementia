@@ -118,8 +118,16 @@ def filter_codes_by_category(codelist, include):
     return {k:v for k,v in codelist.items() if v in include}
 
 
-#this function identifies the first date within a time period on which a patient "stops" a medication of a given codelist,
-#defined by a specified gap size between prescriptions, and adds this as a column to the dataset
+## this function identifies the first date within a time period on which a patient "stops" a medication of a given codelist,
+## defined by a specified gap size between prescriptions, and adds this as a column to the dataset
+## Inputs:
+## dataset - the ehrQL dataset which the variables will be added to
+## start_date - the start date for the time period
+## end_date - the end date of the time period 
+## codelist - the codelist for the medication for which stopping is being identified
+## column_suffix - the suffix to add to the variable name for the stopping date
+## limit - the maximum number of prescriptions to consider when identifying stopping events, starting from the first prescription after the start date
+## gap_size - the number of days between prescriptions to define a stopping event
 def get_stopping_dates(dataset, start_date, end_date ,codelist, column_suffix,limit, gap_size):
     
     #filter medications table to just prescriptions of interest within the date range, sorted by date
