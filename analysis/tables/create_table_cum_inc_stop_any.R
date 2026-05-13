@@ -21,7 +21,7 @@ df <- read_rds(here("output", "dataset_clean", "input_clean_desc.rds"))
 
 # Define drug classes and gap sizes for stopping definitions
 
-drug_classes <- c("acei", "bb", "arb", "aab", "ccb", "cca", "psd")
+drug_classes <- c("acei", "bb", "arb", "aab", "ccb", "caa", "psd")
 gap_sizes <- c("30", "90", "180")
 
 # Get years from the dataset based on column names
@@ -43,6 +43,9 @@ for (gap in gap_sizes) {
   for (yr in years) {
 
     cols_this_year <- paste0("desc_dat_stop_", drug_classes, "_", gap, "_", yr)
+
+    # Handles case when there are no columns for this year (e.g. if some drug classes were not present in that year)
+    cols_this_year <- cols_this_year[ cols_this_year %in% names(df) ]
 
     new_col <- paste0("desc_dat_stop_any_", gap, "_", yr)
 

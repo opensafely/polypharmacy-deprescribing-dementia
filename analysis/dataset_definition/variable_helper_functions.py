@@ -118,59 +118,6 @@ def filter_codes_by_category(codelist, include):
     return {k:v for k,v in codelist.items() if v in include}
 
 
-## this function identifies the first date within a time period on which a patient "stops" a medication of a given codelist,
-## defined by a specified gap size between prescriptions, and adds this as a column to the dataset
-## Inputs:
-## dataset - the ehrQL dataset which the variables will be added to
-## start_date - the start date for the time period
-## end_date - the end date of the time period 
-## codelist - the codelist for the medication for which stopping is being identified
-## column_suffix - the suffix to add to the variable name for the stopping date
-## limit - the maximum number of prescriptions to consider when identifying stopping events, starting from the first prescription after the start date
-## gap_size - the number of days between prescriptions to define a stopping event
-def get_stopping_dates(dataset, start_date, end_date ,codelist, column_suffix,limit, gap_size):
-    
-    #filter medications table to just prescriptions of interest within the date range, sorted by date
-    base_rx = (
-        medications.where(medications.dmd_code.is_in(codelist))
-        .where(medications.date.is_after(start_date - days(gap_size)))
-        .where(medications.date.is_on_or_before(end_date - days(gap_size)))
-        .sort_by(medications.date)
-    )
-
-    #get first prescription date for which it is possible to observe a stopping event (i.e. first prescription date after start date + gap size)
-    first_presc_date = base_rx.first_for_patient().date
-
-    #create stop_dates object to store all dates a patient stops a drug
-    stop_dates = []
-    stop_dates = stop_dates + [date(2100, 1, 1)]
-
-    prev_date = first_presc_date
-    for i in range (limit):
-
-        presc_date = (
-            base_rx
-            .where(base_rx.date.is_after(prev_date))
-            .where(base_rx.date.is_not_null())
-            .first_for_patient()
-            .date)
-
-        diff_days = (presc_date - prev_date).days
-
-        stop_date = when(
-            (
-                (diff_days >= gap_size) |
-                (presc_date.is_null())
-            ) 
-        ).then(prev_date + days(gap_size)).otherwise(None)
-
-        prev_date = presc_date
-        stop_dates = stop_dates + [stop_date]
-
-    stop_date = minimum_of(*stop_dates)
-    dataset.add_column(f"{column_suffix}", stop_date)
-
-
 ## this function identifies the first date within a time period on which a patient "stops" a medication following a specified clinical event
 ## defined by a specified gap size between prescriptions. The clinical event is considered as the trigger for identifying stopping events, so the this date is treated as the date of stopping.
 ## Inputs:
@@ -182,8 +129,6 @@ def get_stopping_dates(dataset, start_date, end_date ,codelist, column_suffix,li
 ## column_suffix - the suffix to add to the variable name for the stopping date
 ## limit - the maximum number of clinical events to consider when identifying stopping events, starting from the first event after the start date
 ## gap_size - the number of days between prescriptions to define a stopping event
-
-
 def get_stopping_dates_after_event(dataset, start_date, end_date ,med_codelist, event_codelist, column_suffix, limit, gap_size):
 
     #filter medications table to just prescriptions of interest within the date range, sorted by date

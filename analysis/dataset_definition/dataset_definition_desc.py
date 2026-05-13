@@ -31,7 +31,7 @@ from analysis.dataset_definition.study_dates import *
 #Add region variable for regional analysis
 dataset.desc_cat_region = practice_registrations.for_patient_on(start_date).practice_nuts1_region_name
 
-# Gap sizes for sensitivity analyses
+# Different gap sizes defining stopping events
 gap_sizes = [30, 90, 180]
 
 # Add inex variables for 2015 through 2024
