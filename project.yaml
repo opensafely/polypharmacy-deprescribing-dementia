@@ -48,60 +48,29 @@ actions:
         medication_review_incidence: output/plots/med_rev_cum_inc.png
         medication_review_incidence_midpoint6: output/plots/med_rev_cum_inc_midpoint6.png
 
-  create_cum_inc_stop:
-    run: r:v2 analysis/tables/create_table_cum_inc_stop_all.R
+  create_cum_inc_stop_any:
+    run: r:v2 analysis/tables/create_table_cum_inc_stop_any.R
     needs: [clean_dataset_desc]
     outputs:
       moderately_sensitive:
 
-        # Any antihypertensive stopping
-        stop_any_table: output/tables/stop_any_cum_inc.csv
-        stop_any_table_midpoint6: output/tables/stop_any_cum_inc_midpoint6.csv
-        stop_any_plot: output/plots/stop_any_cum_inc.png
-        stop_any_plot_midpoint6: output/plots/stop_any_cum_inc_midpoint6.png
+        # Any antihypertensive stopping (30-day gap)
+        stop_any_30_table: output/tables/stop_any_30_cum_inc.csv
+        stop_any_30_table_midpoint6: output/tables/stop_any_30_cum_inc_midpoint6.csv
+        stop_any_30_plot: output/plots/stop_any_30_cum_inc.png
+        stop_any_30_plot_midpoint6: output/plots/stop_any_30_cum_inc_midpoint6.png
 
-        # ACEI
-        stop_acei_table: output/tables/stop_acei_cum_inc.csv
-        stop_acei_table_midpoint6: output/tables/stop_acei_cum_inc_midpoint6.csv
-        stop_acei_plot: output/plots/stop_acei_cum_inc.png
-        stop_acei_plot_midpoint6: output/plots/stop_acei_cum_inc_midpoint6.png
+        # Any antihypertensive stopping (90-day gap)
+        stop_any_90_table: output/tables/stop_any_90_cum_inc.csv
+        stop_any_90_table_midpoint6: output/tables/stop_any_90_cum_inc_midpoint6.csv
+        stop_any_90_plot: output/plots/stop_any_90_cum_inc.png
+        stop_any_90_plot_midpoint6: output/plots/stop_any_90_cum_inc_midpoint6.png
 
-        # Beta blockers
-        stop_bb_table: output/tables/stop_bb_cum_inc.csv
-        stop_bb_table_midpoint6: output/tables/stop_bb_cum_inc_midpoint6.csv
-        stop_bb_plot: output/plots/stop_bb_cum_inc.png
-        stop_bb_plot_midpoint6: output/plots/stop_bb_cum_inc_midpoint6.png
-
-        # ARB
-        stop_arb_table: output/tables/stop_arb_cum_inc.csv
-        stop_arb_table_midpoint6: output/tables/stop_arb_cum_inc_midpoint6.csv
-        stop_arb_plot: output/plots/stop_arb_cum_inc.png
-        stop_arb_plot_midpoint6: output/plots/stop_arb_cum_inc_midpoint6.png
-
-        # AAB
-        stop_aab_table: output/tables/stop_aab_cum_inc.csv
-        stop_aab_table_midpoint6: output/tables/stop_aab_cum_inc_midpoint6.csv
-        stop_aab_plot: output/plots/stop_aab_cum_inc.png
-        stop_aab_plot_midpoint6: output/plots/stop_aab_cum_inc_midpoint6.png
-
-        # CCB
-        stop_ccb_table: output/tables/stop_ccb_cum_inc.csv
-        stop_ccb_table_midpoint6: output/tables/stop_ccb_cum_inc_midpoint6.csv
-        stop_ccb_plot: output/plots/stop_ccb_cum_inc.png
-        stop_ccb_plot_midpoint6: output/plots/stop_ccb_cum_inc_midpoint6.png
-
-        # CAA
-        stop_caa_table: output/tables/stop_caa_cum_inc.csv
-        stop_caa_table_midpoint6: output/tables/stop_caa_cum_inc_midpoint6.csv
-        stop_caa_plot: output/plots/stop_caa_cum_inc.png
-        stop_caa_plot_midpoint6: output/plots/stop_caa_cum_inc_midpoint6.png
-
-        # PSD
-        stop_psd_table: output/tables/stop_psd_cum_inc.csv
-        stop_psd_table_midpoint6: output/tables/stop_psd_cum_inc_midpoint6.csv
-        stop_psd_plot: output/plots/stop_psd_cum_inc.png
-        stop_psd_plot_midpoint6: output/plots/stop_psd_cum_inc_midpoint6.png
-
+        # Any antihypertensive stopping (180-day gap)
+        stop_any_180_table: output/tables/stop_any_180_cum_inc.csv
+        stop_any_180_table_midpoint6: output/tables/stop_any_180_cum_inc_midpoint6.csv
+        stop_any_180_plot: output/plots/stop_any_180_cum_inc.png
+        stop_any_180_plot_midpoint6: output/plots/stop_any_180_cum_inc_midpoint6.png
 
 
   # generate_dataset_hist:

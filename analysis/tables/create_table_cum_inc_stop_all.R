@@ -1,4 +1,5 @@
 # Load libraries ---------------------------------------------------------------
+
 library(tidyverse)
 library(survival)
 library(survminer)
@@ -9,33 +10,61 @@ library(dplyr)
 library(readr)
 
 # Source common functions ------------------------------------------------------
+
 print("Source common functions")
+
 source("analysis/utility.R")
 
 # Load cleaned dataset ---------------------------------------------------------
+
 print("Load cleaned dataset")
-df <- read_rds(here("output", "dataset_clean", "input_clean_desc.rds"))
+
+df <- read_rds(
+  here("output", "dataset_clean", "input_clean_desc.rds")
+)
 
 # Create output directories ----------------------------------------------------
-dir.create(here("output", "plots"), recursive = TRUE, showWarnings = FALSE)
-dir.create(here("output", "tables"), recursive = TRUE, showWarnings = FALSE)
+
+dir.create(
+  here("output", "plots"),
+  recursive = TRUE,
+  showWarnings = FALSE
+)
+
+dir.create(
+  here("output", "tables"),
+  recursive = TRUE,
+  showWarnings = FALSE
+)
 
 # ------------------------------------------------------------------------------
 # Define antihypertensive drug classes
 # ------------------------------------------------------------------------------
 
-drug_classes <- c("acei", "bb", "arb", "aab", "ccb", "caa", "psd")
+drug_classes <- c(
+  "acei",
+  "bb",
+  "arb",
+  "aab",
+  "ccb",
+  "caa",
+  "psd"
+)
+
+# ------------------------------------------------------------------------------
+# Define stopping gap sizes
+# ------------------------------------------------------------------------------
+
+gap_sizes <- c("30", "90", "180")
 
 # ------------------------------------------------------------------------------
 # Create "any stopping" variables
 # ------------------------------------------------------------------------------
 
-# This section creates the variables desc_dat_stop_any_YYYY
-#
 # These contain the earliest stopping date across all antihypertensive
-# drug classes within each calendar year.
+# drug classes within each calendar year and gap definition.
 
-print("Create desc_dat_stop_any_YYYY variables")
+print("Create desc_dat_stop_any variables")
 
 # Get all stopping columns
 stop_cols <- names(df) %>%
@@ -46,45 +75,55 @@ years <- stop_cols %>%
   str_extract("\\d{4}") %>%
   unique()
 
-# Loop through years and create earliest stopping date
-for (yr in years) {
+# Loop through gap sizes and years
+for (gap in gap_sizes) {
 
-  cols_this_year <- paste0("desc_dat_stop_", drug_classes, "_", yr)
+  for (yr in years) {
 
-  # Keep only columns that exist
-  cols_this_year <- cols_this_year[cols_this_year %in% names(df)]
-
-  new_col <- paste0("desc_dat_stop_any_", yr)
-
-  df <- df %>%
-    mutate(
-      !!new_col := do.call(
-        pmin,
-        c(across(all_of(cols_this_year)), na.rm = TRUE)
-      )
-    ) %>%
-    mutate(
-      # Replace Inf values (occurs when all dates are missing)
-      !!new_col := if_else(
-        is.infinite(.data[[new_col]]),
-        as.Date(NA),
-        as.Date(.data[[new_col]])
-      )
+    cols_this_year <- paste0(
+      "desc_dat_stop_",
+      drug_classes,
+      "_",
+      gap,
+      "_",
+      yr
     )
+
+    # Keep only columns that exist
+    cols_this_year <- cols_this_year[
+      cols_this_year %in% names(df)
+    ]
+
+    new_col <- paste0(
+      "desc_dat_stop_any_",
+      gap,
+      "_",
+      yr
+    )
+
+    df <- df %>%
+      mutate(
+        !!new_col := do.call(
+          pmin,
+          c(
+            across(all_of(cols_this_year)),
+            na.rm = TRUE
+          )
+        )
+      ) %>%
+      mutate(
+        !!new_col := if_else(
+          is.infinite(.data[[new_col]]),
+          as.Date(NA),
+          as.Date(.data[[new_col]])
+        )
+      )
+  }
 }
 
 # ------------------------------------------------------------------------------
 # Function to run cumulative incidence analysis
 # ------------------------------------------------------------------------------
-
-# This function:
-# 1. Reshapes data into long format
-# 2. Fits survival curves
-# 3. Converts to cumulative incidence
-# 4. Aggregates results weekly
-# 5. Creates plots
-# 6. Saves tables and plots
-# 7. Creates midpoint6 rounded outputs
 
 run_cuminc <- function(
     df,
@@ -94,13 +133,22 @@ run_cuminc <- function(
     y_label
 ) {
 
-  print(paste("Running cumulative incidence for:", output_name))
+  print(
+    paste(
+      "Running cumulative incidence for:",
+      output_name
+    )
+  )
 
   # --------------------------------------------------------------------------
   # Reshape into long format
   # --------------------------------------------------------------------------
 
-  pattern <- paste0("^(", event_prefix, "|inex_bin_all)_\\d{4}$")
+  pattern <- paste0(
+    "^(",
+    event_prefix,
+    "|inex_bin_all)_\\d{4}$"
+  )
 
   df_long <- df %>%
     pivot_longer(
@@ -111,13 +159,18 @@ run_cuminc <- function(
     mutate(
       year = as.numeric(year),
       event_date = as.Date(.data[[event_prefix]]),
-      start_date = as.Date(paste0(year, "-01-01")),
-      end_date = as.Date(paste0(year, "-12-31"))
+      start_date = as.Date(
+        paste0(year, "-01-01")
+      ),
+      end_date = as.Date(
+        paste0(year, "-12-31")
+      )
     ) %>%
     filter(inex_bin_all) %>%
     mutate(
       event = if_else(
-        !is.na(event_date) & event_date <= end_date,
+        !is.na(event_date) &
+          event_date <= end_date,
         1,
         0
       ),
@@ -140,7 +193,12 @@ run_cuminc <- function(
   # Convert survival output into cumulative incidence
   surv_df <- tidy(surv_fit) %>%
     mutate(
-      year = as.numeric(str_remove(strata, "factor\\(year\\)=")),
+      year = as.numeric(
+        str_remove(
+          strata,
+          "factor\\(year\\)="
+        )
+      ),
       cum_inc = 1 - estimate
     )
 
@@ -154,7 +212,10 @@ run_cuminc <- function(
     ) %>%
     group_by(year, week) %>%
     summarise(
-      n_events = sum(n.event, na.rm = TRUE),
+      n_events = sum(
+        n.event,
+        na.rm = TRUE
+      ),
       cum_inc = max(cum_inc),
       .groups = "drop"
     ) %>%
@@ -162,7 +223,8 @@ run_cuminc <- function(
     group_by(year) %>%
     mutate(
       cum_events = cumsum(n_events),
-      date_ref = as.Date("2000-01-01") + (week - 1) * 7
+      date_ref = as.Date("2000-01-01") +
+        (week - 1) * 7
     ) %>%
     ungroup()
 
@@ -172,14 +234,22 @@ run_cuminc <- function(
 
   plot_obj <- ggplot(
     weekly_table,
-    aes(date_ref, cum_inc, colour = factor(year))
+    aes(
+      date_ref,
+      cum_inc,
+      colour = factor(year)
+    )
   ) +
     geom_step(linewidth = 1) +
-    scale_y_continuous(labels = scales::percent) +
+    scale_y_continuous(
+      labels = scales::percent
+    ) +
     scale_x_date(
       date_labels = "%b",
       date_breaks = "1 month",
-      limits = as.Date(c("2000-01-01", "2000-12-31"))
+      limits = as.Date(
+        c("2000-01-01", "2000-12-31")
+      )
     ) +
     labs(
       title = plot_title,
@@ -190,32 +260,60 @@ run_cuminc <- function(
     theme_minimal() +
     theme(
       legend.position = "right",
-      plot.title = element_text(hjust = 0.5, face = "bold")
+      plot.title = element_text(
+        hjust = 0.5,
+        face = "bold"
+      )
     )
 
   # --------------------------------------------------------------------------
   # Save standard outputs
   # --------------------------------------------------------------------------
 
-  print(paste("Saving outputs for:", output_name))
+  print(
+    paste(
+      "Saving outputs for:",
+      output_name
+    )
+  )
 
   ggsave(
-    here("output", "plots", paste0(output_name, "_cum_inc.png")),
+    here(
+      "output",
+      "plots",
+      paste0(
+        output_name,
+        "_cum_inc.png"
+      )
+    ),
     plot_obj,
     width = 10,
     height = 6
   )
 
   write_csv(
-    weekly_table %>% select(-date_ref),
-    here("output", "tables", paste0(output_name, "_cum_inc.csv"))
+    weekly_table %>%
+      select(-date_ref),
+    here(
+      "output",
+      "tables",
+      paste0(
+        output_name,
+        "_cum_inc.csv"
+      )
+    )
   )
 
   # --------------------------------------------------------------------------
   # Create midpoint6 rounded outputs
   # --------------------------------------------------------------------------
 
-  print(paste("Creating midpoint6 outputs for:", output_name))
+  print(
+    paste(
+      "Creating midpoint6 outputs for:",
+      output_name
+    )
+  )
 
   # Calculate denominator per year
   denom_table <- df_long %>%
@@ -227,14 +325,24 @@ run_cuminc <- function(
 
   # Apply midpoint rounding to cumulative events
   weekly_table_mid <- weekly_table %>%
-    left_join(denom_table, by = "year") %>%
+    left_join(
+      denom_table,
+      by = "year"
+    ) %>%
     mutate(
-      cum_events_midpoint6 = roundmid_any(cum_events)
+      cum_events_midpoint6 = roundmid_any(
+        cum_events
+      )
     ) %>%
     group_by(year) %>%
-    arrange(week, .by_group = TRUE) %>%
+    arrange(
+      week,
+      .by_group = TRUE
+    ) %>%
     mutate(
-      cum_inc_midpoint6 = cum_events_midpoint6 / n_eligible
+      cum_inc_midpoint6 =
+        cum_events_midpoint6 /
+        n_eligible
     ) %>%
     ungroup()
 
@@ -244,17 +352,28 @@ run_cuminc <- function(
 
   plot_mid <- ggplot(
     weekly_table_mid,
-    aes(date_ref, cum_inc_midpoint6, colour = factor(year))
+    aes(
+      date_ref,
+      cum_inc_midpoint6,
+      colour = factor(year)
+    )
   ) +
     geom_step(linewidth = 1) +
-    scale_y_continuous(labels = scales::percent) +
+    scale_y_continuous(
+      labels = scales::percent
+    ) +
     scale_x_date(
       date_labels = "%b",
       date_breaks = "1 month",
-      limits = as.Date(c("2000-01-01", "2000-12-31"))
+      limits = as.Date(
+        c("2000-01-01", "2000-12-31")
+      )
     ) +
     labs(
-      title = paste0(plot_title, " (rounded)"),
+      title = paste0(
+        plot_title,
+        " (rounded)"
+      ),
       x = "Calendar time",
       y = y_label,
       colour = "Year"
@@ -262,7 +381,10 @@ run_cuminc <- function(
     theme_minimal() +
     theme(
       legend.position = "right",
-      plot.title = element_text(hjust = 0.5, face = "bold")
+      plot.title = element_text(
+        hjust = 0.5,
+        face = "bold"
+      )
     )
 
   # --------------------------------------------------------------------------
@@ -273,7 +395,10 @@ run_cuminc <- function(
     here(
       "output",
       "plots",
-      paste0(output_name, "_cum_inc_midpoint6.png")
+      paste0(
+        output_name,
+        "_cum_inc_midpoint6.png"
+      )
     ),
     plot_mid,
     width = 10,
@@ -291,7 +416,10 @@ run_cuminc <- function(
     here(
       "output",
       "tables",
-      paste0(output_name, "_cum_inc_midpoint6.csv")
+      paste0(
+        output_name,
+        "_cum_inc_midpoint6.csv"
+      )
     )
   )
 
@@ -299,36 +427,86 @@ run_cuminc <- function(
 }
 
 # ------------------------------------------------------------------------------
-# Run cumulative incidence for each drug class
+# Run cumulative incidence for each drug class and gap size
 # ------------------------------------------------------------------------------
 
 walk(
-  drug_classes,
-  ~ run_cuminc(
-    df = df,
-    event_prefix = paste0("desc_dat_stop_", .x),
-    output_name = paste0("stop_", .x),
-    plot_title = paste(
-      "Cumulative incidence of",
-      toupper(.x),
-      "stopping by year"
-    ),
-    y_label = paste(
-      "Patients stopping",
-      toupper(.x),
-      "(%)"
+  gap_sizes,
+  function(gap) {
+
+    walk(
+      drug_classes,
+      function(drug) {
+
+        run_cuminc(
+          df = df,
+
+          event_prefix = paste0(
+            "desc_dat_stop_",
+            drug,
+            "_",
+            gap
+          ),
+
+          output_name = paste0(
+            "stop_",
+            drug,
+            "_",
+            gap
+          ),
+
+          plot_title = paste(
+            "Cumulative incidence of",
+            toupper(drug),
+            "stopping by year",
+            "(",
+            gap,
+            "gap definition)"
+          ),
+
+          y_label = paste(
+            "Patients stopping",
+            toupper(drug),
+            "(%)"
+          )
+        )
+
+      }
     )
-  )
+
+  }
 )
 
 # ------------------------------------------------------------------------------
 # Run cumulative incidence for any antihypertensive stopping
 # ------------------------------------------------------------------------------
 
-run_cuminc(
-  df = df,
-  event_prefix = "desc_dat_stop_any",
-  output_name = "stop_any",
-  plot_title = "Cumulative incidence of any antihypertensive stopping by year",
-  y_label = "Patients stopping any drug (%)"
+walk(
+  gap_sizes,
+  function(gap) {
+
+    run_cuminc(
+      df = df,
+
+      event_prefix = paste0(
+        "desc_dat_stop_any_",
+        gap
+      ),
+
+      output_name = paste0(
+        "stop_any_",
+        gap
+      ),
+
+      plot_title = paste(
+        "Cumulative incidence of any antihypertensive stopping by year",
+        "(",
+        gap,
+        "gap definition)"
+      ),
+
+      y_label = "Patients stopping any drug (%)"
+    )
+
+  }
 )

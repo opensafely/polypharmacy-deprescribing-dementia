@@ -189,7 +189,6 @@ def get_stopping_dates_after_event(dataset, start_date, end_date ,med_codelist, 
     )
 
     stop_dates = []
-    stop_dates = stop_dates + [date(2100, 1, 1)]
     prev_event_date = start_date
 
     for i in range(limit):
