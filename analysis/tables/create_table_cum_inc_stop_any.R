@@ -47,6 +47,7 @@ for (gap in gap_sizes) {
     # Handles case when there are no columns for this year (e.g. if some drug classes were not present in that year)
     cols_this_year <- cols_this_year[ cols_this_year %in% names(df) ]
 
+    #new column for "stopping" of any antihypetensive drug for this year for the gap size
     new_col <- paste0("desc_dat_stop_any_", gap, "_", yr)
 
     #select the minimum date across all drug classes for this year
