@@ -170,6 +170,20 @@ def get_stopping_dates(dataset, start_date, end_date ,codelist, column_suffix,li
     stop_date = minimum_of(*stop_dates)
     dataset.add_column(f"{column_suffix}", stop_date)
 
+
+## this function identifies the first date within a time period on which a patient "stops" a medication following a specified clinical event
+## defined by a specified gap size between prescriptions. The clinical event is considered as the trigger for identifying stopping events, so the this date is treated as the date of stopping.
+## Inputs:
+## dataset - the ehrQL dataset which the variables will be added to
+## start_date - the start date for the time period 
+## end_date - the end date of the time period
+## med_codelist - the codelist for the medication for which stopping is being identified
+## event_codelist - the codelist for the clinical event after which stopping is being identified
+## column_suffix - the suffix to add to the variable name for the stopping date
+## limit - the maximum number of clinical events to consider when identifying stopping events, starting from the first event after the start date
+## gap_size - the number of days between prescriptions to define a stopping event
+
+
 def get_stopping_dates_after_event(dataset, start_date, end_date ,med_codelist, event_codelist, column_suffix, limit, gap_size):
 
     #filter medications table to just prescriptions of interest within the date range, sorted by date
@@ -180,7 +194,7 @@ def get_stopping_dates_after_event(dataset, start_date, end_date ,med_codelist, 
         .sort_by(medications.date)
     )
 
-
+    #filter events to those of interest within the date range, sorted by date
     events = (
     clinical_events
     .where(clinical_events.snomedct_code.is_in(event_codelist))
@@ -191,6 +205,7 @@ def get_stopping_dates_after_event(dataset, start_date, end_date ,med_codelist, 
     stop_dates = []
     prev_event_date = start_date
 
+    #This loop cycle through events in the date range and checks if one occured during a gap of the specified size between prescriptions, which we classify as a stopping event.
     for i in range(limit):
 
         # next event
@@ -198,10 +213,9 @@ def get_stopping_dates_after_event(dataset, start_date, end_date ,med_codelist, 
             events
             .where(events.date.is_after(prev_event_date))
             .first_for_patient()
-            .date
-        )
+            .date)
 
-        # last prescription BEFORE event
+        # last prescription before event
         last_rx_before_event = (
             base_rx
             .where(base_rx.date.is_before(event_date))
@@ -210,7 +224,7 @@ def get_stopping_dates_after_event(dataset, start_date, end_date ,med_codelist, 
             .date
         )
 
-        # first prescription AFTER event
+        # first prescription after event
         first_rx_after_event = (
             base_rx
             .where(base_rx.date.is_on_or_after(event_date))
@@ -219,25 +233,14 @@ def get_stopping_dates_after_event(dataset, start_date, end_date ,med_codelist, 
         )
 
         # calculate gap spanning review
-        diff_days = (
-            first_rx_after_event - last_rx_before_event
-        ).days
+        diff_days = (first_rx_after_event - last_rx_before_event).days
 
-        # stopping event
-        stop_date = when(
-            (
-                last_rx_before_event.is_not_null()
-            ) &
-            (
-                (diff_days >= gap_size) |
-                (first_rx_after_event.is_null())
-            )
-        ).then(
-            event_date
-        ).otherwise(None)
+        # check if the gap spanning the event is larger than the specified size 
+        stop_date = when((last_rx_before_event.is_not_null()) &
+            ((diff_days >= gap_size) | (first_rx_after_event.is_null()))
+            ).then(event_date).otherwise(None)
 
         stop_dates = stop_dates + [stop_date]
-
         prev_event_date = event_date
 
     first_stop_after_event = minimum_of(*stop_dates)

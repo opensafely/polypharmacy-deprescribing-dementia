@@ -1,8 +1,8 @@
 ## This script defines the dataset for the descriptive analysis of the study.
 ## Key variables defined are:
-## - Number of medication reviews eahc patient has in each year of the study
+## - Number of medication reviews each patient has in each year of the study
 ## - Date of first medication review for each year of the study period
-## - Date of the first "stopping" event for each drug in each year of the study
+## - Date of the first "stopping" event for each drug in each year of the study based on different stopping definitions
 ## - Region of the patient's practice for regional analysis 
 
 from analysis.dataset_definition.variable_helper_functions import get_stopping_dates_after_event

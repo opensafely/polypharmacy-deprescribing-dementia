@@ -1,4 +1,4 @@
-# Load libraries ---------------------------------------------------------------
+# Load libraries 
 
 library(tidyverse)
 library(survival)
@@ -9,28 +9,23 @@ library(here)
 library(dplyr)
 library(readr)
 
-# Source common functions ------------------------------------------------------
+# Source common functions
 
 print("Source common functions")
 source("analysis/utility.R")
 
-# Load data --------------------------------------------------------------------
+# Load data
 
 print("Load cleaned dataset")
-df_raw <- read_rds(here("output", "dataset_clean", "input_clean_desc.rds"))
+df <- read_rds(here("output", "dataset_clean", "input_clean_desc.rds"))
 
-# ------------------------------------------------------------------------------
-# Settings
-# ------------------------------------------------------------------------------
+# Define drug classes and gap sizes for stopping definitions
 
 drug_classes <- c("acei", "bb", "arb", "aab", "ccb", "cca", "psd")
 gap_sizes <- c("30", "90", "180")
 
-# ------------------------------------------------------------------------------
-# Get years
-# ------------------------------------------------------------------------------
-
-stop_cols <- names(df_raw) %>%
+# Get years from the dataset based on column names
+stop_cols <- names(df) %>%
   str_subset("^desc_dat_stop_")
 
 years <- stop_cols %>%
@@ -39,37 +34,19 @@ years <- stop_cols %>%
 
 # ------------------------------------------------------------------------------
 # Main loop over gap sizes
-# ------------------------------------------------------------------------------
 
 for (gap in gap_sizes) {
 
   print(paste("Processing gap:", gap))
 
-  df <- df_raw
-
-  # ----------------------------------------------------------------------------
-  # Create "any stopping" variables
-  # ----------------------------------------------------------------------------
-
+  # Create variables variables showing "stop any drug"
   for (yr in years) {
 
-    cols_this_year <- paste0(
-      "desc_dat_stop_",
-      drug_classes,
-      "_",
-      gap,
-      "_",
-      yr
-    )
-
-    cols_this_year <- cols_this_year[
-      cols_this_year %in% names(df)
-    ]
-
-    if (length(cols_this_year) == 0) next
+    cols_this_year <- paste0("desc_dat_stop_", drug_classes, "_", gap, "_", yr)
 
     new_col <- paste0("desc_dat_stop_any_", gap, "_", yr)
 
+    #select the minimum date across all drug classes for this year
     df <- df %>%
       mutate(
         !!new_col := do.call(
@@ -86,10 +63,7 @@ for (gap in gap_sizes) {
       )
   }
 
-  # ----------------------------------------------------------------------------
   # Reshape data
-  # ----------------------------------------------------------------------------
-
   df_long <- df %>%
     pivot_longer(
       cols = matches(paste0("^(desc_dat_stop_any_", gap, "|inex_bin_all)_\\d{4}$")),
@@ -112,9 +86,7 @@ for (gap in gap_sizes) {
       )
     )
 
-  # ----------------------------------------------------------------------------
-  # Survival model
-  # ----------------------------------------------------------------------------
+  # Survival model (using survfit to create cumulative incidence curves)
 
   surv_fit <- survfit(Surv(time, event) ~ factor(year), data = df_long)
 
@@ -124,9 +96,7 @@ for (gap in gap_sizes) {
       cum_inc = 1 - estimate
     )
 
-  # ----------------------------------------------------------------------------
-  # Weekly aggregation
-  # ----------------------------------------------------------------------------
+  # Aggregate by week
 
   weekly_table <- surv_df %>%
     mutate(week = floor(time / 7) + 1) %>%
@@ -144,9 +114,7 @@ for (gap in gap_sizes) {
     ) %>%
     ungroup()
 
-  # ----------------------------------------------------------------------------
-  # MIDPOINT6 (standard denominator per year)
-  # ----------------------------------------------------------------------------
+  # Midpoint6 rounding
 
   denom_table <- df_long %>%
     group_by(year) %>%
@@ -162,10 +130,8 @@ for (gap in gap_sizes) {
       cum_inc_midpoint6 = cum_events_midpoint6 / n_eligible
     )
 
-  # ----------------------------------------------------------------------------
-  # Plot (standard)
-  # ----------------------------------------------------------------------------
-
+  # Plot (this is just for viewing in backend.
+  # We will output tables and then create plots based on these tables in post-processing)
   plot_obj <- ggplot(
     weekly_table,
     aes(date_ref, cum_inc, colour = factor(year))
@@ -189,10 +155,7 @@ for (gap in gap_sizes) {
       plot.title = element_text(hjust = 0.5, face = "bold")
     )
 
-  # ----------------------------------------------------------------------------
   # Plot (midpoint6)
-  # ----------------------------------------------------------------------------
-
   plot_mid <- ggplot(
     weekly_table_mid,
     aes(date_ref, cum_inc_midpoint6, colour = factor(year))
