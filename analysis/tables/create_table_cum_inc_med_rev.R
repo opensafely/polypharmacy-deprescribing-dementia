@@ -7,9 +7,11 @@ library(scales)
 library(here)
 library(dplyr)
 library(readr)
+
 # Source common functions ------------------------------------------------------
 print("Source common functions")
 source("analysis/utility.R")
+
 # Load data --------------------------------------------------------------------
 print("Load cleaned dataset")
 df <- read_rds(here("output", "dataset_clean", "input_clean_desc.rds"))
@@ -72,7 +74,7 @@ weekly_table <- surv_df %>%
 
 
 # Plot -------------------------------------------------------------------------
-# Note: plots are created as "supporting info" in this instance. We will use the 
+# Note: plots are created as "supporting info" in this instance. We will use the
 # tables to create plots as needed in post
 print("create cumulative incidence plot")
 

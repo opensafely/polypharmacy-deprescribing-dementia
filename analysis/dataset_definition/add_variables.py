@@ -14,7 +14,12 @@ from analysis.dataset_definition.variable_helper_functions import (
 # Codelists from codelists.py (which pulls all variables from the codelist folder)
 from codelists import *
 
-## Create function to add all variables for inclusion and exclusion criteria.
+## This function adds all the variables for inclusion and exclusion criteria for the study
+## Inputs: 
+## dataset - the ehrQL dataset which the variables will be added to
+## start_date - the date for which the variables will be calculated
+## collapse_vars - if 0, adds all variables separately. If 1, creates one variable which is TRUE if the patient meets all criteria and FALSE otherwise
+## column_suffix - the suffix to add to the variable name if collapse_vars is 1
 def add_inex_variables(dataset, start_date, collapse_vars=0, column_suffix=""):
     
     # Dementia diagnosis
@@ -94,6 +99,10 @@ def add_inex_variables(dataset, start_date, collapse_vars=0, column_suffix=""):
         if combined_expr is not None:
             dataset.add_column(f"inex_bin_all_{column_suffix}", combined_expr)
 
+## This function adds inclusion and exclusion criteria for the initial dataset (anyone who could become elligible at any point during the study period).
+## dataset - the ehrQL dataset which the variables will be added to
+## start_date - the start date for which the variables will be calculated
+## end_date - the end date of the study period, used to calculate some variables such as medication use
 def add_inex_variables_prematch(dataset,start_date,end_date):
     
     # Dementia diagnosis before end date
@@ -143,6 +152,11 @@ def add_inex_variables_prematch(dataset,start_date,end_date):
     for name, expr in inex_vars.items():
         dataset.add_column(name, expr)
 
+## This function adds all the covariates for the study.
+## Inputs:
+## dataset - the ehrQL dataset which the variables will be added to
+## index_date - the start date for which the variables will be calculated and date for non time-varying variables
+## end_date - the end date of the study period, used to calculate some variables such diagnoses
 def add_covariates(dataset, index_date, end_date):
 
     cov_num_age = patients.age_on(index_date)
@@ -309,8 +323,15 @@ def add_covariates(dataset, index_date, end_date):
         dataset.add_column(name, expr)
     
 
-#This function adds columns for the next and previous prescriptions of a given medication around an index date
-#It also creates the columns counting the frequency of size gaps for the medication within the study period.
+## This function adds columns for the next and previous prescriptions of a given medication around an index date
+## It also creates the columns counting the frequency of size gaps for the medication within the study period.
+## Inputs:
+## dataset - the ehrQL dataset which the variables will be added to
+## index_date - the date around which the next and previous prescriptions will be identified
+## start_date - the start date for which the gaps will be calulated
+## end_date - the end date for which the gaps will be calculated
+## medication_codelist - the codelist for the medication for which the variables will be created
+## column_suffix - the suffix to add to the variables created by this function
 def add_out_variables(dataset, index_date, start_date, end_date, medication_codelist, column_suffix):
     ## Date of next antihypertensive medication after medication review
     out_dat_next_med = (

@@ -1,4 +1,4 @@
-version: '4.0'
+version: '5.0'
 
 actions:
   generate_dataset_prematch:
@@ -15,6 +15,7 @@ actions:
         dataset: output/dataset_clean/input_clean_prematch.csv.gz
       moderately_sensitive:
         flow_prematch: output/dataset_clean/flow_prematch.csv
+        flow_prematch_midpoint6: output/dataset_clean/flow_prematch_midpoint6.csv
         describe_inex_prematch: output/describe/inex-prematch.txt
         describe_preprocessed_prematch: output/describe/preprocessed-prematch.txt
         describe_qa_prematch: output/describe/qa-prematch.txt
@@ -37,25 +38,39 @@ actions:
         describe_preprocessed: output/describe/preprocessed-desc.txt
         describe_ref: output/describe/ref-desc.txt
 
-  create_cum_inc_plot:
+  create_cum_inc_med_rev:
     run: r:v2 analysis/tables/create_table_cum_inc_med_rev.R
     needs: [clean_dataset_desc]
     outputs:
-      moderately_sensitive: 
+      moderately_sensitive:
         medication_review_incidence_table: output/tables/med_rev_cum_inc.csv
         medication_review_incidence_table_midpoint6: output/tables/med_rev_cum_inc_midpoint6.csv
         medication_review_incidence: output/plots/med_rev_cum_inc.png
         medication_review_incidence_midpoint6: output/plots/med_rev_cum_inc_midpoint6.png
 
-  create_table_desc:
-    run: r:v2 analysis/tables/create_table_desc.R
+  create_cum_inc_stop_any:
+    run: r:v2 analysis/tables/create_table_cum_inc_stop_any.R
     needs: [clean_dataset_desc]
     outputs:
-      moderately_sensitive: 
-        descptive_measures_table: output/tables/table_desc_region.csv
-        descptive_measures_table_midpoint6: output/tables/table_desc_region_midpoint6.csv
+      moderately_sensitive:
 
-      
+        # Any antihypertensive stopping (30-day gap)
+        stop_any_30_table: output/tables/stop_any_30_cum_inc.csv
+        stop_any_30_table_midpoint6: output/tables/stop_any_30_cum_inc_midpoint6.csv
+        stop_any_30_plot: output/plots/stop_any_30_cum_inc.png
+        stop_any_30_plot_midpoint6: output/plots/stop_any_30_cum_inc_midpoint6.png
+
+        # Any antihypertensive stopping (90-day gap)
+        stop_any_90_table: output/tables/stop_any_90_cum_inc.csv
+        stop_any_90_table_midpoint6: output/tables/stop_any_90_cum_inc_midpoint6.csv
+        stop_any_90_plot: output/plots/stop_any_90_cum_inc.png
+        stop_any_90_plot_midpoint6: output/plots/stop_any_90_cum_inc_midpoint6.png
+
+        # Any antihypertensive stopping (180-day gap)
+        stop_any_180_table: output/tables/stop_any_180_cum_inc.csv
+        stop_any_180_table_midpoint6: output/tables/stop_any_180_cum_inc_midpoint6.csv
+        stop_any_180_plot: output/plots/stop_any_180_cum_inc.png
+        stop_any_180_plot_midpoint6: output/plots/stop_any_180_cum_inc_midpoint6.png
 
 
   # generate_dataset_hist:
