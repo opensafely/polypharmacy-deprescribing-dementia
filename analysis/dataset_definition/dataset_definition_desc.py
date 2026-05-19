@@ -12,7 +12,8 @@ from ehrql.query_language import table_from_file , PatientFrame, Series
 from datetime import date
 
 from analysis.dataset_definition.add_variables import(
-    add_inex_variables
+    add_inex_variables,
+    add_average_gap_length
 )
 
 # Codelists from codelists.py (which pulls all variables from the codelist folder)
@@ -38,6 +39,9 @@ gap_sizes = [30, 90, 180]
 for year in range(2017, 2025):
     #Add collapsed in/ex variable for each year in the study
     add_inex_variables(dataset, date(year, 1, 1), 1,year)
+
+    #Average gap length
+    add_average_gap_length(dataset,date(year, 1, 1),date(year, 12, 31),ace_inhibitor_codelist,year)
     
     med_rev=(clinical_events.where(clinical_events.snomedct_code.is_in(medication_review_codelist))
         .where(clinical_events.date.is_on_or_after(date(year, 1, 1)))

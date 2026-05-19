@@ -7,6 +7,14 @@ library(purrr)
 library(lubridate)
 library(tidyr)
 library(skimr)
+library(data.table)
+
+## Source functions
+lapply(
+  list.files("analysis/dataset_clean", full.names = TRUE, pattern = "fn-"),
+  source
+)
+source("analysis/utility.R")
 
 ## Define clean dataset output folder ------------------------------------------
 print("Creating output/dataset_clean output folder")
@@ -16,15 +24,10 @@ dir_create(here::here(dataclean_dir))
 
 ## Load dataset
 print("Load dataset")
-dataset_clean <- readr::read_csv(
-  here::here("output", "dataset", "input_hist.csv.gz"),
-  col_types = readr::cols(
-    patient_id = readr::col_character()
-  )
-)
+dataset_clean <- load_data("input_hist.csv.gz", suffix = "hist", describe = TRUE) 
 
-start_date <- as.Date("2015-01-01")
-end_date <- as.Date("2020-03-01")
+start_date <- as.Date("2017-01-01")
+end_date <- as.Date("2024-12-31")
 
 ## Create object for flowchart
 flow <- data.frame(
@@ -32,19 +35,6 @@ flow <- data.frame(
   N = nrow(dataset_clean),
   stringsAsFactors = FALSE
 )
-
-## Source functions
-lapply(
-  list.files("analysis/dataset_clean", full.names = TRUE, pattern = "fn-"),
-  source
-)
-
-source("analysis/utility.R")
-
-
-## Preprocess the data
-print("Preprocessing dataset")
-dataset_clean <- preprocess(dataset_clean, suffix = "hist")
 
 
 ## Set reference levels and handle missing values
