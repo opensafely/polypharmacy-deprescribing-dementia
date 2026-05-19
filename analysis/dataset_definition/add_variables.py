@@ -376,6 +376,4 @@ def add_average_gap_length(dataset, start_date, end_date, codelist, column_suffi
     day_count=(last_presc - first_presc).days
     avg_gap=day_count/presc_count
     dataset.add_column(f"desc_num_avg_gap_{column_suffix}", avg_gap)
-    dataset.add_column(f"desc_num_presc_{column_suffix}", presc_count)
-    dataset.add_column(f"desc_dat_f_presc_{column_suffix}", first_presc)
-    dataset.add_column(f"desc_dat_l_presc_{column_suffix}", last_presc)
+
