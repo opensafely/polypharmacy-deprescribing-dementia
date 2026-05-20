@@ -41,7 +41,13 @@ for year in range(2017, 2025):
     add_inex_variables(dataset, date(year, 1, 1), 1,year)
 
     #Average gap length
-    add_average_gap_length(dataset,date(year, 1, 1),date(year, 12, 31),ace_inhibitor_codelist,year)
+    add_average_gap_length(dataset,date(year, 1, 1),date(year, 12, 31),ace_inhibitor_codelist,f"acei_{year}")
+    add_average_gap_length(dataset,date(year, 1, 1),date(year, 12, 31),alpha_adrenoceptor_blocking_drugs_codelist,f"aab_{year}")
+    add_average_gap_length(dataset,date(year, 1, 1),date(year, 12, 31),angiotensin_ii_receptor_blockers_codelist,f"arb_{year}")
+    add_average_gap_length(dataset,date(year, 1, 1),date(year, 12, 31),beta_blockers_codelist,f"bb_{year}")
+    add_average_gap_length(dataset,date(year, 1, 1),date(year, 12, 31),calcium_channel_blockers_codelist,f"ccb_{year}")
+    add_average_gap_length(dataset,date(year, 1, 1),date(year, 12, 31),centrally_acting_antihypertensives_codelist,f"caa_{year}")
+    add_average_gap_length(dataset,date(year, 1, 1),date(year, 12, 31),potassium_sparing_diuretics_codelist,f"psd_{year}")
     
     med_rev=(clinical_events.where(clinical_events.snomedct_code.is_in(medication_review_codelist))
         .where(clinical_events.date.is_on_or_after(date(year, 1, 1)))
