@@ -25,7 +25,7 @@ from analysis.dataset_definition.study_dates import *
 index_date = start_date
 
 ## Outcome Variables
-limit = 10
+limit = 100
 get_prescription_gaps(dataset, start_date, end_date, ace_inhibitor_codelist, "acei", limit)
 get_prescription_gaps(dataset, start_date, end_date, alpha_adrenoceptor_blocking_drugs_codelist, "aab", limit)
 get_prescription_gaps(dataset, start_date, end_date, angiotensin_ii_receptor_blockers_codelist, "arb", limit)
