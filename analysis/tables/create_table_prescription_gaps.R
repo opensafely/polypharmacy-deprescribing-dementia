@@ -37,6 +37,10 @@ region_sums <- map_dfr(years, function(year) {
   region_var <- paste0("desc_cat_region", year)
   inex_var   <- paste0("inex_bin_all_", year)
   
+  outcome_cols <- names(df) %>%
+    str_subset(paste0("^out_num_gap_.*", year, "$"))
+  
+  
   # Keep only relevant columns for this year
   df_year <- df %>%
     select(
