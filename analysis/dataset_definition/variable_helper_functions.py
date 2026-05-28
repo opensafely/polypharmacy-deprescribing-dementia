@@ -42,7 +42,7 @@ def get_prescription_gaps(dataset, start_date, end_date ,codelist, column_suffix
     base_rx = (
         medications.where(medications.dmd_code.is_in(codelist))
         .where(medications.date.is_after(start_date))
-        .where(medications.date.is_on_or_before(end_date))
+        .where(medications.date.is_on_or_before(end_date + days(365)))
         .sort_by(medications.date)
     )
 
@@ -57,13 +57,13 @@ def get_prescription_gaps(dataset, start_date, end_date ,codelist, column_suffix
         if i>0:
             diff_days = (presc_date - prev_date).days
 
-            cnt_0_14 += when(diff_days < 14).then(1).otherwise(0)
-            cnt_14_30 += when((diff_days >= 14) & (diff_days < 30)).then(1).otherwise(0)
-            cnt_30_60 += when((diff_days >= 30) & (diff_days < 60)).then(1).otherwise(0)
-            cnt_60_90 += when((diff_days >= 60) & (diff_days < 90)).then(1).otherwise(0)
-            cnt_90_180 += when((diff_days >= 90) & (diff_days < 180)).then(1).otherwise(0)
-            cnt_180_365 += when((diff_days >= 180) & (diff_days < 365)).then(1).otherwise(0)
-            cnt_365_plus += when(diff_days >= 365).then(1).otherwise(0)
+            cnt_0_14 +=  when(prev_date.is_on_or_before(end_date) &(diff_days < 14)).then(1).otherwise(0)
+            cnt_14_30 += when(prev_date.is_on_or_before(end_date) &(diff_days >= 14) & (diff_days < 30)).then(1).otherwise(0)
+            cnt_30_60 += when(prev_date.is_on_or_before(end_date) &(diff_days >= 30) & (diff_days < 60)).then(1).otherwise(0)
+            cnt_60_90 += when(prev_date.is_on_or_before(end_date) &(diff_days >= 60) & (diff_days < 90)).then(1).otherwise(0)
+            cnt_90_180 += when(prev_date.is_on_or_before(end_date) &(diff_days >= 90) & (diff_days < 180)).then(1).otherwise(0)
+            cnt_180_365 += when(prev_date.is_on_or_before(end_date) &(diff_days >= 180) & (diff_days < 365)).then(1).otherwise(0)
+            cnt_365_plus += when(prev_date.is_on_or_before(end_date) & (diff_days >= 365)).then(1).otherwise(0)
         prev_date = presc_date
 
     dataset.add_column(f"out_num_gap_0_14_{column_suffix}", cnt_0_14)
