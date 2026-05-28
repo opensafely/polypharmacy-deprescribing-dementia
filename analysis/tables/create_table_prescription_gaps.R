@@ -83,7 +83,7 @@ region_sums <- map_dfr(years, function(year) {
   
 })
 
-overall_all_years <- df_final %>%
+overall_all_years <- region_sums %>%
   filter(region == "Overall") %>%
   summarise(
     across(
