@@ -12,9 +12,7 @@ from ehrql.query_language import table_from_file , PatientFrame, Series
 from datetime import date
 
 from analysis.dataset_definition.add_variables import(
-    add_inex_variables,
-    add_average_gap_length
-)
+    add_inex_variables)
 
 # Codelists from codelists.py (which pulls all variables from the codelist folder)
 from codelists import *
