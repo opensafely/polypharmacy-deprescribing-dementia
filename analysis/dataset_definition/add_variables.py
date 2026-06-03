@@ -358,22 +358,3 @@ def add_out_variables(dataset, index_date, start_date, end_date, medication_code
     dataset.add_column(f"out_dat_next_{column_suffix}", out_dat_next_med)
     dataset.add_column(f"out_dat_prev_{column_suffix}", out_dat_prev_med)
 
-def add_average_gap_length(dataset, start_date, end_date, codelist, column_suffix):
-    presc_count=(medications.where(medications.dmd_code.is_in(codelist))
-        .where(medications.date.is_after(start_date))
-        .where(medications.date.is_on_or_before(end_date))
-        .count_for_patient())
-    first_presc=(medications.where(medications.dmd_code.is_in(codelist))
-        .where(medications.date.is_before(start_date))
-        .sort_by(medications.date)
-        .last_for_patient()
-        .date)
-    last_presc=(medications.where(medications.dmd_code.is_in(codelist))
-    .where(medications.date.is_on_or_before(end_date))
-    .sort_by(medications.date)
-    .last_for_patient()
-    .date)
-    day_count=(last_presc - first_presc).days
-    avg_gap=day_count/presc_count
-    dataset.add_column(f"desc_num_avg_gap_{column_suffix}", avg_gap)
-
