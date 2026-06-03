@@ -6,7 +6,6 @@ from analysis.dataset_definition.variable_helper_functions import (
     get_prescription_gaps
 )
 from analysis.dataset_definition.add_variables import(
-    add_average_gap_length,
     add_covariates,
     add_inex_variables,
 )
