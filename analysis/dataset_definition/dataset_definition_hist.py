@@ -45,18 +45,18 @@ for year in range(2017, 2025):
     get_prescription_gaps(dataset, date(year, 1, 1),date(year, 12, 31), potassium_sparing_diuretics_codelist, f"psd_{year}", limit)
 
 
-## ---------------------------------
-## Create covariates on index date
-#add_covariates(dataset, index_date, end_date)
+# ---------------------------------
+# Create covariates on index date
+add_covariates(dataset, index_date, end_date)
 
-# # Medication review variables
-# dataset.exp_dat_med_rev = (
-#     clinical_events.where(clinical_events.snomedct_code.is_in(medication_review_codelist))
-#     .where(clinical_events.date.is_on_or_after(start_date))
-#     .where(clinical_events.date.is_on_or_before(end_date))
-#     .sort_by(clinical_events.date)
-#     .first_for_patient()
-#     .date)
+# Medication review variables
+dataset.exp_dat_med_rev = (
+    clinical_events.where(clinical_events.snomedct_code.is_in(medication_review_codelist))
+    .where(clinical_events.date.is_on_or_after(start_date))
+    .where(clinical_events.date.is_on_or_before(end_date))
+    .sort_by(clinical_events.date)
+    .first_for_patient()
+    .date)
 
 ##Define population
 dataset.configure_dummy_data()

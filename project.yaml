@@ -98,13 +98,15 @@ actions:
        prescription_gaps: output/tables/prescription_gaps.csv
        prescription_gaps_midpoint6: output/tables/prescription_gaps_midpoint6.csv
 
-  # create_table1_hist:
-  #  run: r:v2 analysis/tables/create_table1_hist.R
-  #  needs: [clean_dataset_hist]
-  #  outputs:
-  #    moderately_sensitive:
-  #      table_one: output/tables/table1_hist.csv
-  #      table_one_midpoint6: output/tables/table1_hist_midpoint6.csv
+  create_table1_cov:
+    run: r:v2 analysis/tables/create_table1_cov.R
+    needs: [clean_dataset_cov]
+    outputs:
+      moderately_sensitive:
+        table_one_all_years: output/tables/table1_cov_all_years.csv
+        table_one_midpoint6_all_years: output/tables/table1_cov_midpoint6_all_years.csv
+        table_one_period_summary: output/tables/table1_cov_period_summary.csv
+        table_one_period_summary_midpoint6: output/tables/table1_cov_period_summary_midpoint6.csv
 
   create_table_desc:
    run: r:v2 analysis/tables/create_table_desc.R
@@ -114,6 +116,22 @@ actions:
        descptive_measures_table: output/tables/table_desc_region.csv
        descptive_measures_table_midpoint6: output/tables/table_desc_region_midpoint6.csv
 
+  generate_dataset_cov:
+    run: ehrql:v1 generate-dataset analysis/dataset_definition/dataset_definition_cov.py --output output/dataset/input_cov.csv.gz --dummy-tables dummy_tables
+    needs: [clean_dataset_prematch]
+    outputs:
+      highly_sensitive:
+        dataset: output/dataset/input_cov.csv.gz
+
+  clean_dataset_cov:
+    run: r:v2 analysis/dataset_clean/dataset_clean_cov.R 
+    needs: [generate_dataset_cov]
+    outputs:
+      highly_sensitive:
+        dataset: output/dataset_clean/input_clean_cov.rds
+      moderately_sensitive:
+        describe_preprocessed: output/describe/preprocessed-cov.txt
+        describe_ref: output/describe/ref-cov.txt
 
 
   # generate_dataset_match:
