@@ -357,4 +357,3 @@ def add_out_variables(dataset, index_date, start_date, end_date, medication_code
     # ---- Add variables to dataset ----
     dataset.add_column(f"out_dat_next_{column_suffix}", out_dat_next_med)
     dataset.add_column(f"out_dat_prev_{column_suffix}", out_dat_prev_med)
-
