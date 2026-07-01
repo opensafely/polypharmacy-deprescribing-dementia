@@ -31,7 +31,7 @@ Deatils of the purpose for each file in this repository are outlined below
         - The function in [`fn-inex.R`](./analysis/dataset_clean/fn-inex.R) applies the inclusion and excusion criteria for the study.
         - [`fn-ref.R`](./analysis/dataset_clean/fn-ref.R) is the function that sets the reference levels for factors. 
 - [`utility.R`] contains miscellaneous functions used in the analysis.
-- [`create_table1_hist.R`](./analysis/table1/create_table1_cov.R) generates a csv file for table one for the study population used to generate the histograms. This describes the patient characteristics, displaying the proportion of study population in each variable category.
+- [`create_table1_cov.R`](./analysis/table1/create_table1_cov.R) generates a csv file for table one for the study population used to generate the histograms. This describes the patient characteristics, displaying the proportion of study population in each variable category.
 - [`create_table_prescription_gaps.R`] generates a csv file containing table with the data we will use to generate histograms which show the frquency of gaps between prescriptions of each medication type.
 - [`create_table_cum_inc_med_rev.R'] generates a csv file containing a table which will be used to create cumulative incidence graphs for medication reviews by year. It also generates the plots to be viewed directly in the opensafely environment.
 - [`create_table_cum_inc_stop_any.R'] generates a csv file containing a table which will be used to create cumulative incidence graphs for medication reviews by year. It also generates the plots to be viewed directly in the opensafely environment.
