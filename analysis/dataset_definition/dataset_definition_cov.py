@@ -1,3 +1,7 @@
+## This script defines possible covariates for the analysis section of the study.
+## For now these will be presented in table 1 format to be used in the descriptive section of the study.
+## Variables are defined for each year of the study period to account for possible changes in the values and inclusion
+
 from ehrql.tables.tpp import clinical_events, practice_registrations
 from ehrql import create_dataset
 from ehrql.query_language import table_from_file , PatientFrame, Series
