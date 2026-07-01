@@ -24,7 +24,7 @@ dataset = create_dataset()
 from analysis.dataset_definition.study_dates import *
 
 index_date = start_date
-limit = 2
+limit = 52
 
 # Add inex variables for 2015 through 2024
 for year in range(2017, 2025):
