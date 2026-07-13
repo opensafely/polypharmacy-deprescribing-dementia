@@ -33,8 +33,8 @@ Deatils of the purpose for each file in this repository are outlined below
 - [`utility.R`] contains miscellaneous functions used in the analysis.
 - [`create_table1_cov.R`](./analysis/table1/create_table1_cov.R) generates a csv file for table one for the study population used to generate the histograms. This describes the patient characteristics, displaying the proportion of study population in each variable category.
 - [`create_table_prescription_gaps.R`] generates a csv file containing table with the data we will use to generate histograms which show the frquency of gaps between prescriptions of each medication type.
-- [`create_table_cum_inc_med_rev.R'] generates a csv file containing a table which will be used to create cumulative incidence graphs for medication reviews by year. It also generates the plots to be viewed directly in the opensafely environment.
-- [`create_table_cum_inc_stop_any.R'] generates a csv file containing a table which will be used to create cumulative incidence graphs for medication reviews by year. It also generates the plots to be viewed directly in the opensafely environment.
+- [`create_table_cum_inc_med_rev.R`] generates a csv file containing a table which will be used to create cumulative incidence graphs for medication reviews by year. It also generates the plots to be viewed directly in the opensafely environment.
+- [`create_table_cum_inc_stop_any.R`] generates a csv file containing a table which will be used to create cumulative incidence graphs for medication reviews by year. It also generates the plots to be viewed directly in the opensafely environment.
 - [`create_table_desc`] generates a csv file containing a table of descriptive measures describing yearly medication review rates in the full study period. This table will be expanded to include other measures including prescribing and deprescribing rate of antihypertensives.
 
 - The [`project.yaml`](./project.yaml) file lists all actions to be run in OpenSAFELY and their run order

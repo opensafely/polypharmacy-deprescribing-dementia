@@ -201,7 +201,7 @@ df_pooled_redacted <- bind_rows(df_pooled_redacted, age_rows) %>%
   arrange(year, characteristic, subcharacteristic)
 
 print("Save pooled redacted table to output/tables")
-write_csv(df_pooled_redacted, here("output", "tables", "table1_cov_midpoint6_all_years.csv"))
+write_csv(df_pooled_redacted, here("output", "tables", "table1_cov_all_years_midpoint6.csv"))
 
 
 # Derive summary table over full period (2017-2024)
