@@ -73,79 +73,65 @@ actions:
         stop_any_180_plot_midpoint6: output/plots/stop_any_180_cum_inc_midpoint6.png
 
 
-  # generate_dataset_hist:
-  #   run: ehrql:v1 generate-dataset analysis/dataset_definition/dataset_definition_hist.py --output output/dataset/input_hist.csv.gz --dummy-tables dummy_tables
-  #   needs: [clean_dataset_prematch]
-  #   outputs:
-  #     highly_sensitive:
-  #       dataset: output/dataset/input_hist.csv.gz
+  generate_dataset_hist:
+    run: ehrql:v1 generate-dataset analysis/dataset_definition/dataset_definition_hist.py --output output/dataset/input_hist.csv.gz --dummy-tables dummy_tables
+    needs: [clean_dataset_prematch]
+    outputs:
+      highly_sensitive:
+        dataset: output/dataset/input_hist.csv.gz
 
-  # clean_dataset_hist:
-  #   run: r:v2 analysis/dataset_clean/dataset_clean_hist.R
-  #   needs: [generate_dataset_hist]
-  #   outputs:
-  #     highly_sensitive:
-  #       dataset: output/dataset_clean/input_clean_hist.rds
-  #     moderately_sensitive:
-  #       describe_preprocessed: output/describe/preprocessed-hist.txt
-  #       describe_ref: output/describe/ref-hist.txt
+  clean_dataset_hist:
+    run: r:v2 analysis/dataset_clean/dataset_clean_hist.R
+    needs: [generate_dataset_hist]
+    outputs:
+      highly_sensitive:
+        dataset: output/dataset_clean/input_clean_hist.rds
+      moderately_sensitive:
+        describe_preprocessed: output/describe/preprocessed-hist.txt
+        describe_ref: output/describe/ref-hist.txt
 
-  # create_table1_hist:
-  #  run: r:v2 analysis/tables/create_table1_hist.R
-  #  needs: [clean_dataset_hist]
-  #  outputs:
-  #    moderately_sensitive:
-  #      table_one: output/tables/table1_hist.csv
-  #      table_one_midpoint6: output/tables/table1_hist_midpoint6.csv
+  create_prescription_gaps_table:
+   run: r:v2 analysis/tables/create_table_prescription_gaps.R
+   needs: [clean_dataset_hist]
+   outputs:
+     moderately_sensitive:
+       prescription_gaps: output/tables/prescription_gaps.csv
+       prescription_gaps_midpoint6: output/tables/prescription_gaps_midpoint6.csv
 
-  # create_prescription_gaps_table:
-  #  run: r:v2 analysis/tables/create_table_prescription_gaps.R
-  #  needs: [clean_dataset_hist]
-  #  outputs:
-  #    moderately_sensitive:
-  #      prescription_gaps: output/tables/prescription_gaps.csv
-  #      prescription_gaps_midpoint6: output/tables/prescription_gaps_midpoint6.csv
-    
-  # generate_dataset_match:
-  #   run: ehrql:v1 generate-dataset analysis/dataset_definition/dataset_definition_match.py --output output/dataset/input_match.csv.gz --dummy-tables dummy_tables
-  #   needs: [clean_dataset_prematch]
-  #   outputs:
-  #     highly_sensitive:
-  #       dataset: output/dataset/input_match.csv.gz
+  create_table1_cov:
+    run: r:v2 analysis/tables/create_table1_cov.R
+    needs: [clean_dataset_cov]
+    outputs:
+      moderately_sensitive:
+        table_one_all_years: output/tables/table1_cov_all_years.csv
+        table_one_midpoint6_all_years: output/tables/table1_cov_all_years_midpoint6.csv
+        table_one_period_summary: output/tables/table1_cov_period_summary.csv
+        table_one_period_summary_midpoint6: output/tables/table1_cov_period_summary_midpoint6.csv
 
-  # match:
-  #   run: r:v2 analysis/dataset_clean/match.R
-  #   needs: [generate_dataset_match]
-  #   outputs:
-  #     highly_sensitive:
-  #       dataset: output/dataset_clean/input_matched.csv
+  create_table_desc:
+   run: r:v2 analysis/tables/create_table_desc.R
+   needs: [clean_dataset_desc]
+   outputs:
+     moderately_sensitive: 
+       descptive_measures_table: output/tables/table_desc_region.csv
+       descptive_measures_table_midpoint6: output/tables/table_desc_region_midpoint6.csv
 
-  # generate_dataset_matched:
-  #   run: ehrql:v1 generate-dataset analysis/dataset_definition/dataset_definition_matched.py --output output/dataset/input_matched.csv.gz --dummy-tables dummy_tables
-  #   needs: [match]
-  #   outputs:
-  #     highly_sensitive:
-  #       dataset: output/dataset/input_matched.csv.gz
+  generate_dataset_cov:
+    run: ehrql:v1 generate-dataset analysis/dataset_definition/dataset_definition_cov.py --output output/dataset/input_cov.csv.gz --dummy-tables dummy_tables
+    needs: [clean_dataset_prematch]
+    outputs:
+      highly_sensitive:
+        dataset: output/dataset/input_cov.csv.gz
 
-  # clean_dataset_matched:
-  #   run: r:v2 analysis/dataset_clean/dataset_clean_matched.R
-  #   needs: [generate_dataset_matched]
-  #   outputs:
-  #     highly_sensitive:
-  #       dataset: output/dataset_clean/input_clean_matched.csv
-  #     moderately_sensitive:
-  #       flow: output/dataset_clean/flow_matched.csv
-  #       describe_inex: output/describe/inex-matched.txt
-  #       describe_preprocessed: output/describe/preprocessed-matched.txt
-  #       describe_qa: output/describe/qa-matched.txt
-  #       describe_ref: output/describe/ref-matched.txt
-
-  # generate_dataset_matched_full:
-  #   run: ehrql:v1 generate-dataset analysis/dataset_definition/dataset_definition_matched_full.py --output output/dataset/input_matched_full.csv.gz --dummy-tables dummy_tables
-  #   needs: [clean_dataset_matched]
-  #   outputs:
-  #     highly_sensitive:
-  #       dataset: output/dataset/input_matched_full.csv.gz
+  clean_dataset_cov:
+    run: r:v2 analysis/dataset_clean/dataset_clean_cov.R 
+    needs: [generate_dataset_cov]
+    outputs:
+      highly_sensitive:
+        dataset: output/dataset_clean/input_clean_cov.rds
+      moderately_sensitive:
+        describe_preprocessed: output/describe/preprocessed-cov.txt
+        describe_ref: output/describe/ref-cov.txt
 
   # generate_project_dag:
   #   run: python:v2 python analysis/project_dag.py --yaml-path project.yaml --output-path project.dag.md

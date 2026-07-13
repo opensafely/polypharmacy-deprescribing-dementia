@@ -157,7 +157,7 @@ def add_inex_variables_prematch(dataset,start_date,end_date):
 ## dataset - the ehrQL dataset which the variables will be added to
 ## index_date - the start date for which the variables will be calculated and date for non time-varying variables
 ## end_date - the end date of the study period, used to calculate some variables such diagnoses
-def add_covariates(dataset, index_date, end_date):
+def add_covariates(dataset, index_date, end_date, column_suffix=""):
 
     cov_num_age = patients.age_on(index_date)
     cov_cat_sex = patients.sex
@@ -320,7 +320,7 @@ def add_covariates(dataset, index_date, end_date):
     covariates = {name: value for name, value in locals().items() if name.startswith("cov_")}
 
     for name, expr in covariates.items():
-        dataset.add_column(name, expr)
+        dataset.add_column(f"{name}_{column_suffix}", expr)
     
 
 ## This function adds columns for the next and previous prescriptions of a given medication around an index date

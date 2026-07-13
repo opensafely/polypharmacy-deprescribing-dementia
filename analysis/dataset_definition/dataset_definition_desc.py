@@ -12,8 +12,7 @@ from ehrql.query_language import table_from_file , PatientFrame, Series
 from datetime import date
 
 from analysis.dataset_definition.add_variables import(
-    add_inex_variables
-)
+    add_inex_variables)
 
 # Codelists from codelists.py (which pulls all variables from the codelist folder)
 from codelists import *
@@ -29,6 +28,7 @@ dataset = create_dataset()
 from analysis.dataset_definition.study_dates import *
 
 #Add region variable for regional analysis
+
 dataset.desc_cat_region = practice_registrations.for_patient_on(start_date).practice_nuts1_region_name
 
 # Different gap sizes defining stopping events
@@ -38,6 +38,7 @@ gap_sizes = [30, 90, 180]
 for year in range(2017, 2025):
     #Add collapsed in/ex variable for each year in the study
     add_inex_variables(dataset, date(year, 1, 1), 1,year)
+
     
     med_rev=(clinical_events.where(clinical_events.snomedct_code.is_in(medication_review_codelist))
         .where(clinical_events.date.is_on_or_after(date(year, 1, 1)))
@@ -66,7 +67,6 @@ for year in range(2017, 2025):
         get_stopping_dates_after_event(dataset, date(year, 1, 1), date(year, 1, 1)+days(365), calcium_channel_blockers_codelist, medication_review_codelist, f"desc_dat_stop_ccb_{gap_size}_{year}", 10, gap_size)
         get_stopping_dates_after_event(dataset, date(year, 1, 1), date(year, 1, 1)+days(365), centrally_acting_antihypertensives_codelist, medication_review_codelist, f"desc_dat_stop_caa_{gap_size}_{year}", 10, gap_size)
         get_stopping_dates_after_event(dataset, date(year, 1, 1), date(year, 1, 1)+days(365), potassium_sparing_diuretics_codelist, medication_review_codelist, f"desc_dat_stop_psd_{gap_size}_{year}", 10, gap_size)
-
 
 ##Define population
 dataset.configure_dummy_data()

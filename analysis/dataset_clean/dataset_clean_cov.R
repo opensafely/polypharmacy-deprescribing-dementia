@@ -24,7 +24,7 @@ dir_create(here::here(dataclean_dir))
 
 ## Load dataset
 print("Load dataset")
-dataset_clean <- load_data("input_hist.csv.gz", suffix = "hist", describe = TRUE) 
+dataset_clean <- load_data("input_cov.csv.gz", suffix = "cov", describe = TRUE) 
 
 start_date <- as.Date("2017-01-01")
 end_date <- as.Date("2024-12-31")
@@ -39,11 +39,11 @@ flow <- data.frame(
 
 ## Set reference levels and handle missing values
 print("Set reference levels and handle missing values")
-dataset_clean <- ref(dataset_clean, suffix = "hist")
+dataset_clean <- ref(dataset_clean, suffix = "cov")
 
 ## Saved cleaned dataset to output folder
 print("Saving cleaned dataset to output folder")
 
 saveRDS(dataset_clean,
-        file = here::here(dataclean_dir, "input_clean_hist.rds"),
+        file = here::here(dataclean_dir, "input_clean_cov.rds"),
         compress = TRUE)

@@ -1,3 +1,5 @@
+#This script takes patient level data for prescription gaps 
+
 # Load libraries ---------------------------------------------------------------
 library(readr)
 library(tidyverse)
@@ -13,52 +15,89 @@ source("analysis/utility.R")
 # Load data
 #------------------------------------------------
 print("Load cleaned dataset")
+
 df <- readr::read_rds(
   here("output", "dataset_clean", "input_clean_hist.rds")
 )
 
+
 #------------------------------------------------
-# Summarise counts per region + care home + overall
+# Years to process
 #------------------------------------------------
-region_sums <- df %>%
-  # ---- Region summaries ----
-  group_by(cov_cat_region) %>%
+years <- 2017:2024
+
+#------------------------------------------------
+# Create summaries for each year
+#------------------------------------------------
+region_sums <- map_dfr(years, function(year) {
+  
+  print(paste("Processing year:", year))
+  
+  # Dynamic column names
+  region_var <- paste0("desc_cat_region", year)
+  inex_var   <- paste0("inex_bin_all_", year)
+  
+  outcome_cols <- names(df) %>%
+    str_subset(paste0("^out_num_gap_.*", year, "$"))
+  
+  
+  # Keep only relevant columns for this year
+  df_year <- df %>%
+    select(
+      patient_id,
+      all_of(region_var),
+      all_of(inex_var),
+      matches(paste0(year, "$"))
+    ) %>%
+    filter(.data[[inex_var]] == TRUE)
+  
+  # Region summaries
+  region_summary <- df_year %>%
+    group_by(.data[[region_var]]) %>%
+    summarise(
+      across(
+        starts_with("out_num_gap_"),
+        ~ sum(.x, na.rm = TRUE)
+      ),
+      .groups = "drop"
+    ) %>%
+    rename(region = all_of(region_var))
+  
+  # Overall summary
+  overall_summary <- df_year %>%
+    summarise(
+      across(
+        starts_with("out_num_gap_"),
+        ~ sum(.x, na.rm = TRUE)
+      )
+    ) %>%
+    mutate(region = "Overall")
+  
+  df_final <- bind_rows(region_summary, overall_summary) %>%
+    mutate(year = year) %>%
+    rename_with(
+      .cols = all_of(outcome_cols),
+      .fn = ~ str_remove(.x, paste0("_", year, "$"))
+    ) %>%
+    select(region, year, everything())
+  
+})
+
+overall_all_years <- region_sums %>%
+  filter(region == "Overall") %>%
   summarise(
-    across(starts_with("out_num_gap_"), ~ sum(.x, na.rm = TRUE))
+    across(
+      where(is.numeric),
+      ~ sum(.x, na.rm = TRUE)
+    )
   ) %>%
-  ungroup() %>%
-  mutate(cov_cat_region = as.character(cov_cat_region)) %>%
-
-  # ---- Care home summaries (labelled) ----
-  bind_rows(
-    df %>%
-      group_by(cov_bin_carehome) %>%
-      summarise(
-        across(starts_with("out_num_gap_"), ~ sum(.x, na.rm = TRUE))
-      ) %>%
-      ungroup() %>%
-      mutate(
-        cov_cat_region = case_when(
-          cov_bin_carehome == TRUE  ~ "TRUE (Care Home)",
-          cov_bin_carehome == FALSE ~ "FALSE (Care Home)"
-        )
-      ) %>%
-      select(-cov_bin_carehome)
-  ) %>%
-
-  # ---- Overall summary ----
-  bind_rows(
-    df %>%
-      summarise(
-        across(starts_with("out_num_gap_"), ~ sum(.x, na.rm = TRUE))
-      ) %>%
-      mutate(cov_cat_region = "Overall")
-  )
+  mutate(region = "Overall (all years)")
 
 #------------------------------------------------
 # Save
 #------------------------------------------------
 print("Save to output/tables")
+
 dir.create(
   here("output", "tables"),
   recursive = TRUE,
@@ -71,7 +110,7 @@ write_csv(
 )
 
 #------------------------------------------------
-# Create midpoint 6 rounded version
+# Create midpoint rounded version
 #------------------------------------------------
 print("Creating redacted / midpoint rounded prescription gaps")
 
@@ -82,18 +121,17 @@ region_sums_midpoint6 <- region_sums %>%
       ~ roundmid_any(.x),
       .names = "{.col}_midpoint6"
     )
-  )
-
-region_sums_midpoint6 <- region_sums_midpoint6 %>%
+  ) %>%
   select(
-    cov_cat_region,
+    year,
+    region,
     ends_with("_midpoint6")
   )
 
 #------------------------------------------------
 # Save rounded table
 #------------------------------------------------
-print("Save redacted / midpoint rounded prescription gaps to output/tables")
+print("Save redacted / midpoint rounded prescription gaps")
 
 write_csv(
   region_sums_midpoint6,
