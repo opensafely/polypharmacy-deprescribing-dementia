@@ -119,7 +119,7 @@ ggsave(
 
 # Save table
 write_csv(
-  weekly_table %>% select(-date_ref),
+  weekly_table %>% select(-date_ref,-denominator_midpoint6),
   here("output", "tables", "med_rev_cum_inc.csv")
 )
 

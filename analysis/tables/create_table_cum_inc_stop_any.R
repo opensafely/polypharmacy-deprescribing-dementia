@@ -101,6 +101,14 @@ for (gap in gap_sizes) {
     )
 
   # Aggregate by week
+  
+  denom_table <- df_long %>%
+    group_by(year) %>%
+    summarise(
+      denominator = n(),
+      denominator_midpoint6 = roundmid_any(n()),
+      .groups = "drop"
+    )
 
   weekly_table <- surv_df %>%
     mutate(week = floor(time / 7) + 1) %>%
@@ -116,22 +124,23 @@ for (gap in gap_sizes) {
       cum_events = cumsum(n_events),
       date_ref = as.Date("2000-01-01") + (week - 1) * 7
     ) %>%
-    ungroup()
+    ungroup() %>%
+    left_join(denom_table, by = "year")
 
   # Midpoint6 rounding
 
-  denom_table <- df_long %>%
-    group_by(year) %>%
-    summarise(
-      n_eligible = roundmid_any(n()),
-      .groups = "drop"
-    )
-
   weekly_table_mid <- weekly_table %>%
-    left_join(denom_table, by = "year") %>%
     mutate(
       cum_events_midpoint6 = roundmid_any(cum_events),
-      cum_inc_midpoint6 = cum_events_midpoint6 / n_eligible
+      cum_inc_midpoint6 = cum_events_midpoint6 / denominator_midpoint6
+    ) %>%
+    select(
+      year,
+      week,
+      date_ref,
+      cum_events_midpoint6,
+      cum_inc_midpoint6,
+      denominator_midpoint6
     )
 
   # Plot (this is just for viewing in backend.
@@ -199,7 +208,7 @@ for (gap in gap_sizes) {
   )
 
   write_csv(
-    weekly_table %>% select(-date_ref),
+    weekly_table %>% select(-date_ref,-denominator_midpoint6),
     here("output", "tables", paste0("stop_any_", gap, "_cum_inc.csv"))
   )
 
@@ -213,7 +222,7 @@ for (gap in gap_sizes) {
 
   write_csv(
     weekly_table_mid %>%
-      select(year, week, cum_events_midpoint6, cum_inc_midpoint6),
+      select(year, week, cum_events_midpoint6, cum_inc_midpoint6, denominator_midpoint6),
     here("output", "tables", paste0("stop_any_", gap, "_cum_inc_midpoint6.csv"))
   )
 }
