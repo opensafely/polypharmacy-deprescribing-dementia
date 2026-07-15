@@ -50,8 +50,14 @@ surv_df <- tidy(surv_fit) %>%
     year = as.numeric(str_remove(strata, "factor\\(year\\)=")),
     cum_inc = 1 - estimate
   )
-
-
+# Get denominators (eligible patients per year)
+denom_table <- df %>%
+  group_by(year) %>%
+  summarise(
+    denominator = n(),
+    denominator_midpoint6 = roundmid_any(n()),
+    .groups = "drop"
+  )
 # Table of cumulative incidence summarised weekyl
 print("Aggregate data to weekly")
 weekly_table <- surv_df %>%
@@ -70,7 +76,8 @@ weekly_table <- surv_df %>%
     cum_events = cumsum(n_events),
     date_ref = as.Date("2000-01-01") + (week - 1) * 7
   ) %>%
-  ungroup()
+  ungroup() %>%
+  left_join(denom_table, by = "year")
 
 
 # Plot -------------------------------------------------------------------------
@@ -121,17 +128,6 @@ write_csv(
 #------------------------------------------------
 print("Creating redacted / midpoint rounded version")
 
-# Get denominator (eligible patients per year)
-denom_table <- df %>%
-  group_by(year) %>%
-  summarise(
-    n_eligible = roundmid_any(n()),
-    .groups = "drop"
-  )
-
-weekly_table <- weekly_table %>%
-  left_join(denom_table, by = "year")
-
 # Calculated rounded values
 weekly_table <- weekly_table %>%
   mutate(
@@ -140,13 +136,12 @@ weekly_table <- weekly_table %>%
   group_by(year) %>%
   arrange(week, .by_group = TRUE) %>%
   mutate(
-    cum_inc_midpoint6 = cum_events_midpoint6 / n_eligible
+    cum_inc_midpoint6 = cum_events_midpoint6 / denominator_midpoint6
   ) %>%
   ungroup() %>%
-  select(year, week, date_ref, cum_events_midpoint6, cum_inc_midpoint6)
+  select(year, week, date_ref, cum_events_midpoint6, cum_inc_midpoint6, denominator_midpoint6)
 
 # Plot -------------------------------------------------------------------------
-print("save rounded plot")
 print("save rounded plot")
 
 plot_med_reviews <- ggplot(weekly_table, aes(date_ref, cum_inc_midpoint6, colour = factor(year))) +
@@ -183,3 +178,4 @@ ggsave(
   width = 10,
   height = 6
 )
+
