@@ -57,7 +57,9 @@ for (year in 2017:2024) {
   # ---- Remove year suffix from column names ---------------------------------
   names(df) <- names(df) %>%
     str_replace(paste0("_", year, "$"), "")
-
+  
+  df <- df %>%
+    filter(inex_bin_all)
   
   # ---- Select variables of interest -----------------------------------------
   df <- df %>%
