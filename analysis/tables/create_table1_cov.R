@@ -8,6 +8,7 @@ library(dplyr)
 # Source common functions ------------------------------------------------------
 print("Source common functions")
 source("analysis/utility.R")
+source("analysis/tables/fn-table1_functions.R")
 
 #------------------------------------------------
 # Create output directory
