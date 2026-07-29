@@ -1,4 +1,4 @@
-#This script takes patient level data for prescription gaps 
+# This script takes patient level data for prescription gaps 
 
 # Load libraries ---------------------------------------------------------------
 library(readr)
@@ -51,7 +51,7 @@ region_sums <- map_dfr(years, function(year) {
     ) %>%
     filter(.data[[inex_var]] == TRUE)
   
-  # Region summaries
+  # Region summaries only
   region_summary <- df_year %>%
     group_by(.data[[region_var]]) %>%
     summarise(
@@ -61,19 +61,7 @@ region_sums <- map_dfr(years, function(year) {
       ),
       .groups = "drop"
     ) %>%
-    rename(region = all_of(region_var))
-  
-  # Overall summary
-  overall_summary <- df_year %>%
-    summarise(
-      across(
-        starts_with("out_num_gap_"),
-        ~ sum(.x, na.rm = TRUE)
-      )
-    ) %>%
-    mutate(region = "Overall")
-  
-  df_final <- bind_rows(region_summary, overall_summary) %>%
+    rename(region = all_of(region_var)) %>%
     mutate(year = year) %>%
     rename_with(
       .cols = all_of(outcome_cols),
@@ -81,17 +69,9 @@ region_sums <- map_dfr(years, function(year) {
     ) %>%
     select(region, year, everything())
   
+  return(region_summary)
+  
 })
-
-overall_all_years <- region_sums %>%
-  filter(region == "Overall") %>%
-  summarise(
-    across(
-      where(is.numeric),
-      ~ sum(.x, na.rm = TRUE)
-    )
-  ) %>%
-  mutate(region = "Overall (all years)")
 
 #------------------------------------------------
 # Save
