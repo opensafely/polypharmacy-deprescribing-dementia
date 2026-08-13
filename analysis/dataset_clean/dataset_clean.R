@@ -7,6 +7,7 @@ library(purrr)
 library(lubridate)
 library(tidyr)
 library(skimr)
+library(jsonlite)
 
 ## Define clean dataset output folder ------------------------------------------
 print("Creating output/dataset_clean output folder")
