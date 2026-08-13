@@ -31,7 +31,7 @@ for year in range(2017, 2025):
     #Add collapsed in/ex variable for each year in the study
     add_inex_variables(dataset, date(year, 1, 1), 1,year)
 
-    region = practice_registrations.for_patient_on(year).practice_nuts1_region_name
+    region = practice_registrations.for_patient_on(date(year, 1, 1)).practice_nuts1_region_name
     dataset.add_column(f"desc_cat_region{year}", region)
 
     ## Outcome Variables - Gaps between prescriptions of each medication class
