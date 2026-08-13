@@ -28,8 +28,10 @@ print("Load dataset")
 
 dataset_clean <- load_data("input_desc.csv.gz", suffix = "desc", describe = TRUE) 
 
-start_date <- as.Date("2017-01-01")
-end_date <- as.Date("2024-12-31")
+#load dates
+constants <- fromJSON("analysis/config.json")
+start_date <- constants$start_date
+end_date <- constants$end_date
 
 ## Create object for flowchart
 flow <- data.frame(

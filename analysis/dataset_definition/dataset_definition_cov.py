@@ -24,8 +24,11 @@ class input_inex(PatientFrame):
 ## Create dataset
 dataset = create_dataset()
 
-#Get study dates
-from analysis.dataset_definition.study_dates import *
+import json
+with open("analysis/config.json") as f:
+    study_dates = json.load(f)
+start_date = study_dates["start_date"]
+end_date = study_dates["end_date"]
 
 index_date = start_date
 limit = 2
