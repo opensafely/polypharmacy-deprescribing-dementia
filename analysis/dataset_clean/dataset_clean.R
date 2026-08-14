@@ -7,6 +7,7 @@ library(purrr)
 library(lubridate)
 library(tidyr)
 library(skimr)
+library(jsonlite)
 
 ## Define clean dataset output folder ------------------------------------------
 print("Creating output/dataset_clean output folder")
@@ -18,8 +19,10 @@ dir_create(here::here(dataclean_dir))
 print("Load dataset")
 dataset_clean <- read_csv(here("output", "dataset", "input.csv.gz"))
 
-start_date <- as.Date("2015-01-01")
-end_date <- as.Date("2016-01-01")
+#load dates
+constants <- fromJSON("analysis/config.json")
+start_date <- constants$start_date
+end_date <- constants$end_date
 
 ## Create object for flowchart
 flow <- data.frame(

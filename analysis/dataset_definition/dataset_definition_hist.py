@@ -21,7 +21,11 @@ class input_inex(PatientFrame):
 dataset = create_dataset()
 
 #Get study dates
-from analysis.dataset_definition.study_dates import *
+import json
+with open("analysis/config.json") as f:
+    study_dates = json.load(f)
+start_date = study_dates["start_date"]
+end_date = study_dates["end_date"]
 
 index_date = start_date
 limit = 26
@@ -31,7 +35,7 @@ for year in range(2017, 2025):
     #Add collapsed in/ex variable for each year in the study
     add_inex_variables(dataset, date(year, 1, 1), 1,year)
 
-    region = practice_registrations.for_patient_on(start_date).practice_nuts1_region_name
+    region = practice_registrations.for_patient_on(date(year, 1, 1)).practice_nuts1_region_name
     dataset.add_column(f"desc_cat_region{year}", region)
 
     ## Outcome Variables - Gaps between prescriptions of each medication class

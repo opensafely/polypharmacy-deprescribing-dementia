@@ -8,6 +8,7 @@ library(lubridate)
 library(tidyr)
 library(skimr)
 library(data.table)
+library(jsonlite)
 
 ## Source functions
 lapply(
@@ -26,8 +27,10 @@ dir_create(here::here(dataclean_dir))
 print("Load dataset")
 dataset_clean <- load_data("input_cov.csv.gz", suffix = "cov", describe = TRUE) 
 
-start_date <- as.Date("2017-01-01")
-end_date <- as.Date("2024-12-31")
+#load dates
+constants <- fromJSON("analysis/config.json")
+start_date <- constants$start_date
+end_date <- constants$end_date
 
 ## Create object for flowchart
 flow <- data.frame(

@@ -1,4 +1,4 @@
-from ehrql.tables.tpp import patients, practice_registrations, clinical_events, addresses, medications, ons_deaths, apcs, decision_support_values, emergency_care_attendances
+from ehrql.tables.tpp import patients, practice_registrations, clinical_events, addresses, medications, ons_deaths, apcs, decision_support_values, emergency_care_attendances, ethnicity_from_sus 
 from ehrql import create_dataset, codelist_from_csv, days, case, when, minimum_of, show
 from datetime import date
 from analysis.dataset_definition.variable_helper_functions import (
@@ -8,6 +8,8 @@ from analysis.dataset_definition.variable_helper_functions import (
     last_matching_event_apc_before,
     last_matching_event_clinical_ctv3_before,
     ever_matching_event_clinical_ctv3_before,
+    get_latest_ethnicity,
+    get_imd,
     filter_codes_by_category
 )
 
@@ -163,25 +165,10 @@ def add_covariates(dataset, index_date, end_date, column_suffix=""):
     cov_cat_sex = patients.sex
 
     ### Ethnicity
-    tmp_cov_cat_ethnicity = (
-        clinical_events.where(clinical_events.snomedct_code.is_in(ethnicity_snomed))
-        .sort_by(clinical_events.date)
-        .last_for_patient()
-        .snomedct_code
-    )
-    
-    cov_cat_ethnicity = tmp_cov_cat_ethnicity.to_category(ethnicity_snomed)
+    cov_cat_ethnicity = get_latest_ethnicity(index_date,ethnicity_snomed, grouping=6)
 
     ### Deprivation
-    cov_cat_imd = case(
-            when((addresses.for_patient_on(index_date).imd_rounded >= 0) & 
-                    (addresses.for_patient_on(index_date).imd_rounded < int(32844 * 1 / 5))).then("1 (most deprived)"),
-            when(addresses.for_patient_on(index_date).imd_rounded < int(32844 * 2 / 5)).then("2"),
-            when(addresses.for_patient_on(index_date).imd_rounded < int(32844 * 3 / 5)).then("3"),
-            when(addresses.for_patient_on(index_date).imd_rounded < int(32844 * 4 / 5)).then("4"),
-            when(addresses.for_patient_on(index_date).imd_rounded < int(32844 * 5 / 5)).then("5 (least deprived)"),
-            otherwise="unknown",
-        )
+    cov_cat_imd = get_imd(index_date, groups=5, max_imd=32844)
 
     cov_cat_region = practice_registrations.for_patient_on(index_date).practice_nuts1_region_name
 
