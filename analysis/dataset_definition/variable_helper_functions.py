@@ -264,3 +264,30 @@ def get_latest_ethnicity(
         )
 
         return ethnicity_combined
+
+def get_imd(index_date, groups=5, max_imd=32844):
+    step = max_imd / groups
+    whens = []
+
+    imd = addresses.for_patient_on(index_date).imd_rounded
+
+    for i in range(groups):
+        lower = int(step * i)
+        upper = int(step * (i + 1))
+
+        if i == 0:
+            label = "1 (most deprived)"
+        elif i == groups - 1:
+            label = f"{groups} (least deprived)"
+        else:
+            label = str(i + 1)
+
+        condition = (imd >= lower) & (imd < upper)
+        whens.append(when(condition).then(label))
+
+    imd_grouped=case(
+        *whens,
+        otherwise="unknown",
+    )
+
+    return imd_grouped

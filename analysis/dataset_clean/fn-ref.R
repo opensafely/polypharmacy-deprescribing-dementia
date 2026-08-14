@@ -15,12 +15,22 @@ ref <- function(input, suffix = "", describe = TRUE) {
   }
 
   # Handle missing values in cov_cat_imd ---------------------------------------
-  print("Handle missing values in cov_cat_imd")
+  print('Handle missing values in cov_cat_imd')
 
   if ("cov_cat_imd" %in% names(input)) {
+    imd_max <- max(
+      as.integer(sub(" .*", "", unique(input$cov_cat_imd))),
+      na.rm = TRUE
+    )
+    imd_levels <- c(
+      "1 (most deprived)",
+      as.character(seq(2, imd_max)),
+      sprintf("%i (least deprived)", imd_max)
+    )
+
     input$cov_cat_imd <- if_else(
       input$cov_cat_imd %in%
-        c("1 (most deprived)", "2", "3", "4", "5 (least deprived)"),
+        imd_levels,
       input$cov_cat_imd,
       "missing"
     )
@@ -144,13 +154,25 @@ ref <- function(input, suffix = "", describe = TRUE) {
     )
   }
 
+
   # Set reference level for variable: cov_cat_imd ------------------------------
 
   if ("cov_cat_imd" %in% names(input)) {
-    print("Set reference level for variable: cov_cat_imd")
+    print('Set reference level for variable: cov_cat_imd')
+
+    imd_max <- max(
+      as.integer(sub(" .*", "", unique(input$cov_cat_imd))),
+      na.rm = TRUE
+    )
+    imd_levels <- c(
+      "1 (most deprived)",
+      as.character(seq(2, imd_max)),
+      sprintf("%i (least deprived)", imd_max)
+    )
+
     input$cov_cat_imd <- ordered(
       input$cov_cat_imd,
-      levels = c("1 (most deprived)", "2", "3", "4", "5 (least deprived)")
+      levels = imd_levels
     )
   }
   # Set reference level for variable: cov_cat_sex ------------------------------
