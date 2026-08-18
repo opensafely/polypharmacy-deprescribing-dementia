@@ -45,8 +45,8 @@ for year in range(2017, 2025):
     # Medication review variables
     exp_dat_med_rev = (
         clinical_events.where(clinical_events.snomedct_code.is_in(medication_review_codelist))
-        .where(clinical_events.date.is_on_or_after(start_date))
-        .where(clinical_events.date.is_on_or_before(end_date))
+        .where(clinical_events.date.is_on_or_after(date(year, 1, 1)))
+        .where(clinical_events.date.is_on_or_before(date(year, 12, 31)))
         .sort_by(clinical_events.date)
         .first_for_patient()
         .date)
