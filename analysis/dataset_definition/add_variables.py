@@ -52,6 +52,9 @@ def add_inex_variables(dataset, start_date, collapse_vars=0, column_suffix=""):
         .count_for_patient()) > 2) | ((medications.where(medications.dmd_code.is_in(potassium_sparing_diuretics_codelist))
         .where(medications.date.is_on_or_after(start_date - days(365)))
         .where(medications.date.is_on_or_before(start_date))
+        .count_for_patient()) > 2) | ((medications.where(medications.dmd_code.is_in(thiazide_type_diuretics_codelist))
+        .where(medications.date.is_on_or_after(start_date - days(365)))
+        .where(medications.date.is_on_or_before(start_date))
         .count_for_patient()) > 2)
 
     # Alive at start date

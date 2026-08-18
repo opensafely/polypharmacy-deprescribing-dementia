@@ -77,6 +77,11 @@ potassium_sparing_diuretics_codelist = codelist_from_csv(
     column="code"
 )
 
+thiazide_type_diuretics_codelist = codelist_from_csv(
+    "codelists/opensafely-thiazide-type-diuretic-medication.csv",
+    column="code"
+)
+
 ## Chronic Heart Disease codes
 chd_codelist = codelist_from_csv(
     "codelists/primis-covid19-vacc-uptake-chd_cov.csv",

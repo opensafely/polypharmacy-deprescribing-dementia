@@ -60,6 +60,12 @@
       "downloaded_at": "2025-09-16 13:31:56.102515Z",
       "sha": "8f1ffd9b9083ca36de771439c6fe14eb865825ad"
     },
+    "opensafely-thiazide-type-diuretic-medication.csv": {
+      "id": "opensafely/thiazide-type-diuretic-medication/0cb70c3f",
+      "url": "https://www.opencodelists.org/codelist/opensafely/thiazide-type-diuretic-medication/0cb70c3f/",
+      "downloaded_at": "2026-08-18 12:14:54.286929Z",
+      "sha": "1d913fd29a4ef7d6857fa08f33fd93630ba99017"
+    },
     "opensafely-ethnicity-snomed-0removed.csv": {
       "id": "opensafely/ethnicity-snomed-0removed/22911876",
       "url": "https://www.opencodelists.org/codelist/opensafely/ethnicity-snomed-0removed/22911876/",

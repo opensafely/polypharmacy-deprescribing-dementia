@@ -10,6 +10,8 @@ opensafely/alpha-adrenoceptor-blocking-drugs/28793f6a
 opensafely/angiotensin-ii-receptor-blockers-arbs/3ed5f2a9
 opensafely/beta-blocker-medications/5a9825d4
 opensafely/calcium-channel-blockers/25c67f74
+opensafely/thiazide-type-diuretic-medication/0cb70c3f
+
 
 opensafely/ethnicity-snomed-0removed/22911876
 
