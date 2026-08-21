@@ -1,4 +1,3 @@
-
 create_table1 <- function(df) {
   #Select variables of interest
   df_table1 <- df %>%
@@ -6,18 +5,19 @@ create_table1 <- function(df) {
       patient_id,
       exp_bin_med_rev,
       cov_num_age,
+      cov_num_med_count,
       starts_with("cov_cat_"),
       starts_with("cov_bin_"),
       starts_with("strat_cat_")
     ) %>%
     mutate(
-      across(-c(patient_id, exp_bin_med_rev, cov_num_age),as.character),
+      across(-c(patient_id, exp_bin_med_rev, cov_num_age, cov_num_med_count), as.character),
       All = "All")
   
   # Long format for counting
   df_long <- df_table1 %>%
     pivot_longer(
-      cols = -c(patient_id, exp_bin_med_rev, cov_num_age),
+      cols = -c(patient_id, exp_bin_med_rev, cov_num_age, cov_num_med_count),
       names_to = "characteristic",
       values_to = "subcharacteristic"
     )
@@ -40,6 +40,16 @@ create_table1 <- function(df) {
     round(quantile(df_table1$cov_num_age, 0.25, na.rm = TRUE), 1),
     "-",
     round(quantile(df_table1$cov_num_age, 0.75, na.rm = TRUE), 1),
+    ")"
+  )
+  
+  # Calculate median number of medications (IQR)
+  median_iqr_med_count <- paste0(
+    round(median(df_table1$cov_num_med_count, na.rm = TRUE), 1),
+    " (",
+    round(quantile(df_table1$cov_num_med_count, 0.25, na.rm = TRUE), 1),
+    "-",
+    round(quantile(df_table1$cov_num_med_count, 0.75, na.rm = TRUE), 1),
     ")"
   )
   
@@ -75,9 +85,10 @@ create_table1 <- function(df) {
       )
     )
   
-  # Append median age row
+  # Append median age and median medication count rows
   table1 <- bind_rows(table1,
-                      tibble(characteristic = "Age, years", subcharacteristic = "Median (IQR)", N = median_iqr_age)
+                      tibble(characteristic = "Age, years", subcharacteristic = "Median (IQR)", N = median_iqr_age),
+                      tibble(characteristic = "Number of medications", subcharacteristic = "Median (IQR)", N = median_iqr_med_count)
   )
   return(table1)
 }
@@ -85,8 +96,8 @@ create_table1 <- function(df) {
 # Function to create midpoint6 redacted Table 1
 create_midpoint6_table1 <- function(table1) {
   
-  # Keep age row separately
-  age_rows <- table1 %>%
+  # Keep age/med count summary rows separately (anything reported as Median (IQR))
+  summary_rows <- table1 %>%
     filter(subcharacteristic == "Median (IQR)")
   
   # Apply midpoint6 rounding
@@ -136,10 +147,10 @@ create_midpoint6_table1 <- function(table1) {
       exposed_midpoint6 = as.character(exposed_midpoint6)
     )
   
-  # Re-append age row
+  # Re-append summary (age / med count) rows
   table1_redacted <- bind_rows(
     table1_redacted,
-    age_rows %>%
+    summary_rows %>%
       transmute(
         characteristic,
         subcharacteristic,
