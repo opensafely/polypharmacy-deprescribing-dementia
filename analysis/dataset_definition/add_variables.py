@@ -347,3 +347,23 @@ def add_out_variables(dataset, index_date, start_date, end_date, medication_code
     # ---- Add variables to dataset ----
     dataset.add_column(f"out_dat_next_{column_suffix}", out_dat_next_med)
     dataset.add_column(f"out_dat_prev_{column_suffix}", out_dat_prev_med)
+
+
+def add_frailty_variables(dataset, index_date, column_suffix=""):
+    ## Date of next antihypertensive medication after medication review
+
+    cov_dat_mildfrail = last_matching_event_clinical_snomed_before(mild_frailty,index_date).date
+    cov_dat_moderatefrail = last_matching_event_clinical_snomed_before(moderate_frailty,index_date).date
+    cov_dat_severefrail = last_matching_event_clinical_snomed_before(severe_frailty,index_date).date
+    cov_dat_clinfrailscr = last_matching_event_clinical_snomed_before(frailty_score,index_date).date
+
+
+    cov_num_frailscr = last_matching_event_clinical_snomed_before(frailty_score,index_date).numeric_value
+
+
+    # ---- Add variables to dataset ----
+    dataset.add_column(f"cov_dat_mildfrail_{column_suffix}", cov_dat_mildfrail)
+    dataset.add_column(f"cov_dat_moderatefrail_{column_suffix}", cov_dat_moderatefrail)
+    dataset.add_column(f"cov_dat_severefrail_{column_suffix}", cov_dat_severefrail)
+    dataset.add_column(f"cov_dat_clinfrailscr_{column_suffix}", cov_dat_clinfrailscr)
+    dataset.add_column(f"cov_num_frailscr_{column_suffix}", cov_num_frailscr)

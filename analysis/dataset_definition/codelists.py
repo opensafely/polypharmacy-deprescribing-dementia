@@ -159,3 +159,114 @@ ever_current_smoke = codelist_from_csv(
   "codelists/bristol-smoke-and-eversmoke.csv",
   column = "code"
 )
+
+#frailty codes
+mild_frailty = codelist_from_csv(
+  "codelists/nhsd-primary-care-domain-refsets-mildfrailty_cod.csv",
+  column = "code"
+)
+moderate_frailty = codelist_from_csv(
+  "codelists/nhsd-primary-care-domain-refsets-modfrailty_cod.csv",
+  column = "code"
+)
+severe_frailty = codelist_from_csv(
+  "codelists/nhsd-primary-care-domain-refsets-sevfrailty_cod.csv",
+  column = "code"
+)
+frailty_score = codelist_from_csv(
+  "codelists/nhsd-primary-care-domain-refsets-clinfrailscr_cod.csv",
+  column = "code"
+)
+
+
+
+
+#Codelists for Cambridge multimorbidity score
+
+def create_codelist_dict(dic: dict) -> dict:
+    '''
+    Create a dictionary of codelists, so that queries can be run iteratively on
+    groups of codelists that are subject to the same ehrQL query.
+    Args:
+        dic: dictionary where key = name, value = codelist csv path
+    Returns:
+        Dictionary where key = name, value = codelist
+    '''
+    for name in dic:
+        dic[name] = codelist_from_csv(dic[name], 
+                                                column = "code")
+    return dic
+
+# For multimorbidity groups
+
+# Multimorbidity groups (20 conditions, alphabetical order)
+multimorbidity_dict = {
+    ## Alcohol Problems
+    "MS_AlcoholProblem_snomed": "codelists/bristol-multimorbidity_alcoholproblems.csv",
+
+    ## Anxiety/Depression (medication to be added)
+    "MS_AnxietyDepression_snomed": "codelists/bristol-multimorbidity_anxietydepression.csv",
+    "MS_AnxietyDepression_dmd": "codelists/user-ZoeMZou-multimorbidity_prescription_anxiolytics_anti_depressants.csv",
+
+    ## Asthma (medication to be added)
+    "MS_Asthma_snomed": "codelists/nhsd-primary-care-domain-refsets-ast_cod.csv",
+    "MS_Asthma_dmd": "codelists/opensafely-asthma-inhaler-salbutamol-medication.csv",
+
+    ## Atrial Fibrillation
+    "MS_AF_snomed": "codelists/bristol-multimorbidity_atrial-fibrillation.csv",
+
+    ## Cancer
+    "MS_Cancer_snomed": "codelists/bristol-multimorbidity_cancer.csv",
+
+    ## Chronic Kidney Disease
+    "MS_CKD_snomed": "codelists/bristol-multimorbidity_chronic-kidney-disease.csv",
+
+    ## Constipation (medication only)
+    "MS_Constipation_dmd": "codelists/user-ZoeMZou-multimorbidity_prescription_chronic_constipation.csv",
+
+    ## Connective Tissue Disorder
+    "MS_CTD_snomed": "codelists/bristol-multimorbidity_connective-tissue-disorder.csv",
+
+    ## COPD
+    "MS_COPD_snomed": "codelists/bristol-multimorbidity_copd.csv",
+
+    ## Coronary Heart Disease
+    "MS_CHD_snomed": "codelists/bristol-multimorbidity_coronary-heart-disease.csv",
+
+    ## Dementia
+    "MS_Dementia_snomed": "codelists/bristol-multimorbidity_dementia.csv",
+
+    ## Diabetes Mellitus
+    "MS_Diabetes_snomed": "codelists/bristol-multimorbidity_diabetes.csv",
+
+    ## Epilepsy (medication to be added)
+    "MS_Epilepsy_snomed": "codelists/bristol-multimorbidity_epilepsy.csv",
+    "MS_Epilepsy_dmd": "codelists/user-ZoeMZou-multimorbidity_prescription_epilepsy.csv",
+
+    ## Hearing Loss
+    "MS_HL_snomed": "codelists/bristol-multimorbidity_hearing-loss.csv",
+
+    ## Heart Failure
+    "MS_HF_snomed": "codelists/bristol-multimorbidity_heart-failure.csv",
+
+    ## Hypertension
+    "MS_Hypertension_snomed": "codelists/nhsd-primary-care-domain-refsets-hyp_cod.csv",
+
+    ## Irritable Bowel Syndrome (medication to be added)
+    "MS_IBS_snomed": "codelists/bristol-multimorbidity_irritable-bowel-syndrome.csv",
+    "MS_IBS_dmd": "codelists/user-ZoeMZou-multimorbidity_prescription_anti_spasmodic.csv",
+    
+    ## Painful Condition (Osteoarthritis)
+    "MS_PC_Analgesics_dmd": "codelists/user-ZoeMZou-multimorbidity_prescription_analgesics_opiods_not_migraine.csv",
+    "MS_PC_Antiepileptic_dmd": "codelists/user-ZoeMZou-multimorbidity_prescription_anti_epileptic_for_pain_only.csv",
+
+    ## Psychosis/Bipolar Disorder (medication to be added)
+    "MS_Psychosis_snomed": "codelists/bristol-multimorbidity_psychosisbipolar-disorder.csv",
+    "MS_Psychosis_dmd": "codelists/user-ZoeMZou-multimorbidity_prescription_schizophrenia_bipolar_disorder.csv",
+
+    ## Stroke/Transient Ischemic Attack (TIA)
+    "MS_StrokeTIA_snomed": "codelists/bristol-multimorbidity_stroketransient-ischemic-attack.csv",
+}
+
+# Apply helper to load
+multimorbidity_dict = create_codelist_dict(multimorbidity_dict)
