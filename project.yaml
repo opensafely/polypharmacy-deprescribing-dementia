@@ -133,6 +133,16 @@ actions:
         describe_preprocessed: output/describe/preprocessed-cov.txt
         describe_ref: output/describe/ref-cov.txt
 
+  create_frailty_investigation:
+    run: r:v2 analysis/tables/create_frailty_investigation.R
+    needs: [clean_dataset_cov]
+    outputs:
+      moderately_sensitive:
+        frailty_investigation_table: output/tables/frailty_coverage.csv
+        frailty_investigation_table_midpoint6: output/tables/frailty_coverage_midpoint6.csv
+        frailty_coverage_plots: output/figures/frailty_coverage.png
+
+
   # generate_project_dag:
   #   run: python:v2 python analysis/project_dag.py --yaml-path project.yaml --output-path project.dag.md
   #   outputs:
