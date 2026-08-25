@@ -171,8 +171,7 @@ create_midpoint6_table1 <- function(table1) {
         exposed_midpoint6 = "",
         percent_exposed_midpoint6 = ""
       )
-  ) %>%
-    arrange(characteristic, subcharacteristic)
+  ) 
   
   return(table1_redacted)
   

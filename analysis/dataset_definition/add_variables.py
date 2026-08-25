@@ -275,7 +275,7 @@ def add_covariates(dataset, index_date, end_date, column_suffix=""):
     # Number of different medications prescribed in the year prior to index date
     cov_num_med_count = ( 
         medications.where(medications.date.is_on_or_before(index_date))
-        .where(medications.date.is_after(index_date - days(90)))
+        .where(medications.date.is_after(index_date - days(365)))
         .dmd_code 
         .count_distinct_for_patient())
 
@@ -355,15 +355,14 @@ def add_frailty_variables(dataset, index_date, column_suffix=""):
     cov_dat_mildfrail = last_matching_event_clinical_snomed_before(mild_frailty,index_date).date
     cov_dat_moderatefrail = last_matching_event_clinical_snomed_before(moderate_frailty,index_date).date
     cov_dat_severefrail = last_matching_event_clinical_snomed_before(severe_frailty,index_date).date
-    cov_dat_clinfrailscr = last_matching_event_clinical_snomed_before(frailty_score,index_date).date
+    cov_dat_scorefrail = last_matching_event_clinical_snomed_before(frailty_score,index_date).date
 
-
-    cov_num_frailscr = last_matching_event_clinical_snomed_before(frailty_score,index_date).numeric_value
+    cov_num_scorefrail = last_matching_event_clinical_snomed_before(frailty_score,index_date).numeric_value
 
 
     # ---- Add variables to dataset ----
     dataset.add_column(f"cov_dat_mildfrail_{column_suffix}", cov_dat_mildfrail)
     dataset.add_column(f"cov_dat_moderatefrail_{column_suffix}", cov_dat_moderatefrail)
     dataset.add_column(f"cov_dat_severefrail_{column_suffix}", cov_dat_severefrail)
-    dataset.add_column(f"cov_dat_clinfrailscr_{column_suffix}", cov_dat_clinfrailscr)
-    dataset.add_column(f"cov_num_frailscr_{column_suffix}", cov_num_frailscr)
+    dataset.add_column(f"cov_dat_scorefrail_{column_suffix}", cov_dat_scorefrail)
+    dataset.add_column(f"cov_num_scorefrail_{column_suffix}", cov_num_scorefrail)

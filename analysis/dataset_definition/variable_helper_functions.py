@@ -399,6 +399,9 @@ def has_condition_before(
 
     return any_of(conditions)
 
+## This code is borrowed from Zoe Zou at https://github.com/opensafely/cambridge-multimorbidity-score/tree/Codelists-for-CMS
+## It calculates the cambridge mulimorbidity score for a patient based on their clinical events and medications, using the specified index date.
+## It can return either the total score or the individual components of the score.
 def get_cms_on_date(index_date, death_date, return_components=False):
 
     cms = clinical_events.exists_for_patient().as_int().as_float() * 0

@@ -57,7 +57,7 @@ for year in range(2017, 2025):
     
     dataset.add_column(f"exp_dat_med_rev_{year}", exp_dat_med_rev)
 
-    #multimorbidity variables
+    #Cambridge multimorbidity score variables
     cms = get_cms_on_date(index_date, death_date, return_components=False)
     dataset.add_column(f"cov_num_cms_{year}", cms)
 

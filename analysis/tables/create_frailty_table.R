@@ -26,9 +26,13 @@ df_frail <- df_master %>%
     starts_with("cov_dat_mildfrail"),
     starts_with("cov_dat_moderatefrail"),
     starts_with("cov_dat_severefrail"),
-    starts_with("cov_dat_clinfrailscr"),
-    starts_with("cov_num_latest_efi")
-  )
+    starts_with("cov_dat_scorefrail")  )
+
+# Helper: TRUE only if the date falls within dates. This is to allow us to check different lookback windows
+valid_in_window <- function(date_col, window_start, window_end) {
+  d <- as.Date(date_col)
+  !is.na(d) & lubridate::year(d) >= window_start & lubridate::year(d) <= window_end
+}
 
 # This function calculates number of patients whith some kind of frailty code.
 # with a configurable lookback window (eg have they had a value coded in the n years before)
@@ -41,33 +45,27 @@ calc_frailty_counts <- function(df, years, years_back = 1) {
     mild_col   <- paste0("cov_dat_mildfrail_", yr)
     mod_col    <- paste0("cov_dat_moderatefrail_", yr)
     severe_col <- paste0("cov_dat_severefrail_", yr)
-    cfs_col    <- paste0("cov_dat_clinfrailscr_", yr)
+    cfs_col    <- paste0("cov_dat_scorefrail_", yr)
     window_start <- yr - years_back
     window_end   <- yr - 1
-    
-    # Helper: TRUE only if the date falls within dates. This is to allow us to check different lookback windows
-    valid_in_window <- function(date_col) {
-      d <- as.Date(date_col)
-      !is.na(d) & lubridate::year(d) >= window_start & lubridate::year(d) <= window_end
-    }
     
     # Denominator: all "valid" patients for the year (inex_bin_all == TRUE)
     valid_patients <- df %>% filter(.data[[inex_col]] == TRUE)
     n_valid <- n_distinct(valid_patients$patient_id)
     
     # Counts (valid patients with that measure recorded within the window)
-    n_mild     <- valid_patients %>% filter(valid_in_window(.data[[mild_col]]))   %>% summarise(n = n_distinct(patient_id)) %>% pull(n)
-    n_moderate <- valid_patients %>% filter(valid_in_window(.data[[mod_col]]))    %>% summarise(n = n_distinct(patient_id)) %>% pull(n)
-    n_severe   <- valid_patients %>% filter(valid_in_window(.data[[severe_col]])) %>% summarise(n = n_distinct(patient_id)) %>% pull(n)
-    n_cfs      <- valid_patients %>% filter(valid_in_window(.data[[cfs_col]]))    %>% summarise(n = n_distinct(patient_id)) %>% pull(n)
+    n_mild     <- valid_patients %>% filter(valid_in_window(.data[[mild_col]], window_start, window_end))   %>% summarise(n = n_distinct(patient_id)) %>% pull(n)
+    n_moderate <- valid_patients %>% filter(valid_in_window(.data[[mod_col]], window_start, window_end))    %>% summarise(n = n_distinct(patient_id)) %>% pull(n)
+    n_severe   <- valid_patients %>% filter(valid_in_window(.data[[severe_col]], window_start, window_end)) %>% summarise(n = n_distinct(patient_id)) %>% pull(n)
+    n_cfs      <- valid_patients %>% filter(valid_in_window(.data[[cfs_col]], window_start, window_end))    %>% summarise(n = n_distinct(patient_id)) %>% pull(n)
     
     # Any kind of code (since we're interested in missingness)
     n_frailty <- valid_patients %>%
       filter(
-        valid_in_window(.data[[mild_col]])   |
-          valid_in_window(.data[[mod_col]])    |
-          valid_in_window(.data[[severe_col]]) |
-          valid_in_window(.data[[cfs_col]])
+        valid_in_window(.data[[mild_col]], window_start, window_end)   |
+          valid_in_window(.data[[mod_col]], window_start, window_end)    |
+          valid_in_window(.data[[severe_col]], window_start, window_end) |
+          valid_in_window(.data[[cfs_col]], window_start, window_end)
       ) %>%
       summarise(n = n_distinct(patient_id)) %>%
       pull(n)
@@ -80,17 +78,17 @@ calc_frailty_counts <- function(df, years, years_back = 1) {
       years_back   = years_back,
       n_valid      = n_valid,
       n_mild       = n_mild,
-      pct_mild     = round(100 * n_mild / n_valid, 1),
+      pct_mild     = round(100 * n_mild / n_valid, 2),
       n_moderate   = n_moderate,
-      pct_moderate = round(100 * n_moderate / n_valid, 1),
+      pct_moderate = round(100 * n_moderate / n_valid, 2),
       n_severe     = n_severe,
-      pct_severe   = round(100 * n_severe / n_valid, 1),
+      pct_severe   = round(100 * n_severe / n_valid, 2),
       n_cfs        = n_cfs,
-      pct_cfs      = round(100 * n_cfs / n_valid, 1),
+      pct_cfs      = round(100 * n_cfs / n_valid, 2),
       n_frailty    = n_frailty,
-      pct_frailty  = round(100 * n_frailty / n_valid, 1),
+      pct_frailty  = round(100 * n_frailty / n_valid, 2),
       n_missing    = n_missing,
-      pct_missing  = round(100 * n_missing / n_valid, 1)
+      pct_missing  = round(100 * n_missing / n_valid, 2)
     )
   }) %>%
     bind_rows()
@@ -191,7 +189,7 @@ readr::write_csv(
 
 readr::write_csv(
   comparison_rounded,
-  here("output", "tables", "frailty_coverage_midpoint6.csv")
+  here("output", "tables", "frailty_coverage_by_lookback_midpoint6.csv")
 )
 
 ggsave(
