@@ -189,7 +189,7 @@ readr::write_csv(
 
 readr::write_csv(
   comparison_rounded,
-  here("output", "tables", "frailty_coverage_by_lookback_midpoint6.csv")
+  here("output", "tables", "frailty_coverage_midpoint6.csv")
 )
 
 ggsave(
