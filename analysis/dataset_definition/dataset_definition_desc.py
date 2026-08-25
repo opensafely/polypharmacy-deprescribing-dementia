@@ -71,6 +71,7 @@ for year in range(2017, 2025):
         get_stopping_dates_after_event(dataset, date(year, 1, 1), date(year, 1, 1)+days(365), calcium_channel_blockers_codelist, medication_review_codelist, f"desc_dat_stop_ccb_{gap_size}_{year}", 10, gap_size)
         get_stopping_dates_after_event(dataset, date(year, 1, 1), date(year, 1, 1)+days(365), centrally_acting_antihypertensives_codelist, medication_review_codelist, f"desc_dat_stop_caa_{gap_size}_{year}", 10, gap_size)
         get_stopping_dates_after_event(dataset, date(year, 1, 1), date(year, 1, 1)+days(365), potassium_sparing_diuretics_codelist, medication_review_codelist, f"desc_dat_stop_psd_{gap_size}_{year}", 10, gap_size)
+        get_stopping_dates_after_event(dataset, date(year, 1, 1), date(year, 1, 1)+days(365), thiazide_type_diuretics_codelist, medication_review_codelist, f"desc_dat_stop_ttd_{gap_size}_{year}", 10, gap_size)
 
 ##Define population
 dataset.configure_dummy_data()
