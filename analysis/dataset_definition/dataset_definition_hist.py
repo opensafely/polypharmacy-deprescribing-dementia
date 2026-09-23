@@ -40,13 +40,13 @@ for year in range(2017, 2025):
 
     ## Outcome Variables - Gaps between prescriptions of each medication class
     get_prescription_gaps(dataset, date(year, 1, 1),date(year, 12, 31), ace_inhibitor_codelist, f"acei_{year}", limit)
-    get_prescription_gaps(dataset, date(year, 1, 1),date(year, 12, 31), alpha_adrenoceptor_blocking_drugs_codelist, f"aab_{year}", limit)
-    get_prescription_gaps(dataset, date(year, 1, 1),date(year, 12, 31), angiotensin_ii_receptor_blockers_codelist, f"arb_{year}", limit)
-    get_prescription_gaps(dataset, date(year, 1, 1),date(year, 12, 31), beta_blockers_codelist, f"bb_{year}", limit)
-    get_prescription_gaps(dataset, date(year, 1, 1),date(year, 12, 31), calcium_channel_blockers_codelist, f"ccb_{year}", limit)
-    get_prescription_gaps(dataset, date(year, 1, 1),date(year, 12, 31), centrally_acting_antihypertensives_codelist, f"caa_{year}", limit)
-    get_prescription_gaps(dataset, date(year, 1, 1),date(year, 12, 31), potassium_sparing_diuretics_codelist, f"psd_{year}", limit)
-    get_prescription_gaps(dataset, date(year, 1, 1),date(year, 12, 31), thiazide_type_diuretics_codelist, f"ttd_{year}", limit)
+    #get_prescription_gaps(dataset, date(year, 1, 1),date(year, 12, 31), alpha_adrenoceptor_blocking_drugs_codelist, f"aab_{year}", limit)
+    #get_prescription_gaps(dataset, date(year, 1, 1),date(year, 12, 31), angiotensin_ii_receptor_blockers_codelist, f"arb_{year}", limit)
+    #get_prescription_gaps(dataset, date(year, 1, 1),date(year, 12, 31), beta_blockers_codelist, f"bb_{year}", limit)
+    #get_prescription_gaps(dataset, date(year, 1, 1),date(year, 12, 31), calcium_channel_blockers_codelist, f"ccb_{year}", limit)
+    #get_prescription_gaps(dataset, date(year, 1, 1),date(year, 12, 31), centrally_acting_antihypertensives_codelist, f"caa_{year}", limit)
+    #get_prescription_gaps(dataset, date(year, 1, 1),date(year, 12, 31), potassium_sparing_diuretics_codelist, f"psd_{year}", limit)
+    #get_prescription_gaps(dataset, date(year, 1, 1),date(year, 12, 31), thiazide_type_diuretics_codelist, f"ttd_{year}", limit)
 
 # ---------------------------------
 # Create covariates on index date
