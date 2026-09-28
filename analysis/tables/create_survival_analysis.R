@@ -1,10 +1,9 @@
 # ==============================================================================
-# Predictors of time to first medication review, 2017 cohort
+# Predictors of time to first medication review by year
 # Kaplan-Meier description, univariable and multivariable Cox models
 # ==============================================================================
 
-# 1. Setup ---------------------------------------------------------------------
-library(tidyverse)   # includes dplyr, readr, tidyr, ggplot2
+library(tidyverse)
 library(lubridate)
 library(survival)
 library(gtsummary)
@@ -16,23 +15,26 @@ source("analysis/utility.R")
 dir.create(here("output", "tables"),  recursive = TRUE, showWarnings = FALSE)
 dir.create(here("output", "figures"), recursive = TRUE, showWarnings = FALSE)
 
-# Study parameters
+# Load data --------------------------------------------------------------------
+df_master <- read_rds(here("output", "dataset_clean", "input_clean_cov.rds"))
+years <- 2017:2024
+
+# pivot to long format and filter to eligible patients
+df_long <- df_master %>%
+  pivot_longer(
+    cols = matches(paste0("_(", paste(years, collapse = "|"), ")$")),
+    names_to = c(".value", "year"),
+    names_pattern = "(.+)_(\\d{4})$"
+  ) %>%
+  filter(inex_bin_all == TRUE)   # apply inclusion/exclusion criteria
+
+
+# Repeat for each year
 study_year <- 2017
 index_date <- as.Date("2017-01-01")   # time zero
 end_date   <- as.Date("2017-12-31")   # administrative end of follow-up
 
-# 2. Load data -----------------------------------------------------------------
-df_master <- read_rds(here("output", "dataset_clean", "input_clean_cov.rds"))
-
-# 3. Reshape to one row per patient for the study year -------------------------
-# Year-specific columns are named <variable>_<year>; keep only the study year.
-df_long <- df_master %>%
-  pivot_longer(
-    cols          = matches(paste0("_", study_year, "$")),
-    names_to      = c(".value", "year"),
-    names_pattern = "(.+)_(\\d{4})$"
-  ) %>%
-  filter(inex_bin_all == TRUE)   # apply inclusion/exclusion criteria
+df_long <- df_long %>% filter(year==study_year)
 
 # 4. Derive baseline covariates, outcome and follow-up time --------------------
 # TRUE if a date falls in the `months` before the index date
