@@ -24,7 +24,7 @@ df_long <- df_master %>%
 # Repeat for each year
 study_year <- 2017
 df <- df_long %>% filter(year==study_year) %>%
-select(-matches("efi|frail"))   # TODO: frailty / EFI to be added back when ready
+  select(-matches("efi|frail"))   # add frailty back when ready
 
 # ---- 2. Dates and outcome ----------------------------------------------------
 index_date <- as.Date("2017-01-01")   # time zero
@@ -43,7 +43,7 @@ df <- df %>%
     # death_date = as.Date(death_date),   # add when available
     # dereg_date = as.Date(dereg_date),   # add when available
     
-    # Censor at end of year (TODO: pmin(end_date, death_date, dereg_date, na.rm = TRUE))
+    # Censor at end of year add this when we have the variables (pmin(end_date, death_date, dereg_date, na.rm = TRUE))
     censor_date = end_date,
     
     event     = !is.na(review_date) & review_date <= censor_date,
