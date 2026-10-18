@@ -1,13 +1,6 @@
-# ==============================================================================
-# Predictors of time to first medication review (2017)
-# Univariable and multivariable Cox models
-# ==============================================================================
-
 library(tidyverse)
-library(lubridate)
 library(survival)
 library(gtsummary)
-library(broom)
 library(here)
 
 source("analysis/utility.R")   # provides in_window_before_index()
@@ -78,10 +71,10 @@ df <- df %>%
     
     # Factors 
     cov_cat_sex       = factor(cov_cat_sex),
-    cov_cat_ethnicity = factor(cov_cat_ethnicity),
     cov_cat_imd       = factor(cov_cat_imd),
     cov_cat_region    = factor(cov_cat_region),
-    cov_cat_smoking   = factor(cov_cat_smoking)
+    cov_cat_ethnicity = relevel(factor(cov_cat_ethnicity), ref = "White"),
+    cov_cat_smoking   = relevel(factor(cov_cat_smoking), ref = "N"), 
   ) %>%
   # Drop raw dates and intermediate variables
   select(-cov_dat_chd, -cov_dat_hosp, -cov_dat_AE, -exp_dat_med_rev,
