@@ -13,3 +13,8 @@ describe_data <- function(df, name) {
   sink()
   message(paste0("output/describe/", name, ".txt written successfully."))
 }
+
+# TRUE if a date falls in the `months` before the index date
+in_window_before_index <- function(date, months = 12) {
+  !is.na(date) & date < index_date & date >= index_date %m-% months(months)
+}
