@@ -1,6 +1,6 @@
 # ==============================================================================
-# Predictors of time to first medication review by year
-# Kaplan-Meier description, univariable and multivariable Cox models
+# Predictors of time to first medication review (2017)
+# Univariable and multivariable Cox models
 # ==============================================================================
 
 library(tidyverse)
@@ -10,12 +10,11 @@ library(gtsummary)
 library(broom)
 library(here)
 
-source("analysis/utility.R")
+source("analysis/utility.R")   # provides in_window_before_index()
 
-dir.create(here("output", "tables"),  recursive = TRUE, showWarnings = FALSE)
-dir.create(here("output", "figures"), recursive = TRUE, showWarnings = FALSE)
+dir.create(here("output", "tables"), recursive = TRUE, showWarnings = FALSE)
 
-# Load data --------------------------------------------------------------------
+# ---- 1. Load and filter ------------------------------------------------------
 df_master <- read_rds(here("output", "dataset_clean", "input_clean_cov.rds"))
 years <- 2017:2024
 
@@ -31,140 +30,104 @@ df_long <- df_master %>%
 
 # Repeat for each year
 study_year <- 2017
+df <- df_long %>% filter(year==study_year) %>%
+select(-matches("efi|frail"))   # TODO: frailty / EFI to be added back when ready
+
+# ---- 2. Dates and outcome ----------------------------------------------------
 index_date <- as.Date("2017-01-01")   # time zero
 end_date   <- as.Date("2017-12-31")   # administrative end of follow-up
 
-df_long <- df_long %>% filter(year==study_year)
-
-# 4. Derive baseline covariates, outcome and follow-up time --------------------
-# TRUE if a date falls in the `months` before the index date
-in_window_before_index <- function(date, months = 12) {
-  !is.na(date) & date < index_date & date >= index_date %m-% months(months)
-}
-
-df_analysis <- df_long %>%
-  select(-matches("efi|frail")) %>%   # frailty (EFI) not ready yet: add back later
+df <- df %>%
   mutate(
     across(c(cov_dat_chd, cov_dat_hosp, cov_dat_AE, exp_dat_med_rev), as.Date),
     
-    # Baseline status: coded CHD diagnosis before index
-    # (AMI, stroke, cancer, hypertension are already binary flags upstream)
-    cov_bin_chd_base = !is.na(cov_dat_chd) & cov_dat_chd < index_date,
-    
-    # Hospital admission / A&E attendance in the 12 months before index
-    cov_bin_hosp_12m = in_window_before_index(cov_dat_hosp),
-    cov_bin_AE_12m   = in_window_before_index(cov_dat_AE),
-    
-    # Prior medication review (before index).
-    # NOTE: exp_dat_med_rev is the first review of 2017, so it can't be used here.
-    # This needs a separate upstream variable holding the most recent review
-    # before 1 Jan 2017 (placeholder name below); uncomment once it exists.
-    # cov_bin_prior_med_rev = in_window_before_index(cov_dat_prior_med_rev, months = 12),
-    
-    # Outcome: first medication review in 2017
-    # exp_dat_med_rev is already the first review of the year; the window check
-    # is a safeguard so out-of-window dates are treated as no event.
+    # Outcome: first medication review in the study year
     review_date = if_else(
       exp_dat_med_rev >= index_date & exp_dat_med_rev <= end_date,
       exp_dat_med_rev, as.Date(NA)
     ),
     
-    # Censoring date: end of year for now.
-    # TODO: add death / deregistration dates once available, e.g.
-    #   censor_date = pmin(end_date, death_date, dereg_date, na.rm = TRUE)
+    # death_date = as.Date(death_date),   # add when available
+    # dereg_date = as.Date(dereg_date),   # add when available
+    
+    # Censor at end of year (TODO: pmin(end_date, death_date, dereg_date, na.rm = TRUE))
     censor_date = end_date,
     
-    # Event only counts if the review happened before censoring
     event     = !is.na(review_date) & review_date <= censor_date,
     stop_date = if_else(event, review_date, censor_date),
     
-    # Follow-up time in days; +1 so a review on 1 Jan has time = 1, not 0
+    # +1 so a review on 1 Jan has time = 1, not 0
     time = as.numeric(stop_date - index_date) + 1
+  )
+
+# ---- 3. Covariates -----------------------------------------------------------
+df <- df %>%
+  mutate(
+    # Baseline flags (AMI, stroke, cancer, hypertension are already binary)
+    cov_bin_chd_base = !is.na(cov_dat_chd) & cov_dat_chd < index_date,
+    cov_bin_hosp_12m = in_window_before_index(cov_dat_hosp),
+    cov_bin_AE_12m   = in_window_before_index(cov_dat_AE),
+    
+    # Add later: time since last review (before 1 Jan 2017), as categories
+    # last_rev_date  <- as.Date(last_rev_date)
+    # months_since_rev = as.numeric(index_date - last_rev_date) / 30.44,
+    # time_since_rev   = cut(months_since_rev, c(0, 6, 12, 24, Inf), include.lowest = TRUE),
+    # time_since_rev   = addNA(time_since_rev),   # "never reviewed" level
+    
+    # Add later: frailty
+    
+    # Factors 
+    cov_cat_sex       = factor(cov_cat_sex),
+    cov_cat_ethnicity = factor(cov_cat_ethnicity),
+    cov_cat_imd       = factor(cov_cat_imd),
+    cov_cat_region    = factor(cov_cat_region),
+    cov_cat_smoking   = factor(cov_cat_smoking)
   ) %>%
-  # Drop raw dates so they can't leak into the models
+  # Drop raw dates and intermediate variables
   select(-cov_dat_chd, -cov_dat_hosp, -cov_dat_AE, -exp_dat_med_rev,
          -review_date, -censor_date, -stop_date)
 
-# 5. Prepare model data --------------------------------------------------------
-# Check levels() for each factor to confirm the reference categories make sense.
-df_model <- df_analysis %>%
-  mutate(
-    cov_cat_sex       = factor(cov_cat_sex),
-    cov_cat_ethnicity = relevel(factor(cov_cat_ethnicity), ref = "White"),
-    cov_cat_imd       = factor(cov_cat_imd),                       # check ref is "1 (most deprived)"
-    cov_cat_region    = relevel(factor(cov_cat_region), ref = "East"),
-    cov_cat_smoking   = factor(cov_cat_smoking)                    # consider setting ref to never-smoker
-  )
-
-# Prespecified predictors (defined once, used for all models).
-# Dementia is omitted (everyone in the cohort has it) and subtype is left out for now.
-# Frailty / EFI to be added back when ready.
+# Prespecified predictors (used for all models).
+# Dementia subtype and frailty / EFI left out for now.
 predictors <- c(
   "cov_num_age", "cov_cat_sex", "cov_cat_ethnicity", "cov_cat_imd", "cov_cat_region",
   "cov_bin_chd_base", "cov_bin_ami", "cov_bin_stroke", "cov_bin_cancer",
   "cov_bin_hypertension", "cov_num_med_count", "cov_cat_smoking",
   "cov_num_cms", "cov_bin_carehome",
   "cov_bin_hosp_12m", "cov_bin_AE_12m"
-  # "cov_bin_prior_med_rev"   # add once the upstream variable exists (see section 4)
+  # "time_since_rev",   # add later
+  # "frailty"       # add later
 )
 
-# 6. Describe time to first review (Kaplan-Meier) ------------------------------
-km_fit <- survfit(Surv(time, event) ~ 1, data = df_model)
-
-# Cumulative incidence of review at selected time points
-summary(km_fit, times = c(90, 180, 270, 365)) %>%
-  {tibble(
-    day                   = .$time,
-    n_at_risk             = .$n.risk,
-    prob_no_review        = .$surv,
-    cumulative_incidence  = 1 - .$surv
-  )} %>%
-  write_csv(here("output", "tables", "km_med_rev.csv"))
-
-# Cumulative incidence curve
-tidy(km_fit) %>%
-  ggplot(aes(x = time, y = 1 - estimate)) +
-  geom_step() +
-  geom_ribbon(aes(ymin = 1 - conf.high, ymax = 1 - conf.low), alpha = 0.2) +
-  labs(x = "Days since 1 January 2017",
-       y = "Cumulative incidence of first medication review") +
-  theme_minimal()
-ggsave(here("output", "figures", "cuminc_med_rev.png"), width = 7, height = 5)
-
-# 7. Univariable and multivariable Cox models ----------------------------------
-# Single row per patient (one year), so no clustering or calendar-year term is
-# needed yet. When more years are added: cluster(patient_id) and a year term.
+# ---- 4. Fit Cox models -------------------------------------------------------
+# Single row per patient (one year), so no clustering needed yet.
+# Add later - I want to add practice ID - add cluster(practice_id);
 
 # Univariable: one model per predictor
-tbl_uni <- tbl_uvregression(
-  df_model,
-  method      = coxph,
-  y           = Surv(time, event),
-  include     = all_of(predictors),
-  exponentiate = TRUE
-)
+tbl_uni <- df %>%
+  tbl_uvregression(
+    method       = coxph,
+    y            = Surv(time, event),
+    include      = all_of(predictors),
+    exponentiate = TRUE
+  )
 
 # Multivariable: all predictors together
-cox_formula <- reformulate(predictors, response = "Surv(time, event)")
-cox_fit     <- coxph(cox_formula, data = df_model)
-summary(cox_fit)
+cox_fit <- df %>%
+  coxph(reformulate(predictors, response = "Surv(time, event)"), data = .)
 
-tbl_multi <- tbl_regression(cox_fit, exponentiate = TRUE)
+tbl_multi <- cox_fit %>%
+  tbl_regression(exponentiate = TRUE)
 
-# 8. Check proportional hazards ------------------------------------------------
-ph_test <- cox.zph(cox_fit)
-print(ph_test)
-# plot(ph_test)   # inspect Schoenfeld residuals for any variables that fail
+# ---- 5. Results --------------------------------------------------------------
+#later will add proportional hazards check here.
 
-# 9. Save results --------------------------------------------------------------
-# HR > 1 = higher rate of review (shorter time to review) vs the reference group
-tbl_merge(
-  list(tbl_uni, tbl_multi),
-  tab_spanner = c("**Univariable**", "**Multivariable**")
-) %>%
-  as_gt() %>%
-  gt::gtsave(here("output", "tables", "cox_med_rev.html"))
+# Univariable results
+tbl_uni$table_body %>%
+  select(variable, label, estimate, conf.low, conf.high, p.value) %>%
+  write_csv(here("output", "tables", "cox_univariable.csv"))
 
-# Plain CSV of multivariable hazard ratios
-tidy(cox_fit, exponentiate = TRUE, conf.int = TRUE) %>%
-  write_csv(here("output", "tables", "cox_med_rev.csv"))
+# Multivariable results
+tbl_multi$table_body %>%
+  select(variable, label, estimate, conf.low, conf.high, p.value) %>%
+  write_csv(here("output", "tables", "cox_multivariable.csv"))
