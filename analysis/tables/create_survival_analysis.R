@@ -21,9 +21,10 @@ df_long <- df_master %>%
   filter(inex_bin_all == TRUE)   # apply inclusion/exclusion criteria
 
 # Prespecified predictors (used for all models).
-# Dementia subtype and frailty / EFI left out for now.
+# Frailty / EFI left out for now.
 predictors <- c(
   "cov_num_age", "cov_cat_sex", "cov_cat_ethnicity", "cov_cat_imd", "cov_cat_region",
+  "cov_bin_dem_alz_base", "cov_bin_dem_vasc_base", "cov_bin_dem_other_base",   # dementia subtype (not mutually exclusive)
   "cov_bin_chd_base", "cov_bin_ami", "cov_bin_stroke", "cov_bin_cancer",
   "cov_bin_hypertension", "cov_num_med_count", "cov_cat_smoking",
   "cov_num_cms", "cov_bin_carehome",
@@ -35,6 +36,7 @@ predictors <- c(
 # Results for each year are collected here and combined at the end
 results_uni   <- list()
 results_multi <- list()
+results_ph    <- list()
 
 # Run the analysis separately for each study year
 for (study_year in years) {
@@ -74,6 +76,9 @@ for (study_year in years) {
     mutate(
       # Baseline flags (AMI, stroke, cancer, hypertension are already binary)
       cov_bin_chd_base = !is.na(cov_dat_chd) & cov_dat_chd < index_date,
+      cov_bin_dem_alz_base   = !is.na(cov_dat_dem_alz) & cov_dat_dem_alz < index_date,
+      cov_bin_dem_vasc_base  = !is.na(cov_dat_dem_vasc) & cov_dat_dem_vasc < index_date,
+      cov_bin_dem_other_base = !is.na(cov_dat_dem_other) & cov_dat_dem_other < index_date,
       cov_bin_hosp_12m = in_window_before_index(cov_dat_hosp, index_date),
       cov_bin_AE_12m   = in_window_before_index(cov_dat_AE, index_date),
 
@@ -94,6 +99,7 @@ for (study_year in years) {
     ) %>%
     # Drop raw dates and intermediate variables
     select(-cov_dat_chd, -cov_dat_hosp, -cov_dat_AE, -exp_dat_med_rev,
+           -cov_dat_dem_alz, -cov_dat_dem_vasc, -cov_dat_dem_other,
            -review_date, -censor_date, -stop_date)
 
   # ---- 4. Fit Cox models -----------------------------------------------------
@@ -116,10 +122,15 @@ for (study_year in years) {
   tbl_multi <- cox_fit %>%
     tbl_regression(exponentiate = TRUE)
 
-  #later will add proportional hazards check here.
+  # Proportional hazards check (Schoenfeld residuals) for the multivariable model
+  ph_test <- cox.zph(cox_fit)
 
   results_uni[[as.character(study_year)]]   <- tidy_cox_table(tbl_uni, study_year)
   results_multi[[as.character(study_year)]] <- tidy_cox_table(tbl_multi, study_year)
+  results_ph[[as.character(study_year)]]    <- as.data.frame(ph_test$table) %>%
+    rownames_to_column("term") %>%   # one row per predictor, plus GLOBAL
+    mutate(year = study_year) %>%
+    select(year, term, chisq, df, p)
 }
 
 # ---- 5. Results --------------------------------------------------------------
@@ -132,3 +143,7 @@ bind_rows(results_uni) %>%
 # Multivariable results
 bind_rows(results_multi) %>%
   write_csv(here("output", "tables", "cox_multivariable.csv"))
+
+# Proportional hazards test results (p < 0.05 suggests the assumption may not hold)
+bind_rows(results_ph) %>%
+  write_csv(here("output", "tables", "cox_ph_test.csv"))

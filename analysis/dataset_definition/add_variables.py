@@ -183,23 +183,29 @@ def add_covariates(dataset, index_date, end_date, column_suffix=""):
         .first_for_patient()
         .date)
 
-    # Alzheimer's diagnosis
-    cov_bin_dem_alz = (
+    # Date of first Alzheimer's diagnosis
+    cov_dat_dem_alz = (
         clinical_events.where(clinical_events.snomedct_code.is_in(alzheimers_codelist))
         .where(clinical_events.date.is_on_or_before(end_date))
-        ).exists_for_patient()
+        .sort_by(clinical_events.date)
+        .first_for_patient()
+        .date)
 
-    # Vascular dementia diagnosis
-    cov_bin_dem_vasc = (
+    # Date of first vascular dementia diagnosis
+    cov_dat_dem_vasc = (
         clinical_events.where(clinical_events.snomedct_code.is_in(vascular_dementia_codelist))
         .where(clinical_events.date.is_on_or_before(end_date))
-        ).exists_for_patient()
+        .sort_by(clinical_events.date)
+        .first_for_patient()
+        .date)
 
-    # "Other" dementia diagnosis
-    cov_bin_dem_other = (
+    # Date of first "other" dementia diagnosis
+    cov_dat_dem_other = (
         clinical_events.where(clinical_events.snomedct_code.is_in(other_dementia_codelist))
         .where(clinical_events.date.is_on_or_before(end_date))
-        ).exists_for_patient()
+        .sort_by(clinical_events.date)
+        .first_for_patient()
+        .date)
 
     # Acute MI diagnosis
     cov_bin_ami = (

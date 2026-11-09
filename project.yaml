@@ -149,6 +149,7 @@ actions:
       moderately_sensitive:
         cox_multivariable_table: output/tables/cox_multivariable.csv
         cox_univariable_table: output/tables/cox_univariable.csv
+        cox_ph_test_table: output/tables/cox_ph_test.csv
 
 
 
