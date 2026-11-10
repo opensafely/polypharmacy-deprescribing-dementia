@@ -10,7 +10,8 @@ from analysis.dataset_definition.variable_helper_functions import (
     ever_matching_event_clinical_ctv3_before,
     get_latest_ethnicity,
     get_imd,
-    filter_codes_by_category
+    filter_codes_by_category,
+    get_cms_on_date
 )
 
 # Codelists from codelists.py (which pulls all variables from the codelist folder)
@@ -311,7 +312,11 @@ def add_covariates(dataset, index_date, end_date, column_suffix=""):
     )
     cov_num_latest_efi = latest_efi_record.numeric_value
     cov_dat_latest_efi = latest_efi_record.calculation_date
-    
+
+    # Cambridge multimorbidity score on the index date
+    death_date = minimum_of(patients.date_of_death, ons_deaths.date)
+    cov_num_cms = get_cms_on_date(date(2017, 1, 1), death_date, return_components=False)
+
     # ---- Add all covariates to dataset ----
     covariates = {name: value for name, value in locals().items() if name.startswith("cov_")}
 

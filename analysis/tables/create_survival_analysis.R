@@ -24,12 +24,13 @@ df_long <- df_master %>%
 # Frailty / EFI left out for now.
 predictors <- c(
   "cov_num_age", "cov_cat_sex", "cov_cat_ethnicity", "cov_cat_imd", "cov_cat_region",
-  "cov_bin_dem_alz_base", "cov_bin_dem_vasc_base", "cov_bin_dem_other_base",   # dementia subtype (not mutually exclusive)
+  # dementia subtype (not mutually exclusive)
+  "cov_bin_dem_alz_base", "cov_bin_dem_vasc_base", "cov_bin_dem_other_base",   
   "cov_bin_chd_base", "cov_bin_ami", "cov_bin_stroke", "cov_bin_cancer",
   "cov_bin_hypertension", "cov_num_med_count", "cov_cat_smoking",
   "cov_num_cms", "cov_bin_carehome",
-  "cov_bin_hosp_12m", "cov_bin_AE_12m"
-  # "time_since_rev",   # add later
+  "cov_bin_hosp_12m", "cov_bin_AE_12m",
+  "cov_cat_time_since_rev"
   # "frailty"       # add later
 )
 
@@ -58,11 +59,8 @@ for (study_year in years) {
         exp_dat_med_rev, as.Date(NA)
       ),
 
-      # death_date = as.Date(death_date),   # add when available
-      # dereg_date = as.Date(dereg_date),   # add when available
-
-      # Censor at end of year add this when we have the variables (pmin(end_date, death_date, dereg_date, na.rm = TRUE))
-      censor_date = end_date,
+      # Censor at the earliest of death, deregistration or end of year
+      censor_date = pmin(end_date, cens_dat_death, cens_dat_dereg, na.rm = TRUE),
 
       event     = !is.na(review_date) & review_date <= censor_date,
       stop_date = if_else(event, review_date, censor_date),
@@ -82,11 +80,11 @@ for (study_year in years) {
       cov_bin_hosp_12m = in_window_before_index(cov_dat_hosp, index_date),
       cov_bin_AE_12m   = in_window_before_index(cov_dat_AE, index_date),
 
-      # Add later: time since last review (before 1 Jan of the study year), as categories
-      # last_rev_date  <- as.Date(last_rev_date)
-      # months_since_rev = as.numeric(index_date - last_rev_date) / 30.44,
-      # time_since_rev   = cut(months_since_rev, c(0, 6, 12, 24, Inf), include.lowest = TRUE),
-      # time_since_rev   = addNA(time_since_rev),   # "never reviewed" level
+      # Time since last review (before 1 Jan of the study year), as categories
+      months_since_rev       = as.numeric(index_date - cov_dat_last_med_rev) / 30.44,
+      cov_cat_time_since_rev = cut(months_since_rev, c(0, 6, 12, 24, Inf), include.lowest = TRUE,
+                                   labels = c("0-6 months", "6-12 months", "12-24 months", "24+ months")),
+      cov_cat_time_since_rev = fct_na_value_to_level(cov_cat_time_since_rev, "Never reviewed"),
 
       # Add later: frailty
 
@@ -100,6 +98,8 @@ for (study_year in years) {
     # Drop raw dates and intermediate variables
     select(-cov_dat_chd, -cov_dat_hosp, -cov_dat_AE, -exp_dat_med_rev,
            -cov_dat_dem_alz, -cov_dat_dem_vasc, -cov_dat_dem_other,
+           -cov_dat_last_med_rev, -months_since_rev,
+           -cens_dat_death, -cens_dat_dereg,
            -review_date, -censor_date, -stop_date)
 
   # ---- 4. Fit Cox models -----------------------------------------------------
