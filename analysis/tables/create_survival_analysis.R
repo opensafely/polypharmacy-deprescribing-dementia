@@ -25,10 +25,11 @@ df_long <- df_master %>%
 predictors <- c(
   "cov_num_age", "cov_cat_sex", "cov_cat_ethnicity", "cov_cat_imd", "cov_cat_region",
   # dementia subtype (not mutually exclusive)
-  "cov_bin_dem_alz_base", "cov_bin_dem_vasc_base", "cov_bin_dem_other_base",   
+  "cov_bin_dem_alz_base", "cov_bin_dem_vasc_base", "cov_bin_dem_other_base",
   "cov_bin_chd_base", "cov_bin_ami", "cov_bin_stroke", "cov_bin_cancer",
   "cov_bin_hypertension", "cov_num_med_count", "cov_cat_smoking",
-  "cov_num_cms", "cov_bin_carehome",
+  # "cov_num_cms",   # add back when CMS memory issue is resolved
+  "cov_bin_carehome",
   "cov_bin_hosp_12m", "cov_bin_AE_12m",
   "cov_cat_time_since_rev"
   # "frailty"       # add later
