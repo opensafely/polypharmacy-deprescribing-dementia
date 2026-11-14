@@ -5,7 +5,7 @@
 ## - Date of the first "stopping" event for each drug in each year of the study based on different stopping definitions
 ## - Region of the patient's practice for regional analysis 
 
-from analysis.dataset_definition.variable_helper_functions import get_stopping_dates_after_event
+from analysis.dataset_definition.variable_helper_functions import get_stopping_dates, get_stopping_dates_after_event
 from ehrql.tables.tpp import practice_registrations, clinical_events
 from ehrql import create_dataset, days
 from ehrql.query_language import table_from_file , PatientFrame, Series
@@ -36,7 +36,7 @@ end_date = study_dates["end_date"]
 dataset.desc_cat_region = practice_registrations.for_patient_on(start_date).practice_nuts1_region_name
 
 # Different gap sizes defining stopping events
-gap_sizes = [30, 90, 180]
+gap_sizes = [90, 120, 180]
 
 # Add inex variables for 2015 through 2024
 for year in range(2017, 2025):
@@ -46,12 +46,12 @@ for year in range(2017, 2025):
     
     med_rev=(clinical_events.where(clinical_events.snomedct_code.is_in(medication_review_codelist))
         .where(clinical_events.date.is_on_or_after(date(year, 1, 1)))
-        .where(clinical_events.date.is_before(date(year, 1, 1)+days(365)))
+        .where(clinical_events.date.is_on_or_before(date(year, 12, 31)))
         .count_for_patient())
     
     med_rev_dat=(clinical_events.where(clinical_events.snomedct_code.is_in(medication_review_codelist))
     .where(clinical_events.date.is_on_or_after(date(year, 1, 1)))
-    .where(clinical_events.date.is_before(date(year, 1, 1)+days(365)))
+    .where(clinical_events.date.is_on_or_before(date(year, 12, 31)))
     .sort_by(clinical_events.date)
     .first_for_patient()
     .date)
@@ -60,18 +60,20 @@ for year in range(2017, 2025):
     dataset.add_column(f"desc_num_med_rev_{year}", med_rev)
     dataset.add_column(f"desc_dat_med_rev_{year}", med_rev_dat)
 
-    # Loop through gap sizes
-    #for gap_size in gap_sizes:
-    
-        # Add variables for date of first stop following medication review for each year for each medication class
-        # get_stopping_dates_after_event(dataset, date(year, 1, 1), date(year, 1, 1)+days(365), ace_inhibitor_codelist, medication_review_codelist, f"desc_dat_stop_acei_{gap_size}_{year}", 10, gap_size)
-        # get_stopping_dates_after_event(dataset, date(year, 1, 1), date(year, 1, 1)+days(365), alpha_adrenoceptor_blocking_drugs_codelist, medication_review_codelist, f"desc_dat_stop_aab_{gap_size}_{year}", 10, gap_size)
-        # get_stopping_dates_after_event(dataset, date(year, 1, 1), date(year, 1, 1)+days(365), angiotensin_ii_receptor_blockers_codelist, medication_review_codelist, f"desc_dat_stop_arb_{gap_size}_{year}", 10, gap_size)
-        # get_stopping_dates_after_event(dataset, date(year, 1, 1), date(year, 1, 1)+days(365), beta_blockers_codelist, medication_review_codelist, f"desc_dat_stop_bb_{gap_size}_{year}", 10, gap_size)
-        # get_stopping_dates_after_event(dataset, date(year, 1, 1), date(year, 1, 1)+days(365), calcium_channel_blockers_codelist, medication_review_codelist, f"desc_dat_stop_ccb_{gap_size}_{year}", 10, gap_size)
-        # get_stopping_dates_after_event(dataset, date(year, 1, 1), date(year, 1, 1)+days(365), centrally_acting_antihypertensives_codelist, medication_review_codelist, f"desc_dat_stop_caa_{gap_size}_{year}", 10, gap_size)
-        # get_stopping_dates_after_event(dataset, date(year, 1, 1), date(year, 1, 1)+days(365), potassium_sparing_diuretics_codelist, medication_review_codelist, f"desc_dat_stop_psd_{gap_size}_{year}", 10, gap_size)
-        # get_stopping_dates_after_event(dataset, date(year, 1, 1), date(year, 1, 1)+days(365), thiazide_type_diuretics_codelist, medication_review_codelist, f"desc_dat_stop_ttd_{gap_size}_{year}", 10, gap_size)
+    # Add variables for date of first stop (gap between prescriptions) for each year for each medication class.
+    # One call covers all gap sizes, adding columns desc_dat_stop_<class>_<gap_size>_<year>
+    get_stopping_dates(dataset, date(year, 1, 1), date(year, 12, 31), ace_inhibitor_codelist, "desc_dat_stop_acei", year, 15, gap_sizes)
+    get_stopping_dates(dataset, date(year, 1, 1), date(year, 12, 31), alpha_adrenoceptor_blocking_drugs_codelist, "desc_dat_stop_aab", year, 15, gap_sizes)
+    get_stopping_dates(dataset, date(year, 1, 1), date(year, 12, 31), angiotensin_ii_receptor_blockers_codelist, "desc_dat_stop_arb", year, 15, gap_sizes)
+    get_stopping_dates(dataset, date(year, 1, 1), date(year, 12, 31), beta_blockers_codelist, "desc_dat_stop_bb", year, 15, gap_sizes)
+    get_stopping_dates(dataset, date(year, 1, 1), date(year, 12, 31), calcium_channel_blockers_codelist, "desc_dat_stop_ccb", year, 15, gap_sizes)
+    get_stopping_dates(dataset, date(year, 1, 1), date(year, 12, 31), centrally_acting_antihypertensives_codelist, "desc_dat_stop_caa", year, 15, gap_sizes)
+    get_stopping_dates(dataset, date(year, 1, 1), date(year, 12, 31), potassium_sparing_diuretics_codelist, "desc_dat_stop_psd", year, 15, gap_sizes)
+    get_stopping_dates(dataset, date(year, 1, 1), date(year, 12, 31), thiazide_type_diuretics_codelist, "desc_dat_stop_ttd", year, 15, gap_sizes)
+
+    # Previous review-based definition (stop identified at a medication review), kept for reference:
+    # for gap_size in gap_sizes:
+    #     get_stopping_dates_after_event(dataset, date(year, 1, 1), date(year, 12, 31), ace_inhibitor_codelist, medication_review_codelist, f"desc_dat_stop_acei_{gap_size}_{year}", 10, gap_size)
 
 ##Define population
 dataset.configure_dummy_data()

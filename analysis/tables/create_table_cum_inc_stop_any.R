@@ -1,8 +1,7 @@
-# Load libraries 
+# Load libraries
 
 library(tidyverse)
 library(survival)
-library(survminer)
 library(broom)
 library(scales)
 library(here)
@@ -19,10 +18,17 @@ source("analysis/utility.R")
 print("Load cleaned dataset")
 df <- read_rds(here("output", "dataset_clean", "input_clean_desc.rds"))
 
+# Death and deregistration dates (for censoring) come from the cov dataset
+df_cens <- read_rds(here("output", "dataset_clean", "input_clean_cov.rds")) %>%
+  select(patient_id, cens_dat_death, starts_with("cens_dat_dereg_"))
+
+df <- df %>%
+  left_join(df_cens, by = "patient_id")
+
 # Define drug classes and gap sizes for stopping definitions
 
-drug_classes <- c("acei", "bb", "arb", "aab", "ccb", "caa", "psd")
-gap_sizes <- c("30", "90", "180")
+drug_classes <- c("acei", "bb", "arb", "aab", "ccb", "caa", "psd", "ttd")
+gap_sizes <- c("90", "120", "180")
 
 # Get years from the dataset based on column names
 stop_cols <- names(df) %>%
@@ -70,7 +76,7 @@ for (gap in gap_sizes) {
   # Reshape data
   df_long <- df %>%
     pivot_longer(
-      cols = matches(paste0("^(desc_dat_stop_any_", gap, "|inex_bin_all)_\\d{4}$")),
+      cols = matches(paste0("^(desc_dat_stop_any_", gap, "|inex_bin_all|cens_dat_dereg)_\\d{4}$")),
       names_to = c(".value", "year"),
       names_pattern = "(.*)_(\\d{4})"
     ) %>%
@@ -82,11 +88,13 @@ for (gap in gap_sizes) {
     ) %>%
     filter(inex_bin_all) %>%
     mutate(
-      event = if_else(!is.na(event_date) & event_date <= end_date, 1, 0),
+      # Censor at the earliest of death, deregistration or end of year (as in the survival analysis)
+      censor_date = pmin(end_date, cens_dat_death, cens_dat_dereg, na.rm = TRUE),
+      event = if_else(!is.na(event_date) & event_date <= censor_date, 1, 0),
       time = if_else(
         event == 1,
         as.numeric(event_date - start_date),
-        as.numeric(end_date - start_date)
+        as.numeric(censor_date - start_date)
       )
     )
 
