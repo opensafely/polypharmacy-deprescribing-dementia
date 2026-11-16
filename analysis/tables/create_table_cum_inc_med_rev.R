@@ -1,12 +1,9 @@
 # Load libraries ---------------------------------------------------------------
 library(tidyverse)
 library(survival)
-library(survminer)
 library(broom)
 library(scales)
 library(here)
-library(dplyr)
-library(readr)
 
 # Source common functions ------------------------------------------------------
 print("Source common functions")

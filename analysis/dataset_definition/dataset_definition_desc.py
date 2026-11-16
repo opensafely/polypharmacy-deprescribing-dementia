@@ -7,7 +7,7 @@
 
 from analysis.dataset_definition.variable_helper_functions import get_stopping_dates, get_stopping_dates_after_event
 from ehrql.tables.tpp import practice_registrations, clinical_events
-from ehrql import create_dataset, days
+from ehrql import create_dataset
 from ehrql.query_language import table_from_file , PatientFrame, Series
 from datetime import date
 
@@ -71,7 +71,8 @@ for year in range(2017, 2025):
     get_stopping_dates(dataset, date(year, 1, 1), date(year, 12, 31), potassium_sparing_diuretics_codelist, "desc_dat_stop_psd", year, 15, gap_sizes)
     get_stopping_dates(dataset, date(year, 1, 1), date(year, 12, 31), thiazide_type_diuretics_codelist, "desc_dat_stop_ttd", year, 15, gap_sizes)
 
-    # Previous review-based definition (stop identified at a medication review), kept for reference:
+    # Review-based stopping definition (stop identified at a medication review).
+    # Not run right now but kept for the planned sensitivity analyses:
     # for gap_size in gap_sizes:
     #     get_stopping_dates_after_event(dataset, date(year, 1, 1), date(year, 12, 31), ace_inhibitor_codelist, medication_review_codelist, f"desc_dat_stop_acei_{gap_size}_{year}", 10, gap_size)
 

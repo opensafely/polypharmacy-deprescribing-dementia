@@ -3,10 +3,7 @@
 library(tidyverse)
 library(survival)
 library(broom)
-library(scales)
 library(here)
-library(dplyr)
-library(readr)
 
 # Source common functions
 

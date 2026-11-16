@@ -1,9 +1,6 @@
-from ehrql.tables.tpp import patients, practice_registrations, clinical_events, addresses, medications, ons_deaths, apcs, decision_support_values, emergency_care_attendances, ethnicity_from_sus 
-from ehrql import create_dataset, codelist_from_csv, days, case, when, minimum_of, show
-from datetime import date
+from ehrql.tables.tpp import patients, practice_registrations, clinical_events, addresses, medications, ons_deaths, apcs, decision_support_values, emergency_care_attendances
+from ehrql import days, case, when, minimum_of
 from analysis.dataset_definition.variable_helper_functions import (
-    get_prescription_dates, 
-    get_prescription_gaps,
     last_matching_event_clinical_snomed_before,
     last_matching_event_apc_before,
     last_matching_event_clinical_ctv3_before,
@@ -314,6 +311,8 @@ def add_covariates(dataset, index_date, end_date, column_suffix=""):
     cov_dat_latest_efi = latest_efi_record.calculation_date
 
     # Cambridge multimorbidity score on the index date
+    # Temporarily disabled because it caused memory issues on the real data.
+    # To be restored later
     death_date = minimum_of(patients.date_of_death, ons_deaths.date)
     # cov_num_cms = get_cms_on_date(index_date, death_date, return_components=False)
 
@@ -324,44 +323,9 @@ def add_covariates(dataset, index_date, end_date, column_suffix=""):
         dataset.add_column(f"{name}_{column_suffix}", expr)
     
 
-## This function adds columns for the next and previous prescriptions of a given medication around an index date
-## It also creates the columns counting the frequency of size gaps for the medication within the study period.
-## Inputs:
-## dataset - the ehrQL dataset which the variables will be added to
-## index_date - the date around which the next and previous prescriptions will be identified
-## start_date - the start date for which the gaps will be calulated
-## end_date - the end date for which the gaps will be calculated
-## medication_codelist - the codelist for the medication for which the variables will be created
-## column_suffix - the suffix to add to the variables created by this function
-def add_out_variables(dataset, index_date, start_date, end_date, medication_codelist, column_suffix):
-    ## Date of next antihypertensive medication after medication review
-    out_dat_next_med = (
-        medications.where(medications.dmd_code.is_in(medication_codelist))
-        .where(medications.date.is_after(index_date))
-        .where(medications.date.is_on_or_before(end_date))
-        .sort_by(medications.date)
-        .first_for_patient()
-        .date)
-
-    ## Date of previous antihypertensive medication before medication review
-    out_dat_prev_med = (
-        medications.where(medications.dmd_code.is_in(medication_codelist))
-        .where(medications.date.is_before(index_date))
-        .where(medications.date.is_on_or_after(start_date))
-        .sort_by(medications.date)
-        .last_for_patient()
-        .date)
-
-    ## Number of days between prescription dates of antihypertensives
-    get_prescription_gaps(dataset, start_date, end_date, medication_codelist, column_suffix, 100)
-
-    # ---- Add variables to dataset ----
-    dataset.add_column(f"out_dat_next_{column_suffix}", out_dat_next_med)
-    dataset.add_column(f"out_dat_prev_{column_suffix}", out_dat_prev_med)
-
-
+## This function adds the dates of the latest frailty codes (mild, moderate, severe, score) before the index date.
+## I'm not currently calling this. WIll be added in a later push, when I fully decide how to use the codes.
 def add_frailty_variables(dataset, index_date, column_suffix=""):
-    ## Date of next antihypertensive medication after medication review
 
     cov_dat_mildfrail = last_matching_event_clinical_snomed_before(mild_frailty,index_date).date
     cov_dat_moderatefrail = last_matching_event_clinical_snomed_before(moderate_frailty,index_date).date

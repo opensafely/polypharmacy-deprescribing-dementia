@@ -1,7 +1,7 @@
 from ehrql.tables.tpp import clinical_events, practice_registrations
 from ehrql import create_dataset
 from ehrql.query_language import table_from_file , PatientFrame, Series
-from datetime import datetime, date
+from datetime import date
 from analysis.dataset_definition.variable_helper_functions import (
     get_prescription_gaps
 )
@@ -39,6 +39,7 @@ for year in range(2017, 2025):
     dataset.add_column(f"desc_cat_region{year}", region)
 
     ## Outcome Variables - Gaps between prescriptions of each medication class
+    ## Only ACE inhibitors are run now other classes are commented out due to memory issue
     get_prescription_gaps(dataset, date(year, 1, 1),date(year, 12, 31), ace_inhibitor_codelist, f"acei_{year}", limit)
     #get_prescription_gaps(dataset, date(year, 1, 1),date(year, 12, 31), alpha_adrenoceptor_blocking_drugs_codelist, f"aab_{year}", limit)
     #get_prescription_gaps(dataset, date(year, 1, 1),date(year, 12, 31), angiotensin_ii_receptor_blockers_codelist, f"arb_{year}", limit)

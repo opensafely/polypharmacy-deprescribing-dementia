@@ -1,29 +1,8 @@
-from datetime import date
-
-from ehrql.tables.tpp import patients, practice_registrations, clinical_events, addresses, ethnicity_from_sus, medications, ons_deaths, apcs
-from ehrql import create_dataset, codelist_from_csv, days, case, when, minimum_of, show
+from ehrql.tables.tpp import patients, clinical_events, addresses, ethnicity_from_sus, medications, apcs
+from ehrql import days, case, when, minimum_of
 from codelists import *
 from functools import reduce
 import operator
-
-
-## This function creates a column for each prescription date of a medication from a given codelist
-## codelist: list of codes to search for
-## start_date: date to start searching from
-## end_date: date to stop searching
-## limit: number of prescription dates to extract
-## dataset: dataset to add the columns to
-def get_prescription_dates(dataset, start_date, end_date, codelist, column_suffix, limit):
-    prev_drug_date = start_date
-    for i in range(limit):
-        drug_date = (medications.where(medications.dmd_code.is_in(codelist))
-        .where(medications.date.is_after(prev_drug_date))
-        .where(medications.date.is_on_or_before(end_date))
-        .sort_by(medications.date)
-        .first_for_patient()
-        .date)
-        dataset.add_column(f"out_dat_{column_suffix}_{i}", drug_date)
-        prev_drug_date = drug_date
 
 
 ## This function counts the frequency of gaps between prescriptions within specified time intervals
@@ -121,6 +100,8 @@ def filter_codes_by_category(codelist, include):
     return {k:v for k,v in codelist.items() if v in include}
 
 
+## Not currently used in the pipeline. Kept for the planned sensitivity analyses that define stopping
+## relative to a medication review (see the commented-out call in dataset_definition_desc.py).
 ## this function identifies the first date within a time period on which a patient "stops" a medication following a specified clinical event.
 ## A stop is defined at an event where the patient was on the medication beforehand (a prescription within `lookback` days before the event)
 ## and the gap between the last prescription before the event and the next prescription on/after the event is at least gap_size days

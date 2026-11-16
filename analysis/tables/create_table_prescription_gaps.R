@@ -1,11 +1,8 @@
 # This script takes patient level data for prescription gaps 
 
 # Load libraries ---------------------------------------------------------------
-library(readr)
 library(tidyverse)
-library(gtsummary)
 library(here)
-library(dplyr)
 
 # Source common functions ------------------------------------------------------
 print("Source common functions")

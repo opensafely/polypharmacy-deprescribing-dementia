@@ -5,7 +5,7 @@
 from ehrql.tables.tpp import clinical_events, practice_registrations,ons_deaths, patients
 from ehrql import create_dataset, minimum_of
 from ehrql.query_language import table_from_file , PatientFrame, Series
-from datetime import datetime, date
+from datetime import date
 from analysis.dataset_definition.add_variables import(
     add_covariates,
     add_inex_variables,
@@ -44,7 +44,7 @@ for year in range(2017, 2025):
     # Create covariates on index date
     add_covariates(dataset, date(year, 1, 1), date(year, 12, 31), year)
 
-    #Frailty variables
+    # Frailty variables are disabled until the frailty investigation decides how frailty will be measured
     #add_frailty_variables(dataset, date(year, 1, 1), year)
 
     # Medication review variables

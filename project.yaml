@@ -132,6 +132,8 @@ actions:
         describe_preprocessed: output/describe/preprocessed-cov.txt
         describe_ref: output/describe/ref-cov.txt
 
+  # Frailty investigation: disabled until frailty variables are added back to the cov dataset
+  # (see add_frailty_variables() in add_variables.py)
   # create_frailty_table:
   #   run: r:v2 analysis/tables/create_frailty_table.R
   #   needs: [clean_dataset_cov]
@@ -149,12 +151,3 @@ actions:
         cox_multivariable_table: output/tables/cox_multivariable.csv
         cox_univariable_table: output/tables/cox_univariable.csv
         cox_ph_test_table: output/tables/cox_ph_test.csv
-
-
-
-  # generate_project_dag:
-  #   run: python:v2 python analysis/project_dag.py --yaml-path project.yaml --output-path project.dag.md
-  #   outputs:
-  #     moderately_sensitive:
-  #       counts: project.dag.md
-  
