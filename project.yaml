@@ -1,29 +1,29 @@
 version: '5.0'
 
 actions:
-  generate_dataset_prematch:
-    run: ehrql:v1 generate-dataset analysis/dataset_definition/dataset_definition_prematch.py --output output/dataset/input_prematch.csv.gz --dummy-tables dummy_tables
+  generate_dataset_inex:
+    run: ehrql:v1 generate-dataset analysis/dataset_definition/dataset_definition_inex.py --output output/dataset/input_inex.csv.gz --dummy-tables dummy_tables
     outputs:
       highly_sensitive:
-        dataset: output/dataset/input_prematch.csv.gz
+        dataset: output/dataset/input_inex.csv.gz
 
-  clean_dataset_prematch:
-    run: r:v2 analysis/dataset_clean/dataset_clean_prematch.R
-    needs: [generate_dataset_prematch]
+  clean_dataset_inex:
+    run: r:v2 analysis/dataset_clean/dataset_clean_inex.R
+    needs: [generate_dataset_inex]
     outputs:
       highly_sensitive:
-        dataset: output/dataset_clean/input_clean_prematch.csv.gz
+        dataset: output/dataset_clean/input_clean_inex.csv.gz
       moderately_sensitive:
-        flow_prematch: output/dataset_clean/flow_prematch.csv
-        flow_prematch_midpoint6: output/dataset_clean/flow_prematch_midpoint6.csv
-        describe_inex_prematch: output/describe/inex-prematch.txt
-        describe_preprocessed_prematch: output/describe/preprocessed-prematch.txt
-        describe_qa_prematch: output/describe/qa-prematch.txt
-        describe_ref_prematch: output/describe/ref-prematch.txt
+        flow_inex: output/dataset_clean/flow_inex.csv
+        flow_inex_midpoint6: output/dataset_clean/flow_inex_midpoint6.csv
+        describe_inex_inex: output/describe/inex-inex.txt
+        describe_preprocessed_inex: output/describe/preprocessed-inex.txt
+        describe_qa_inex: output/describe/qa-inex.txt
+        describe_ref_inex: output/describe/ref-inex.txt
 
   generate_dataset_desc:
     run: ehrql:v1 generate-dataset analysis/dataset_definition/dataset_definition_desc.py --output output/dataset/input_desc.csv.gz --dummy-tables dummy_tables
-    needs: [clean_dataset_prematch]
+    needs: [clean_dataset_inex]
     outputs:
       highly_sensitive:
         dataset: output/dataset/input_desc.csv.gz
@@ -74,7 +74,7 @@ actions:
 
   generate_dataset_hist:
     run: ehrql:v1 generate-dataset analysis/dataset_definition/dataset_definition_hist.py --output output/dataset/input_hist.csv.gz --dummy-tables dummy_tables
-    needs: [clean_dataset_prematch]
+    needs: [clean_dataset_inex]
     outputs:
       highly_sensitive:
         dataset: output/dataset/input_hist.csv.gz
@@ -117,7 +117,7 @@ actions:
 
   generate_dataset_cov:
     run: ehrql:v1 generate-dataset analysis/dataset_definition/dataset_definition_cov.py --output output/dataset/input_cov.csv.gz --dummy-tables dummy_tables
-    needs: [clean_dataset_prematch]
+    needs: [clean_dataset_inex]
     outputs:
       highly_sensitive:
         dataset: output/dataset/input_cov.csv.gz

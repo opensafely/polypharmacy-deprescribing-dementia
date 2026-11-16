@@ -46,7 +46,7 @@ Deatils of the purpose for each file in this repository are outlined below
 - **Suffixes used in dataset scripts**  
   The `dataset_definition_*.py` and `dataset_clean_*.R` files use consistent suffixes to indicate the dataset or stage they relate to:
 
-  - `_prematch*` - dataset containing inclusion/exclusion and QA variables.
+  - `_inex` - dataset containing inclusion/exclusion and QA variables, used to narrow the population to anyone who could be eligible at any point in the study period.
   - `_desc` - dataset containing variables for generating descriptive analyses (cumulative incidence graphs and exposure / outcome rates in the population)
   - `_hist` - dataset containing variables for generating medication gap histograms.
   - `_cov` - dataset containing covariates that could be possible predictors of stopping or medication reviews.

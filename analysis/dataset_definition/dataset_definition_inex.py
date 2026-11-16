@@ -6,7 +6,7 @@ from ehrql.tables.tpp import patients
 from ehrql import create_dataset
 
 from analysis.dataset_definition.add_variables import(
-    add_inex_variables_prematch
+    add_inex_variables_study_period
 )
 
 # Codelists from codelists.py (which pulls all variables from the codelist folder)
@@ -24,7 +24,7 @@ end_date = study_dates["end_date"]
 
 ## ---------------------------------
 ## Create variables for inclusion / exclusion criteria during the study period
-add_inex_variables_prematch(dataset, start_date, end_date)
+add_inex_variables_study_period(dataset, start_date, end_date)
 
 ## ---------------------------------
 ## Create variables for data quality checks

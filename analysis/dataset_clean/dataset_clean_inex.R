@@ -23,7 +23,7 @@ dir_create(here::here(dataclean_dir))
 
 ## Load dataset
 print("Load dataset")
-dataset_clean <- load_data("input_prematch.csv.gz", suffix = "prematch", describe = TRUE) 
+dataset_clean <- load_data("input_inex.csv.gz", suffix = "inex", describe = TRUE) 
 
 #load dates
 constants <- fromJSON("analysis/config.json")
@@ -41,28 +41,28 @@ flow <- data.frame(
 print("Running quality assurance")
 
 # This function returns a list with two elements: input and flow
-dataset_clean <- qa(dataset_clean, flow, suffix = "prematch")
+dataset_clean <- qa(dataset_clean, flow, suffix = "inex")
 flow <- dataset_clean$flow
 dataset_clean <- dataset_clean$input
 
 ## Run inclusion and exclusion criteria
 print("Applying inclusion and exclusion criteria")
-dataset_clean <- inex(dataset_clean, flow, suffix = "prematch")
+dataset_clean <- inex(dataset_clean, flow, suffix = "inex")
 
 flow <- dataset_clean$flow
 dataset_clean <- dataset_clean$input
 
 ## Set reference levels and handle missing values
 print("Set reference levels and handle missing values")
-dataset_clean <- ref(dataset_clean, suffix = "prematch")
+dataset_clean <- ref(dataset_clean, suffix = "inex")
 
 ## Saved cleaned dataset to output folder
 print("Saving cleaned dataset to output folder")
-write_csv(dataset_clean, file = here::here(dataclean_dir, "input_clean_prematch.csv.gz"))
+write_csv(dataset_clean, file = here::here(dataclean_dir, "input_clean_inex.csv.gz"))
 
 ## Saved flowchart data to output folder
 print("Saving flowchart data to output folder")
-write_csv(flow, here::here(dataclean_dir, "flow_prematch.csv"))
+write_csv(flow, here::here(dataclean_dir, "flow_inex.csv"))
 
 ## Create midpoint rounded version of flowchart data
 print("Creating midpoint rounded flowchart data")
@@ -75,5 +75,5 @@ flow_midpoint6 <- flow %>%
 ## Save rounded flowchart data
 write_csv(
   flow_midpoint6,
-  here::here(dataclean_dir, "flow_prematch_midpoint6.csv")
+  here::here(dataclean_dir, "flow_inex_midpoint6.csv")
 )

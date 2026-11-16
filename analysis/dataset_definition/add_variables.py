@@ -106,7 +106,7 @@ def add_inex_variables(dataset, start_date, collapse_vars=0, column_suffix=""):
 ## dataset - the ehrQL dataset which the variables will be added to
 ## start_date - the start date for which the variables will be calculated
 ## end_date - the end date of the study period, used to calculate some variables such as medication use
-def add_inex_variables_prematch(dataset,start_date,end_date):
+def add_inex_variables_study_period(dataset,start_date,end_date):
     
     # Dementia diagnosis before end date
     inex_bin_has_dem = (
