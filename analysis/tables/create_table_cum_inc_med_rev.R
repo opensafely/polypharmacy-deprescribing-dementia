@@ -11,21 +11,21 @@ source("analysis/utility.R")
 
 # Load data --------------------------------------------------------------------
 print("Load cleaned dataset")
-df <- read_rds(here("output", "dataset_clean", "input_clean_desc.rds"))
+df <- read_rds(here("output", "dataset_clean", "input_clean_out.rds"))
 
 # Reshape data into long format for cumulative incidence stuff
 # ------------------------------------------------------------------------------
 print("Reshape data")
 df <- df %>%
   pivot_longer(
-    cols = matches("^(desc_dat_med_rev|inex_bin_all)_\\d{4}$"),
+    cols = matches("^(out_dat_med_rev|inex_bin_all)_\\d{4}$"),
     names_to = c(".value", "year"),
     names_pattern = "(.*)_(\\d{4})"
   ) %>%
   # separate by year
   mutate(
     year = as.numeric(year),
-    event_date = as.Date(desc_dat_med_rev),
+    event_date = as.Date(out_dat_med_rev),
     start_date = as.Date(paste0(year, "-01-01")),
     end_date = as.Date(paste0(year, "-12-31"))
   ) %>%

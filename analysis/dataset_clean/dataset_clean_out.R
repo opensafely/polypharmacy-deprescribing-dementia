@@ -24,7 +24,7 @@ dir_create(here::here(dataclean_dir))
 ## Load dataset
 print("Load dataset")
 
-dataset_clean <- load_data("input_desc.csv.gz", suffix = "desc", describe = TRUE) 
+dataset_clean <- load_data("input_out.csv.gz", suffix = "out", describe = TRUE) 
 
 #load dates
 constants <- fromJSON("analysis/config.json")
@@ -41,11 +41,11 @@ flow <- data.frame(
 
 ## Set reference levels and handle missing values
 print("Set reference levels and handle missing values")
-dataset_clean <- ref(dataset_clean, suffix = "desc")
+dataset_clean <- ref(dataset_clean, suffix = "out")
 
 ## Saved cleaned dataset to output folder
 print("Saving cleaned dataset to output folder")
 
 saveRDS(dataset_clean,
-        file = here::here(dataclean_dir, "input_clean_desc.rds"),
+        file = here::here(dataclean_dir, "input_clean_out.rds"),
         compress = TRUE)

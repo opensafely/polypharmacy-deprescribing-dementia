@@ -1,9 +1,9 @@
-## This script defines possible covariates for the analysis section of the study.
-## For now these will be presented in table 1 format to be used in the descriptive section of the study.
+## This script defines possible covariates (predictors of medication reviews and stopping) for the study.
+## They are used in table 1 and the survival analysis. Outcomes and censoring dates are in dataset_definition_out.py.
 ## Variables are defined for each year of the study period to account for possible changes in the values and inclusion
 
-from ehrql.tables.tpp import clinical_events, practice_registrations,ons_deaths, patients
-from ehrql import create_dataset, minimum_of
+from ehrql.tables.tpp import clinical_events
+from ehrql import create_dataset
 from ehrql.query_language import table_from_file , PatientFrame, Series
 from datetime import date
 from analysis.dataset_definition.add_variables import(
@@ -27,15 +27,7 @@ with open("analysis/config.json") as f:
 start_date = study_dates["start_date"]
 end_date = study_dates["end_date"]
 
-index_date = start_date
-limit = 2
-
-death_date = minimum_of(patients.date_of_death, ons_deaths.date)
-
-# Date of death (for censoring) - not year-specific
-dataset.add_column("cens_dat_death", death_date)
-
-# Add inex variables for 2015 through 2024
+# Add variables for each year of the study
 for year in range(2017, 2025):
     #Add collapsed in/ex variable for each year in the study
     add_inex_variables(dataset, date(year, 1, 1), 1,year)
@@ -47,17 +39,6 @@ for year in range(2017, 2025):
     # Frailty variables are disabled until the frailty investigation decides how frailty will be measured
     #add_frailty_variables(dataset, date(year, 1, 1), year)
 
-    # Medication review variables
-    exp_dat_med_rev = (
-        clinical_events.where(clinical_events.snomedct_code.is_in(medication_review_codelist))
-        .where(clinical_events.date.is_on_or_after(date(year, 1, 1)))
-        .where(clinical_events.date.is_on_or_before(date(year, 12, 31)))
-        .sort_by(clinical_events.date)
-        .first_for_patient()
-        .date)
-    
-    dataset.add_column(f"exp_dat_med_rev_{year}", exp_dat_med_rev)
-
     # Date of last medication review before the index date (for time since last review)
     cov_dat_last_med_rev = (
         clinical_events.where(clinical_events.snomedct_code.is_in(medication_review_codelist))
@@ -67,16 +48,6 @@ for year in range(2017, 2025):
         .date)
 
     dataset.add_column(f"cov_dat_last_med_rev_{year}", cov_dat_last_med_rev)
-
-    # Deregistration: end of the practice registration active on the index date (for censoring)
-    cens_dat_dereg = practice_registrations.for_patient_on(date(year, 1, 1)).end_date
-
-    dataset.add_column(f"cens_dat_dereg_{year}", cens_dat_dereg)
-
-
-
-
-
 
 ##Define population
 dataset.configure_dummy_data()

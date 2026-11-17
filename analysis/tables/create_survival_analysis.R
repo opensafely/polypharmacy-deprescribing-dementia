@@ -12,14 +12,18 @@ df_master <- read_rds(here("output", "dataset_clean", "input_clean_cov.rds"))
 years <- 2017:2024
 gap_sizes <- c(90, 120, 180)   # gap sizes used to define stopping a medication
 
-# Stopping dates come from the desc dataset (one column per drug class, gap size and year)
-df_stop <- read_rds(here("output", "dataset_clean", "input_clean_desc.rds")) %>%
-  select(patient_id, starts_with("desc_dat_stop_"))
+# Outcomes and censoring dates come from the out dataset: first medication review, stopping dates
+# (one column per drug class, gap size and year), death and deregistration
+df_out <- read_rds(here("output", "dataset_clean", "input_clean_out.rds")) %>%
+  select(patient_id, starts_with("out_dat_med_rev_"), starts_with("out_dat_stop_"), starts_with("cens_dat_"))
+
+df_stop <- df_out %>%
+  select(patient_id, starts_with("out_dat_stop_"))
 
 # "Stop any": earliest stop across all drug classes, for each gap size and year
 for (gap in gap_sizes) {
   for (yr in years) {
-    cols_this_year <- str_subset(names(df_stop), paste0("^desc_dat_stop_.+_", gap, "_", yr, "$"))
+    cols_this_year <- str_subset(names(df_stop), paste0("^out_dat_stop_.+_", gap, "_", yr, "$"))
     new_col <- paste0("out_dat_stop_any_", gap, "_", yr)
     df_stop[[new_col]] <- if (length(cols_this_year) > 0) {
       do.call(pmin, c(df_stop[cols_this_year], na.rm = TRUE))
@@ -30,6 +34,7 @@ for (gap in gap_sizes) {
 }
 
 df_master <- df_master %>%
+  left_join(select(df_out, patient_id, starts_with("out_dat_med_rev_"), starts_with("cens_dat_")), by = "patient_id") %>%
   left_join(select(df_stop, patient_id, starts_with("out_dat_stop_any_")), by = "patient_id")
 
 # pivot to long format and filter to eligible patients
@@ -43,7 +48,7 @@ df_long <- df_master %>%
 
 # Outcomes to model: name used in the output = date column in df_long
 outcomes <- c(
-  med_rev = "exp_dat_med_rev",   # first medication review
+  med_rev = "out_dat_med_rev",   # first medication review
   setNames(paste0("out_dat_stop_any_", gap_sizes), paste0("stop_any_", gap_sizes))   # first stop of any antihypertensive
 )
 

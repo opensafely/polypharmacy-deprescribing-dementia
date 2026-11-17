@@ -18,6 +18,14 @@ dir.create(here("output", "tables"), recursive = TRUE, showWarnings = FALSE)
 print("Load cleaned dataset")
 df_master <- readr::read_rds(here("output", "dataset_clean", "input_clean_cov.rds"))
 
+# Date of first medication review in each year comes from the out dataset
+# (used for the "exposed" columns: patients who had a medication review in the year)
+df_med_rev <- readr::read_rds(here("output", "dataset_clean", "input_clean_out.rds")) %>%
+  select(patient_id, starts_with("out_dat_med_rev_"))
+
+df_master <- df_master %>%
+  left_join(df_med_rev, by = "patient_id")
+
 
 #------------------------------------------------
 # Create binary indicators for "cov_dat_" variables
@@ -28,7 +36,7 @@ df_master <- df_master %>%
 
 # Create binary exposed variable
 df_master <- df_master %>%
-  mutate(across(starts_with("exp_dat_med_rev"), ~ !is.na(.x), .names = "{sub('dat', 'bin', .col)}"))
+  mutate(across(starts_with("out_dat_med_rev"), ~ !is.na(.x), .names = "{sub('dat', 'bin', .col)}"))
 
 
 years <- 2017:2024

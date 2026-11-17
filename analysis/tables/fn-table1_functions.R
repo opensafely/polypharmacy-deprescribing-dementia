@@ -3,7 +3,7 @@ create_table1 <- function(df) {
   df_table1 <- df %>%
     select(
       patient_id,
-      exp_bin_med_rev,
+      out_bin_med_rev,
       cov_num_age,
       cov_num_med_count,
       # cov_num_cms,   # CMS commented out for now (memory issue in generate_dataset_cov)
@@ -12,15 +12,15 @@ create_table1 <- function(df) {
       starts_with("strat_cat_")
     ) %>%
     mutate(
-      # across(-c(patient_id, exp_bin_med_rev, cov_num_age, cov_num_med_count, cov_num_cms), as.character),
-      across(-c(patient_id, exp_bin_med_rev, cov_num_age, cov_num_med_count), as.character),
+      # across(-c(patient_id, out_bin_med_rev, cov_num_age, cov_num_med_count, cov_num_cms), as.character),
+      across(-c(patient_id, out_bin_med_rev, cov_num_age, cov_num_med_count), as.character),
       All = "All")
   
   # Long format for counting
   df_long <- df_table1 %>%
     pivot_longer(
-      # cols = -c(patient_id, exp_bin_med_rev, cov_num_age, cov_num_med_count, cov_num_cms),
-      cols = -c(patient_id, exp_bin_med_rev, cov_num_age, cov_num_med_count),
+      # cols = -c(patient_id, out_bin_med_rev, cov_num_age, cov_num_med_count, cov_num_cms),
+      cols = -c(patient_id, out_bin_med_rev, cov_num_age, cov_num_med_count),
       names_to = "characteristic",
       values_to = "subcharacteristic"
     )
@@ -70,7 +70,7 @@ create_table1 <- function(df) {
   table1 <- df_long %>%
     group_by(characteristic, subcharacteristic) %>%
     summarise(N = n(),
-              exposed_N = sum(exp_bin_med_rev, na.rm = TRUE),
+              exposed_N = sum(out_bin_med_rev, na.rm = TRUE),
               .groups = "drop"
     ) %>%
     mutate(N = as.character(N),

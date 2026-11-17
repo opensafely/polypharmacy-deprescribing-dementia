@@ -13,14 +13,8 @@ source("analysis/utility.R")
 # Load data
 
 print("Load cleaned dataset")
-df <- read_rds(here("output", "dataset_clean", "input_clean_desc.rds"))
-
-# Death and deregistration dates (for censoring) come from the cov dataset
-df_cens <- read_rds(here("output", "dataset_clean", "input_clean_cov.rds")) %>%
-  select(patient_id, cens_dat_death, starts_with("cens_dat_dereg_"))
-
-df <- df %>%
-  left_join(df_cens, by = "patient_id")
+# Stopping dates and censoring dates (death, deregistration) both come from the out dataset
+df <- read_rds(here("output", "dataset_clean", "input_clean_out.rds"))
 
 # Define drug classes and gap sizes for stopping definitions
 
@@ -29,7 +23,7 @@ gap_sizes <- c("90", "120", "180")
 
 # Get years from the dataset based on column names
 stop_cols <- names(df) %>%
-  str_subset("^desc_dat_stop_")
+  str_subset("^out_dat_stop_")
 
 years <- stop_cols %>%
   str_extract("\\d{4}$") %>%
@@ -45,13 +39,13 @@ for (gap in gap_sizes) {
   # Create variables variables showing "stop any drug"
   for (yr in years) {
 
-    cols_this_year <- paste0("desc_dat_stop_", drug_classes, "_", gap, "_", yr)
+    cols_this_year <- paste0("out_dat_stop_", drug_classes, "_", gap, "_", yr)
 
     # Handles case when there are no columns for this year (e.g. if some drug classes were not present in that year)
     cols_this_year <- cols_this_year[ cols_this_year %in% names(df) ]
 
     #new column for "stopping" of any antihypetensive drug for this year for the gap size
-    new_col <- paste0("desc_dat_stop_any_", gap, "_", yr)
+    new_col <- paste0("out_dat_stop_any_", gap, "_", yr)
 
     #select the minimum date across all drug classes for this year
     df <- df %>%
@@ -73,13 +67,13 @@ for (gap in gap_sizes) {
   # Reshape data
   df_long <- df %>%
     pivot_longer(
-      cols = matches(paste0("^(desc_dat_stop_any_", gap, "|inex_bin_all|cens_dat_dereg)_\\d{4}$")),
+      cols = matches(paste0("^(out_dat_stop_any_", gap, "|inex_bin_all|cens_dat_dereg)_\\d{4}$")),
       names_to = c(".value", "year"),
       names_pattern = "(.*)_(\\d{4})"
     ) %>%
     mutate(
       year = as.numeric(year),
-      event_date = as.Date(.data[[paste0("desc_dat_stop_any_", gap)]]),
+      event_date = as.Date(.data[[paste0("out_dat_stop_any_", gap)]]),
       start_date = as.Date(paste0(year, "-01-01")),
       end_date = as.Date(paste0(year, "-12-31"))
     ) %>%

@@ -203,7 +203,7 @@ def get_stopping_dates_after_event(dataset, start_date, end_date ,med_codelist, 
 ## start_date - the start date for the time period
 ## end_date - the end date of the time period
 ## med_codelist - the codelist for the medication for which stopping is being identified
-## column_prefix - the start of the column names (e.g. "desc_dat_stop_acei")
+## column_prefix - the start of the column names (e.g. "out_dat_stop_acei")
 ## column_suffix - the end of the column names (e.g. the year)
 ## limit - the maximum number of prescriptions to step through (should exceed the number of prescriptions a patient gets in the period)
 ## gap_sizes - list of gap sizes (days without a prescription) that define a stop

@@ -47,9 +47,9 @@ Deatils of the purpose for each file in this repository are outlined below
   The `dataset_definition_*.py` and `dataset_clean_*.R` files use consistent suffixes to indicate the dataset or stage they relate to:
 
   - `_inex` - dataset containing inclusion/exclusion and QA variables, used to narrow the population to anyone who could be eligible at any point in the study period.
-  - `_desc` - dataset containing variables for generating descriptive analyses (cumulative incidence graphs and exposure / outcome rates in the population)
-  - `_hist` - dataset containing variables for generating medication gap histograms.
   - `_cov` - dataset containing covariates that could be possible predictors of stopping or medication reviews.
+  - `_out` - dataset containing outcomes (medication reviews, stopping of each antihypertensive class) and censoring dates (death, deregistration). Used with `_cov` for the cumulative incidence plots, descriptive tables and survival analysis.
+  - `_hist` - dataset containing variables for generating medication gap histograms.
 
   These suffixes help track the flow of data through the pipeline, showing which datasets are inputs to later cleaning, matching, or analysis steps.
 
