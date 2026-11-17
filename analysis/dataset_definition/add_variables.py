@@ -1,5 +1,7 @@
 from ehrql.tables.tpp import patients, practice_registrations, clinical_events, addresses, medications, ons_deaths, apcs, decision_support_values, emergency_care_attendances
 from ehrql import days, case, when, minimum_of
+from functools import reduce
+import operator
 from analysis.dataset_definition.variable_helper_functions import (
     last_matching_event_clinical_snomed_before,
     last_matching_event_apc_before,
@@ -14,14 +16,12 @@ from analysis.dataset_definition.variable_helper_functions import (
 # Codelists from codelists.py (which pulls all variables from the codelist folder)
 from codelists import *
 
-## This function adds all the variables for inclusion and exclusion criteria for the study
-## Inputs: 
-## dataset - the ehrQL dataset which the variables will be added to
-## start_date - the date for which the variables will be calculated
-## collapse_vars - if 0, adds all variables separately. If 1, creates one variable which is TRUE if the patient meets all criteria and FALSE otherwise
-## column_suffix - the suffix to add to the variable name if collapse_vars is 1
-def add_inex_variables(dataset, start_date, collapse_vars=0, column_suffix=""):
-    
+## This function returns the inclusion and exclusion criteria for the study on a given date,
+## as a dict of {variable name: ehrQL boolean expression}.
+## Inputs:
+## start_date - the date on which eligibility is assessed (1 January of each study year)
+def get_inex_conditions(start_date):
+
     # Dementia diagnosis
     inex_bin_has_dem = (
         clinical_events.where(clinical_events.snomedct_code.is_in(dementia_codelist))
@@ -74,33 +74,16 @@ def add_inex_variables(dataset, start_date, collapse_vars=0, column_suffix=""):
     #Known region
     inex_bin_known_region = practice_registrations.for_patient_on(start_date).practice_nuts1_region_name.is_not_null()
 
-    # Add all variables to the dataset
-    inex_vars = {
+    return {
         name: value
         for name, value in locals().items() if name.startswith("inex_")
     }
 
-    # This caluse makes use of the collapse_vars variable. Allows us to just return one variable that is TRUE if
-    # the patient meets all eligibility criteria on a given date. 
-    if collapse_vars == 0:
-
-        # Add them all to the dataset
-        for name, expr in inex_vars.items():
-            dataset.add_column(name, expr)
-
-    else:
-        # Combine all expressions using logical AND
-        combined_expr = None
-
-        for expr in inex_vars.values():
-            if combined_expr is None:
-                combined_expr = expr
-            else:
-                combined_expr = combined_expr & expr
-
-        # Only add if at least one variable exists
-        if combined_expr is not None:
-            dataset.add_column(f"inex_bin_all_{column_suffix}", combined_expr)
+## This function uses get_inex_conditions to return TRUE if the patient meets
+## all the inclusion and exclusion criteria on the given date. Used to define the
+## population of each yearly dataset.
+def is_eligible_on(start_date):
+    return reduce(operator.and_, get_inex_conditions(start_date).values())
 
 ## This function adds inclusion and exclusion criteria for the initial dataset (anyone who could become elligible at any point during the study period).
 ## dataset - the ehrQL dataset which the variables will be added to
@@ -159,8 +142,8 @@ def add_inex_variables_study_period(dataset,start_date,end_date):
 ## Inputs:
 ## dataset - the ehrQL dataset which the variables will be added to
 ## index_date - the start date for which the variables will be calculated and date for non time-varying variables
-## end_date - the end date of the study period, used to calculate some variables such diagnoses
-def add_covariates(dataset, index_date, end_date, column_suffix=""):
+## end_date - the end date of the period, used to calculate some variables such diagnoses
+def add_covariates(dataset, index_date, end_date):
 
     cov_num_age = patients.age_on(index_date)
     cov_cat_sex = patients.sex
@@ -320,12 +303,12 @@ def add_covariates(dataset, index_date, end_date, column_suffix=""):
     covariates = {name: value for name, value in locals().items() if name.startswith("cov_")}
 
     for name, expr in covariates.items():
-        dataset.add_column(f"{name}_{column_suffix}", expr)
-    
+        dataset.add_column(name, expr)
+
 
 ## This function adds the dates of the latest frailty codes (mild, moderate, severe, score) before the index date.
 ## I'm not currently calling this. WIll be added in a later push, when I fully decide how to use the codes.
-def add_frailty_variables(dataset, index_date, column_suffix=""):
+def add_frailty_variables(dataset, index_date):
 
     cov_dat_mildfrail = last_matching_event_clinical_snomed_before(mild_frailty,index_date).date
     cov_dat_moderatefrail = last_matching_event_clinical_snomed_before(moderate_frailty,index_date).date
@@ -336,8 +319,8 @@ def add_frailty_variables(dataset, index_date, column_suffix=""):
 
 
     # ---- Add variables to dataset ----
-    dataset.add_column(f"cov_dat_mildfrail_{column_suffix}", cov_dat_mildfrail)
-    dataset.add_column(f"cov_dat_moderatefrail_{column_suffix}", cov_dat_moderatefrail)
-    dataset.add_column(f"cov_dat_severefrail_{column_suffix}", cov_dat_severefrail)
-    dataset.add_column(f"cov_dat_scorefrail_{column_suffix}", cov_dat_scorefrail)
-    dataset.add_column(f"cov_num_scorefrail_{column_suffix}", cov_num_scorefrail)
+    dataset.add_column("cov_dat_mildfrail", cov_dat_mildfrail)
+    dataset.add_column("cov_dat_moderatefrail", cov_dat_moderatefrail)
+    dataset.add_column("cov_dat_severefrail", cov_dat_severefrail)
+    dataset.add_column("cov_dat_scorefrail", cov_dat_scorefrail)
+    dataset.add_column("cov_num_scorefrail", cov_num_scorefrail)

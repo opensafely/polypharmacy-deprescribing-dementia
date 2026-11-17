@@ -11,25 +11,19 @@ source("analysis/utility.R")
 
 # Load data --------------------------------------------------------------------
 print("Load cleaned dataset")
+# One row per patient per year, for patients eligible on 1 January of that year
 df <- read_rds(here("output", "dataset_clean", "input_clean_out.rds"))
 
-# Reshape data into long format for cumulative incidence stuff
+# Event and follow-up time for each patient-year
 # ------------------------------------------------------------------------------
-print("Reshape data")
+print("Derive event and follow-up time")
 df <- df %>%
-  pivot_longer(
-    cols = matches("^(out_dat_med_rev|inex_bin_all)_\\d{4}$"),
-    names_to = c(".value", "year"),
-    names_pattern = "(.*)_(\\d{4})"
-  ) %>%
-  # separate by year
   mutate(
     year = as.numeric(year),
     event_date = as.Date(out_dat_med_rev),
     start_date = as.Date(paste0(year, "-01-01")),
     end_date = as.Date(paste0(year, "-12-31"))
   ) %>%
-  filter(inex_bin_all) %>%
   mutate(
     event = if_else(!is.na(event_date) & event_date <= end_date, 1, 0),
     time = if_else(event == 1,

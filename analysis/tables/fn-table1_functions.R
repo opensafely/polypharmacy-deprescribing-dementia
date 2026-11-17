@@ -32,6 +32,7 @@ create_table1 <- function(df) {
         is.na(subcharacteristic)       ~ "Missing",
         subcharacteristic == ""        ~ "Missing",
         subcharacteristic == "unknown" ~ "Missing",
+        subcharacteristic == "missing" ~ "Missing",
         TRUE                           ~ as.character(subcharacteristic)
       )
     )

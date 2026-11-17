@@ -10,92 +10,46 @@ source("analysis/utility.R")
 # Load data
 #------------------------------------------------
 print("Load cleaned dataset")
-# Define years -----------------------------------------------------------------
-years <- 2017:2024
-
-# Medication reviews come from the out dataset
-df <- read_rds(here("output", "dataset_clean", "input_clean_out.rds"))
-
-# Region comes from the cov dataset. For now this uses region at the start of the
-# first study year for every year (as the old desc dataset did); this will change
-# to each year's region when the data is moved to one row per patient-year.
-# The column is still called desc_cat_region so the output table is unchanged.
-df_region <- read_rds(here("output", "dataset_clean", "input_clean_cov.rds")) %>%
-  select(patient_id, desc_cat_region = all_of(paste0("cov_cat_region_", years[1])))
-
-df <- df %>%
-  left_join(df_region, by = "patient_id")
-
-# Create binary versions of out_num_ variables
-df <- df %>%
-  mutate(
-    across(
-      starts_with("out_num_"),
-      ~ .x != 0,
-      .names = "{sub('num', 'bin', .col)}"
-    )
+# Both datasets have one row per patient per year, for patients eligible on 1 January of that year.
+# Medication reviews come from the out dataset; region (on 1 January of each year) from the cov dataset
+df <- read_rds(here("output", "dataset_clean", "input_clean_out.rds")) %>%
+  select(patient_id, year, out_num_med_rev) %>%
+  left_join(
+    read_rds(here("output", "dataset_clean", "input_clean_cov.rds")) %>%
+      select(patient_id, year, region = cov_cat_region),
+    by = c("patient_id", "year")
   )
 
 #------------------------------------------------
-# Measure #1 Count of eligible patients (N) - split by region
+# Measures for each region and year:
+# #1 number of eligible patients (N)
+# #2 number of patients who had a medication review
+# #3 total number of medication reviews
 #------------------------------------------------
-print("Calculating number of eligible patients per region for each year")
-table_desc_region <- df %>%
-  group_by(desc_cat_region) %>%
+print("Calculating measures per region for each year")
+measures <- df %>%
+  group_by(region, year) %>%
   summarise(
-    across(starts_with("inex_bin_all_"), ~ sum(. == TRUE, na.rm = TRUE)),
+    n_patients = n(),
+    n_patients_med_rev = sum(out_num_med_rev > 0, na.rm = TRUE),
+    n_med_rev = sum(out_num_med_rev, na.rm = TRUE),
     .groups = "drop"
-  ) %>%
-  rename_with(~ as.character(years), starts_with("inex_bin_all_")) %>%
-  mutate(row_type = "Number of patients (N) by region")
+  )
 
-#------------------------------------------------
-# Measure #2 Count patients who have medication review
-# inex_bin_all TRUE AND out_bin_med_rev TRUE - split by region
-#------------------------------------------------
-print("Calculating patients who had medication review")
+# One row per region, one column per year
+measure_by_year <- function(measure, row_type) {
+  measures %>%
+    select(region, year, value = all_of(measure)) %>%
+    pivot_wider(names_from = year, values_from = value, values_fill = 0, names_sort = TRUE) %>%
+    mutate(row_type = row_type)
+}
 
-joint_counts_region <- df %>%
-  group_by(desc_cat_region) %>%
-  summarise(
-    across(
-      all_of(paste0("out_bin_med_rev_", years)),
-      ~ sum(. == TRUE & get(sub("out_bin_med_rev_", "inex_bin_all_", cur_column())) == TRUE, na.rm = TRUE)
-    ),
-    .groups = "drop"
-  ) %>%
-  rename_with(~ gsub("out_bin_med_rev_", "", .), starts_with("out_bin_med_rev_")) %>%
-  mutate(row_type = "Number of patients who had medication review by region")
-
-table_desc_region <- bind_rows(table_desc_region, joint_counts_region)
-
-#------------------------------------------------
-# Measure #3 Total number of medication reviews
-# Sum of out_num_med_rev where inex_bin_all TRUE - split by region
-#------------------------------------------------
-print("Calculating number of medication reviews")
-
-medrev_counts_region <- df %>%
-  group_by(desc_cat_region) %>%
-  summarise(
-    across(
-      all_of(paste0("out_num_med_rev_", years)),
-      ~ sum(.[get(sub("out_num_med_rev_", "inex_bin_all_", cur_column())) == TRUE], na.rm = TRUE)
-    ),
-    .groups = "drop"
-  ) %>%
-  rename_with(~ gsub("out_num_med_rev_", "", .), starts_with("out_num_med_rev_")) %>%
-  mutate(row_type = "Number of medication reviews by region")
-
-table_desc_region <- bind_rows(table_desc_region, medrev_counts_region)
-
-#------------------------------------------------
-# Reorder columns so row_type is first
-#------------------------------------------------
-print("Reordering columns")
-
-table_desc_region <- table_desc_region %>%
-  select(row_type, desc_cat_region, everything())
+table_desc_region <- bind_rows(
+  measure_by_year("n_patients", "Number of patients (N) by region"),
+  measure_by_year("n_patients_med_rev", "Number of patients who had medication review by region"),
+  measure_by_year("n_med_rev", "Number of medication reviews by region")
+) %>%
+  select(row_type, region, everything())
 
 #------------------------------------------------
 # Save

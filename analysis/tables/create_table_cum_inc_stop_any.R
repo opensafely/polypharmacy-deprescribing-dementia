@@ -13,21 +13,14 @@ source("analysis/utility.R")
 # Load data
 
 print("Load cleaned dataset")
-# Stopping dates and censoring dates (death, deregistration) both come from the out dataset
+# Stopping dates and censoring dates (death, deregistration) both come from the out dataset.
+# One row per patient per year, for patients eligible on 1 January of that year.
 df <- read_rds(here("output", "dataset_clean", "input_clean_out.rds"))
 
 # Define drug classes and gap sizes for stopping definitions
 
 drug_classes <- c("acei", "bb", "arb", "aab", "ccb", "caa", "psd", "ttd")
 gap_sizes <- c("90", "120", "180")
-
-# Get years from the dataset based on column names
-stop_cols <- names(df) %>%
-  str_subset("^out_dat_stop_")
-
-years <- stop_cols %>%
-  str_extract("\\d{4}$") %>%
-  unique()
 
 # ------------------------------------------------------------------------------
 # Main loop over gap sizes
@@ -36,48 +29,17 @@ for (gap in gap_sizes) {
 
   print(paste("Processing gap:", gap))
 
-  # Create variables variables showing "stop any drug"
-  for (yr in years) {
+  # "Stop any": the earliest stop across all drug classes for this gap size
+  stop_cols <- paste0("out_dat_stop_", drug_classes, "_", gap)
+  stop_cols <- stop_cols[stop_cols %in% names(df)]
 
-    cols_this_year <- paste0("out_dat_stop_", drug_classes, "_", gap, "_", yr)
-
-    # Handles case when there are no columns for this year (e.g. if some drug classes were not present in that year)
-    cols_this_year <- cols_this_year[ cols_this_year %in% names(df) ]
-
-    #new column for "stopping" of any antihypetensive drug for this year for the gap size
-    new_col <- paste0("out_dat_stop_any_", gap, "_", yr)
-
-    #select the minimum date across all drug classes for this year
-    df <- df %>%
-      mutate(
-        !!new_col := do.call(
-          pmin,
-          c(across(all_of(cols_this_year)), na.rm = TRUE)
-        )
-      ) %>%
-      mutate(
-        !!new_col := if_else(
-          is.infinite(.data[[new_col]]),
-          as.Date(NA),
-          as.Date(.data[[new_col]])
-        )
-      )
-  }
-
-  # Reshape data
   df_long <- df %>%
-    pivot_longer(
-      cols = matches(paste0("^(out_dat_stop_any_", gap, "|inex_bin_all|cens_dat_dereg)_\\d{4}$")),
-      names_to = c(".value", "year"),
-      names_pattern = "(.*)_(\\d{4})"
-    ) %>%
     mutate(
+      event_date = do.call(pmin, c(across(all_of(stop_cols)), na.rm = TRUE)),
       year = as.numeric(year),
-      event_date = as.Date(.data[[paste0("out_dat_stop_any_", gap)]]),
       start_date = as.Date(paste0(year, "-01-01")),
       end_date = as.Date(paste0(year, "-12-31"))
     ) %>%
-    filter(inex_bin_all) %>%
     mutate(
       # Censor at the earliest of death, deregistration or end of year (as in the survival analysis)
       censor_date = pmin(end_date, cens_dat_death, cens_dat_dereg, na.rm = TRUE),

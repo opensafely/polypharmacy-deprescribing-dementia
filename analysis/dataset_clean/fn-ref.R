@@ -1,3 +1,6 @@
+## Handles missing values and sets factor levels / reference levels.
+## All categorical variables are unordered factors; the first level is the reference level.
+
 ref <- function(input, suffix = "", describe = TRUE) {
 
   # Handle missing values in cov_cat_sex ---------------------------------------
@@ -19,12 +22,12 @@ ref <- function(input, suffix = "", describe = TRUE) {
 
   if ("cov_cat_imd" %in% names(input)) {
     imd_max <- max(
-      as.integer(sub(" .*", "", unique(input$cov_cat_imd))),
+      suppressWarnings(as.integer(sub(" .*", "", unique(input$cov_cat_imd)))),
       na.rm = TRUE
     )
     imd_levels <- c(
       "1 (most deprived)",
-      as.character(seq(2, imd_max)),
+      as.character(seq(2, imd_max - 1)),
       sprintf("%i (least deprived)", imd_max)
     )
 
@@ -34,7 +37,7 @@ ref <- function(input, suffix = "", describe = TRUE) {
       input$cov_cat_imd,
       "missing"
     )
-  }  
+  }
 
   # Handle missing values in cov_cat_ethnicity ---------------------------------
 
@@ -74,20 +77,22 @@ ref <- function(input, suffix = "", describe = TRUE) {
 
   # Handle missing values in cov_cat_region ---------------------------------
 
+  region_levels <- c(
+    "East",
+    "East Midlands",
+    "London",
+    "North East",
+    "North West",
+    "South East",
+    "South West",
+    "West Midlands",
+    "Yorkshire and The Humber"
+  )
+
   if ("cov_cat_region" %in% names(input)) {
     print("Handle missing values in cov_cat_region")
     input$cov_cat_region <- if_else(
-      input$cov_cat_region %in% c(
-        "East",
-        "East Midlands",
-        "London",
-        "North East",
-        "North West",
-        "South East",
-        "South West",
-        "West Midlands",
-        "Yorkshire and The Humber"
-      ),
+      input$cov_cat_region %in% region_levels,
       input$cov_cat_region,
       "missing"
     )
@@ -120,6 +125,12 @@ ref <- function(input, suffix = "", describe = TRUE) {
     function(x) factor(x, ordered = FALSE)
   )
 
+  # Helper: set the levels of a factor in the given order, with "missing"
+  # added as the last level if any values are missing
+  set_levels <- function(x, levels) {
+    if ("missing" %in% x) levels <- c(levels, "missing")
+    factor(x, levels = levels)
+  }
 
   # Set reference level for variable: cov_cat_ethnicity --------------------
 
@@ -138,20 +149,7 @@ ref <- function(input, suffix = "", describe = TRUE) {
   # Set reference level for variable: cov_cat_region ---------------------------
   if ("cov_cat_region" %in% names(input)) {
     print("Set reference level for variable: cov_cat_region")
-    input$cov_cat_region <- ordered(
-      input$cov_cat_region,
-      levels = c(
-        "East",
-        "East Midlands",
-        "London",
-        "North East",
-        "North West",
-        "South East",
-        "South West",
-        "West Midlands",
-        "Yorkshire and The Humber"
-      )
-    )
+    input$cov_cat_region <- set_levels(as.character(input$cov_cat_region), region_levels)
   }
 
 
@@ -159,43 +157,28 @@ ref <- function(input, suffix = "", describe = TRUE) {
 
   if ("cov_cat_imd" %in% names(input)) {
     print('Set reference level for variable: cov_cat_imd')
-
-    imd_max <- max(
-      as.integer(sub(" .*", "", unique(input$cov_cat_imd))),
-      na.rm = TRUE
-    )
-    imd_levels <- c(
-      "1 (most deprived)",
-      as.character(seq(2, imd_max)),
-      sprintf("%i (least deprived)", imd_max)
-    )
-
-    input$cov_cat_imd <- ordered(
-      input$cov_cat_imd,
-      levels = imd_levels
-    )
+    input$cov_cat_imd <- set_levels(as.character(input$cov_cat_imd), imd_levels)
   }
+
   # Set reference level for variable: cov_cat_sex ------------------------------
 
   if ("cov_cat_sex" %in% names(input)) {
     print("Set reference level for variable: cov_cat_sex")
-    levels(input$cov_cat_sex) <- list("Female" = "female", "Male" = "male")
-    input$cov_cat_sex <- relevel(input$cov_cat_sex, ref = "Female")
+    input$cov_cat_sex <- factor(
+      input$cov_cat_sex,
+      levels = c("female", "male"),
+      labels = c("Female", "Male")
+    )
   }
 
   # Set reference level for variable: cov_cat_smoking --------------------------
 
   if ("cov_cat_smoking" %in% names(input)) {
     print('Set reference level for variable: cov_cat_smoking')
-    levels(input$cov_cat_smoking) <- list(
-      "Ever smoker" = "E",
-      "Missing" = "M",
-      "Never smoker" = "N",
-      "Current smoker" = "S"
-    )
-    input$cov_cat_smoking <- ordered(
+    input$cov_cat_smoking <- factor(
       input$cov_cat_smoking,
-      levels = c("Never smoker", "Ever smoker", "Current smoker", "Missing")
+      levels = c("N", "E", "S", "M"),
+      labels = c("Never smoker", "Ever smoker", "Current smoker", "Missing")
     )
   }
 

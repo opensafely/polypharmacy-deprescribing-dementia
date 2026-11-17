@@ -197,18 +197,17 @@ def get_stopping_dates_after_event(dataset, start_date, end_date ,med_codelist, 
 ## it steps through consecutive prescriptions. The first gap of at least gap_size days (or no further prescription) is a stop,
 ## and the stop date is the last prescription before the gap plus gap_size (the date the gap is confirmed).
 ## Only stop dates between start_date and end_date are counted.
-## One column is added per gap size, named f"{column_prefix}_{gap_size}_{column_suffix}".
+## One column is added per gap size, named f"{column_prefix}_{gap_size}".
 ## Inputs:
 ## dataset - the ehrQL dataset which the variables will be added to
 ## start_date - the start date for the time period
 ## end_date - the end date of the time period
 ## med_codelist - the codelist for the medication for which stopping is being identified
 ## column_prefix - the start of the column names (e.g. "out_dat_stop_acei")
-## column_suffix - the end of the column names (e.g. the year)
 ## limit - the maximum number of prescriptions to step through (should exceed the number of prescriptions a patient gets in the period)
 ## gap_sizes - list of gap sizes (days without a prescription) that define a stop
 ## lookback - the number of days before start_date in which a prescription must exist for the patient to count as being on the medication
-def get_stopping_dates(dataset, start_date, end_date, med_codelist, column_prefix, column_suffix, limit, gap_sizes, lookback=365):
+def get_stopping_dates(dataset, start_date, end_date, med_codelist, column_prefix, limit, gap_sizes, lookback=365):
 
     #filter medications table to just prescriptions of interest within the date range (including the lookback before the start date
     #and the largest gap after the end date, so gaps starting near the end of the period can be confirmed), sorted by date
@@ -260,7 +259,7 @@ def get_stopping_dates(dataset, start_date, end_date, med_codelist, column_prefi
     # first stop in the period for each gap size
     for gap_size in gap_sizes:
         dataset.add_column(
-            f"{column_prefix}_{gap_size}_{column_suffix}",
+            f"{column_prefix}_{gap_size}",
             minimum_of(*stop_dates[gap_size])
         )
 

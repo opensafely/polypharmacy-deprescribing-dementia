@@ -1,6 +1,5 @@
 # Frailty investigation. Not currently run: its yaml action is commented out until
-# frailty variables are added back to the cov dataset (add_frailty_variables()).
-
+# we come back to this later.
 # Load libraries ---------------------------------------------------------------
 library(tidyverse)
 library(here)
