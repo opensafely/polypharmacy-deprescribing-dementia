@@ -53,7 +53,7 @@ stopping_codelists = {
     "ttd": thiazide_type_diuretics_codelist,
 }
 for drug_class, codelist in stopping_codelists.items():
-    get_stopping_dates(dataset, index_date, end_date, codelist, f"out_dat_stop_{drug_class}", limit=15, gap_sizes=gap_sizes)
+    get_stopping_dates(dataset, index_date, end_date, codelist, f"out_dat_stop_{drug_class}", limit=52, gap_sizes=gap_sizes)
 
 # Review-based stopping definition (stop identified at a medication review).
 # Not run right now but kept for the planned sensitivity analyses:

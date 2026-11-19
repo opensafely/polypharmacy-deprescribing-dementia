@@ -26,7 +26,8 @@ index_date = date(year, 1, 1)
 end_date = date(year, 12, 31)
 
 # Maximum number of prescriptions to step through in the year
-limit = 26
+# (52 covers weekly prescribing)
+limit = 52
 
 ## Create dataset
 dataset = create_dataset()
@@ -34,16 +35,14 @@ dataset = create_dataset()
 dataset.cov_cat_region = practice_registrations.for_patient_on(index_date).practice_nuts1_region_name
 
 ## Outcome Variables - Gaps between prescriptions of each medication class
-## Only ACE inhibitors are run now; the other classes are commented out due to the memory issue
-## (to be revisited now that each year is a separate action)
 get_prescription_gaps(dataset, index_date, end_date, ace_inhibitor_codelist, "acei", limit)
-#get_prescription_gaps(dataset, index_date, end_date, alpha_adrenoceptor_blocking_drugs_codelist, "aab", limit)
-#get_prescription_gaps(dataset, index_date, end_date, angiotensin_ii_receptor_blockers_codelist, "arb", limit)
-#get_prescription_gaps(dataset, index_date, end_date, beta_blockers_codelist, "bb", limit)
-#get_prescription_gaps(dataset, index_date, end_date, calcium_channel_blockers_codelist, "ccb", limit)
-#get_prescription_gaps(dataset, index_date, end_date, centrally_acting_antihypertensives_codelist, "caa", limit)
-#get_prescription_gaps(dataset, index_date, end_date, potassium_sparing_diuretics_codelist, "psd", limit)
-#get_prescription_gaps(dataset, index_date, end_date, thiazide_type_diuretics_codelist, "ttd", limit)
+get_prescription_gaps(dataset, index_date, end_date, alpha_adrenoceptor_blocking_drugs_codelist, "aab", limit)
+get_prescription_gaps(dataset, index_date, end_date, angiotensin_ii_receptor_blockers_codelist, "arb", limit)
+get_prescription_gaps(dataset, index_date, end_date, beta_blockers_codelist, "bb", limit)
+get_prescription_gaps(dataset, index_date, end_date, calcium_channel_blockers_codelist, "ccb", limit)
+get_prescription_gaps(dataset, index_date, end_date, centrally_acting_antihypertensives_codelist, "caa", limit)
+get_prescription_gaps(dataset, index_date, end_date, potassium_sparing_diuretics_codelist, "psd", limit)
+get_prescription_gaps(dataset, index_date, end_date, thiazide_type_diuretics_codelist, "ttd", limit)
 
 ##Define population
 dataset.configure_dummy_data()

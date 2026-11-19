@@ -6,21 +6,19 @@ create_table1 <- function(df) {
       out_bin_med_rev,
       cov_num_age,
       cov_num_med_count,
-      # cov_num_cms,   # CMS commented out for now (memory issue in generate_dataset_cov)
+      cov_num_cms,
       starts_with("cov_cat_"),
       starts_with("cov_bin_"),
       starts_with("strat_cat_")
     ) %>%
     mutate(
-      # across(-c(patient_id, out_bin_med_rev, cov_num_age, cov_num_med_count, cov_num_cms), as.character),
-      across(-c(patient_id, out_bin_med_rev, cov_num_age, cov_num_med_count), as.character),
+      across(-c(patient_id, out_bin_med_rev, cov_num_age, cov_num_med_count, cov_num_cms), as.character),
       All = "All")
   
   # Long format for counting
   df_long <- df_table1 %>%
     pivot_longer(
-      # cols = -c(patient_id, out_bin_med_rev, cov_num_age, cov_num_med_count, cov_num_cms),
-      cols = -c(patient_id, out_bin_med_rev, cov_num_age, cov_num_med_count),
+      cols = -c(patient_id, out_bin_med_rev, cov_num_age, cov_num_med_count, cov_num_cms),
       names_to = "characteristic",
       values_to = "subcharacteristic"
     )
@@ -58,14 +56,14 @@ create_table1 <- function(df) {
   )
   
   # Calculate median multimorbidity (CMS) score (IQR)
-  # median_iqr_cms <- paste0(
-  #   round(median(df_table1$cov_num_cms, na.rm = TRUE), 1),
-  #   " (",
-  #   round(quantile(df_table1$cov_num_cms, 0.25, na.rm = TRUE), 1),
-  #   "-",
-  #   round(quantile(df_table1$cov_num_cms, 0.75, na.rm = TRUE), 1),
-  #   ")"
-  # )
+  median_iqr_cms <- paste0(
+    round(median(df_table1$cov_num_cms, na.rm = TRUE), 1),
+    " (",
+    round(quantile(df_table1$cov_num_cms, 0.25, na.rm = TRUE), 1),
+    "-",
+    round(quantile(df_table1$cov_num_cms, 0.75, na.rm = TRUE), 1),
+    ")"
+  )
   
   # Aggregate counts
   table1 <- df_long %>%
@@ -102,8 +100,8 @@ create_table1 <- function(df) {
   # Append median age, medication count, and CMS score rows
   table1 <- bind_rows(table1,
                       tibble(characteristic = "Age, years", subcharacteristic = "Median (IQR)", N = median_iqr_age),
-                      tibble(characteristic = "Number of medications", subcharacteristic = "Median (IQR)", N = median_iqr_med_count)
-                      # tibble(characteristic = "Multimorbidity (CMS) score", subcharacteristic = "Median (IQR)", N = median_iqr_cms)
+                      tibble(characteristic = "Number of medications", subcharacteristic = "Median (IQR)", N = median_iqr_med_count),
+                      tibble(characteristic = "Multimorbidity (CMS) score", subcharacteristic = "Median (IQR)", N = median_iqr_cms)
   )
   return(table1)
 }
