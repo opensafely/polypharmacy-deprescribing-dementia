@@ -77,26 +77,25 @@ def clean_dataset(name):
 
 
 def inex_actions():
-    """Population for the whole study period (anyone who could be eligible at any point)."""
-    return [
-        generate_dataset("inex"),
-        {
-            "name": "clean_dataset_inex",
-            "run": f"{R} analysis/dataset_clean/dataset_clean_inex.R",
-            "needs": ["generate_dataset_inex"],
-            "outputs": {
-                "highly_sensitive": {"dataset": "output/dataset_clean/input_clean_inex.csv.gz"},
-                "moderately_sensitive": {
-                    "flow_inex": "output/dataset_clean/flow_inex.csv",
-                    "flow_inex_midpoint6": "output/dataset_clean/flow_inex_midpoint6.csv",
-                    "describe_inex_inex": "output/describe/inex-inex.txt",
-                    "describe_preprocessed_inex": "output/describe/preprocessed-inex.txt",
-                    "describe_qa_inex": "output/describe/qa-inex.txt",
-                    "describe_ref_inex": "output/describe/ref-inex.txt",
-                },
+    """Study population for each year: one generate action per year, and one clean action that
+    applies QA and the inclusion / exclusion criteria for every year and writes the flow chart."""
+    moderately_sensitive = {
+        "flow_inex": "output/dataset_clean/flow_inex.csv",
+        "flow_inex_midpoint6": "output/dataset_clean/flow_inex_midpoint6.csv",
+    }
+    if DESCRIBE:
+        moderately_sensitive["describe_inex"] = "output/describe/inex.txt"
+    return [generate_dataset("inex", year=year) for year in YEARS] + [{
+        "name": "clean_dataset_inex",
+        "run": f"{R} analysis/dataset_clean/dataset_clean_inex.R {str(DESCRIBE).upper()}",
+        "needs": [f"generate_dataset_inex_{year}" for year in YEARS],
+        "outputs": {
+            "highly_sensitive": {
+                f"dataset_{year}": f"output/dataset_clean/input_clean_inex_{year}.csv.gz" for year in YEARS
             },
+            "moderately_sensitive": moderately_sensitive,
         },
-    ]
+    }]
 
 
 def dataset_actions(name):

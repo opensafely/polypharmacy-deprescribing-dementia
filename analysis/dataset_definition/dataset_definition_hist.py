@@ -11,19 +11,19 @@ from datetime import date
 from analysis.dataset_definition.variable_helper_functions import (
     get_prescription_gaps
 )
-from analysis.dataset_definition.add_variables import is_eligible_on
-
 
 # Codelists from codelists.py (which pulls all variables from the codelist folder)
 from codelists import *
-@table_from_file("output/dataset_clean/input_clean_inex.csv.gz")
-class input_inex(PatientFrame):
-    qa_num_birth_year = Series(str)
 
 ## Study year for this dataset
 year = get_parameter(name="year", type=int)
 index_date = date(year, 1, 1)
 end_date = date(year, 12, 31)
+
+## Patients eligible on 1 January of the study year
+@table_from_file(f"output/dataset_clean/input_clean_inex_{year}.csv.gz")
+class input_inex(PatientFrame):
+    qa_num_birth_year = Series(str)
 
 # Maximum number of prescriptions to step through in the year
 # (52 covers weekly prescribing)
@@ -46,4 +46,4 @@ get_prescription_gaps(dataset, index_date, end_date, thiazide_type_diuretics_cod
 
 ##Define population
 dataset.configure_dummy_data()
-dataset.define_population(input_inex.exists_for_patient() & is_eligible_on(index_date))
+dataset.define_population(input_inex.exists_for_patient())

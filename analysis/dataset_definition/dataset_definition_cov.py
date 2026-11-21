@@ -2,7 +2,7 @@
 ## They are used in table 1 and the survival analysis. Outcomes and censoring dates are in dataset_definition_out.py.
 ##
 ## The dataset is generated for one study year at a time, passed in the yaml.
-## The population is everyone in the cleaned inex dataset who is eligible on 1 January of that year.
+## The population is everyone in that year's cleaned inex dataset (eligible on 1 January of that year).
 
 from ehrql.tables.tpp import clinical_events
 from ehrql import create_dataset, get_parameter
@@ -10,20 +10,21 @@ from ehrql.query_language import table_from_file , PatientFrame, Series
 from datetime import date
 from analysis.dataset_definition.add_variables import(
     add_covariates,
-    is_eligible_on,
     add_frailty_variables
 )
 
 # Codelists from codelists.py (which pulls all variables from the codelist folder)
 from codelists import *
-@table_from_file("output/dataset_clean/input_clean_inex.csv.gz")
-class input_inex(PatientFrame):
-    qa_num_birth_year = Series(str)
 
 ## Study year for this dataset
 year = get_parameter(name="year", type=int)
 index_date = date(year, 1, 1)
 end_date = date(year, 12, 31)
+
+## Patients eligible on 1 January of the study year
+@table_from_file(f"output/dataset_clean/input_clean_inex_{year}.csv.gz")
+class input_inex(PatientFrame):
+    qa_num_birth_year = Series(str)
 
 ## Create dataset
 dataset = create_dataset()
@@ -45,4 +46,4 @@ dataset.cov_dat_last_med_rev = (
 
 ##Define population
 dataset.configure_dummy_data()
-dataset.define_population(input_inex.exists_for_patient() & is_eligible_on(index_date))
+dataset.define_population(input_inex.exists_for_patient())

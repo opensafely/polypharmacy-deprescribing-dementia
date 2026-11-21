@@ -16,6 +16,21 @@ from analysis.dataset_definition.variable_helper_functions import (
 # Codelists from codelists.py (which pulls all variables from the codelist folder)
 from codelists import *
 
+## Antihypertensive classes used for the eligibility criterion
+ANTIHYPERTENSIVE_CODELISTS = [
+    ace_inhibitor_codelist,
+    alpha_adrenoceptor_blocking_drugs_codelist,
+    angiotensin_ii_receptor_blockers_codelist,
+    beta_blockers_codelist,
+    calcium_channel_blockers_codelist,
+    centrally_acting_antihypertensives_codelist,
+    potassium_sparing_diuretics_codelist,
+    thiazide_type_diuretics_codelist,
+]
+
+## Minimum number of prescriptions of the same antihypertensive class in the year before the start date
+MIN_ANTIHYP_PRESCRIPTIONS = 3
+
 ## This function returns the inclusion and exclusion criteria for the study on a given date,
 ## as a dict of {variable name: ehrQL boolean expression}.
 ## Inputs:
@@ -28,32 +43,15 @@ def get_inex_conditions(start_date):
         .where(clinical_events.date.is_on_or_before(start_date))
         ).exists_for_patient()
 
-    # Long-term antihypertensive user 
-    inex_bin_antihyp = ((medications.where(medications.dmd_code.is_in(ace_inhibitor_codelist))
+    # Long-term antihypertensive user: at least MIN_ANTIHYP_PRESCRIPTIONS prescriptions
+    # of the same class in the year before the start date
+    inex_bin_antihyp = reduce(operator.or_, [
+        medications.where(medications.dmd_code.is_in(codelist))
         .where(medications.date.is_on_or_after(start_date - days(365)))
         .where(medications.date.is_on_or_before(start_date))
-        .count_for_patient()) > 2) | ((medications.where(medications.dmd_code.is_in(alpha_adrenoceptor_blocking_drugs_codelist))
-        .where(medications.date.is_on_or_after(start_date - days(365)))
-        .where(medications.date.is_on_or_before(start_date))
-        .count_for_patient()) > 2) | ((medications.where(medications.dmd_code.is_in(angiotensin_ii_receptor_blockers_codelist))
-        .where(medications.date.is_on_or_after(start_date - days(365)))
-        .where(medications.date.is_on_or_before(start_date))
-        .count_for_patient()) > 2) | ((medications.where(medications.dmd_code.is_in(beta_blockers_codelist))
-        .where(medications.date.is_on_or_after(start_date - days(365)))
-        .where(medications.date.is_on_or_before(start_date))
-        .count_for_patient()) > 2) | ((medications.where(medications.dmd_code.is_in(calcium_channel_blockers_codelist))
-        .where(medications.date.is_on_or_after(start_date - days(365)))
-        .where(medications.date.is_on_or_before(start_date))
-        .count_for_patient()) > 2) | ((medications.where(medications.dmd_code.is_in(centrally_acting_antihypertensives_codelist))
-        .where(medications.date.is_on_or_after(start_date - days(365)))
-        .where(medications.date.is_on_or_before(start_date))
-        .count_for_patient()) > 2) | ((medications.where(medications.dmd_code.is_in(potassium_sparing_diuretics_codelist))
-        .where(medications.date.is_on_or_after(start_date - days(365)))
-        .where(medications.date.is_on_or_before(start_date))
-        .count_for_patient()) > 2) | ((medications.where(medications.dmd_code.is_in(thiazide_type_diuretics_codelist))
-        .where(medications.date.is_on_or_after(start_date - days(365)))
-        .where(medications.date.is_on_or_before(start_date))
-        .count_for_patient()) > 2)
+        .count_for_patient() >= MIN_ANTIHYP_PRESCRIPTIONS
+        for codelist in ANTIHYPERTENSIVE_CODELISTS
+    ])
 
     # Alive at start date
     inex_bin_alive = (((patients.date_of_death.is_null()) | (patients.date_of_death.is_after(start_date))) & 
@@ -79,63 +77,12 @@ def get_inex_conditions(start_date):
         for name, value in locals().items() if name.startswith("inex_")
     }
 
-## This function uses get_inex_conditions to return TRUE if the patient meets
-## all the inclusion and exclusion criteria on the given date. Used to define the
-## population of each yearly dataset.
-def is_eligible_on(start_date):
-    return reduce(operator.and_, get_inex_conditions(start_date).values())
-
-## This function adds inclusion and exclusion criteria for the initial dataset (anyone who could become elligible at any point during the study period).
+## This function adds each inclusion and exclusion criterion on the given date to the dataset
+## as a separate column, so the cleaning step can apply them one at a time for the flow chart.
 ## dataset - the ehrQL dataset which the variables will be added to
-## start_date - the start date for which the variables will be calculated
-## end_date - the end date of the study period, used to calculate some variables such as medication use
-def add_inex_variables_study_period(dataset,start_date,end_date):
-    
-    # Dementia diagnosis before end date
-    inex_bin_has_dem = (
-        clinical_events.where(clinical_events.snomedct_code.is_in(dementia_codelist))
-        .where(clinical_events.date.is_on_or_before(end_date))
-        ).exists_for_patient()
-    
-    # More than 2 antihypertensive 
-    inex_bin_antihyp = ((medications.where(medications.dmd_code.is_in(ace_inhibitor_codelist))
-        .where(medications.date.is_on_or_after(start_date))
-        .where(medications.date.is_on_or_before(end_date))
-        .count_for_patient()) > 2) | ((medications.where(medications.dmd_code.is_in(alpha_adrenoceptor_blocking_drugs_codelist))
-        .where(medications.date.is_on_or_after(start_date))
-        .where(medications.date.is_on_or_before(end_date))
-        .count_for_patient()) > 2) | ((medications.where(medications.dmd_code.is_in(angiotensin_ii_receptor_blockers_codelist))
-        .where(medications.date.is_on_or_after(start_date))
-        .where(medications.date.is_on_or_before(end_date))
-        .count_for_patient()) > 2) | ((medications.where(medications.dmd_code.is_in(beta_blockers_codelist))
-        .where(medications.date.is_on_or_after(start_date))
-        .where(medications.date.is_on_or_before(end_date))
-        .count_for_patient()) > 2) | ((medications.where(medications.dmd_code.is_in(calcium_channel_blockers_codelist))
-        .where(medications.date.is_on_or_after(start_date))
-        .where(medications.date.is_on_or_before(end_date))
-        .count_for_patient()) > 2) | ((medications.where(medications.dmd_code.is_in(centrally_acting_antihypertensives_codelist))
-        .where(medications.date.is_on_or_after(start_date))
-        .where(medications.date.is_on_or_before(end_date))
-        .count_for_patient()) > 2) | ((medications.where(medications.dmd_code.is_in(potassium_sparing_diuretics_codelist))
-        .where(medications.date.is_on_or_after(start_date))
-        .where(medications.date.is_on_or_before(end_date))
-        .count_for_patient()) > 2)
-    
-    # Alive at any time during study
-    inex_bin_alive = (((patients.date_of_death.is_null()) | (patients.date_of_death.is_after(start_date))) & 
-        ((ons_deaths.date.is_null()) | (ons_deaths.date.is_after(start_date))))
-    
-    #65 or over at any time
-    inex_bin_over_64 = patients.age_on(end_date)>64
-
-    #Known sex
-    inex_bin_known_sex = (patients.sex == "male") | (patients.sex == "female")
-
-    #Add all variables to the dataset
-    inex_vars = {name: value for name, value in locals().items() if name.startswith("inex_")}
-
-    # Add them all to the dataset
-    for name, expr in inex_vars.items():
+## start_date - the date on which eligibility is assessed (1 January of each study year)
+def add_inex_variables(dataset, start_date):
+    for name, expr in get_inex_conditions(start_date).items():
         dataset.add_column(name, expr)
 
 ## This function adds all the covariates for the study.
