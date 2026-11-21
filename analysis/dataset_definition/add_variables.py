@@ -10,7 +10,8 @@ from analysis.dataset_definition.variable_helper_functions import (
     ever_matching_event_clinical_ctv3_before,
     get_latest_ethnicity,
     get_imd,
-    filter_codes_by_category
+    filter_codes_by_category,
+    get_cms_on_date
 )
 
 # Codelists from codelists.py (which pulls all variables from the codelist folder)
@@ -183,23 +184,29 @@ def add_covariates(dataset, index_date, end_date, column_suffix=""):
         .first_for_patient()
         .date)
 
-    # Alzheimer's diagnosis
-    cov_bin_dem_alz = (
+    # Date of first Alzheimer's diagnosis
+    cov_dat_dem_alz = (
         clinical_events.where(clinical_events.snomedct_code.is_in(alzheimers_codelist))
         .where(clinical_events.date.is_on_or_before(end_date))
-        ).exists_for_patient()
+        .sort_by(clinical_events.date)
+        .first_for_patient()
+        .date)
 
-    # Vascular dementia diagnosis
-    cov_bin_dem_vasc = (
+    # Date of first vascular dementia diagnosis
+    cov_dat_dem_vasc = (
         clinical_events.where(clinical_events.snomedct_code.is_in(vascular_dementia_codelist))
         .where(clinical_events.date.is_on_or_before(end_date))
-        ).exists_for_patient()
+        .sort_by(clinical_events.date)
+        .first_for_patient()
+        .date)
 
-    # "Other" dementia diagnosis
-    cov_bin_dem_other = (
+    # Date of first "other" dementia diagnosis
+    cov_dat_dem_other = (
         clinical_events.where(clinical_events.snomedct_code.is_in(other_dementia_codelist))
         .where(clinical_events.date.is_on_or_before(end_date))
-        ).exists_for_patient()
+        .sort_by(clinical_events.date)
+        .first_for_patient()
+        .date)
 
     # Acute MI diagnosis
     cov_bin_ami = (
@@ -305,7 +312,11 @@ def add_covariates(dataset, index_date, end_date, column_suffix=""):
     )
     cov_num_latest_efi = latest_efi_record.numeric_value
     cov_dat_latest_efi = latest_efi_record.calculation_date
-    
+
+    # Cambridge multimorbidity score on the index date
+    death_date = minimum_of(patients.date_of_death, ons_deaths.date)
+    # cov_num_cms = get_cms_on_date(index_date, death_date, return_components=False)
+
     # ---- Add all covariates to dataset ----
     covariates = {name: value for name, value in locals().items() if name.startswith("cov_")}
 

@@ -50,21 +50,20 @@ actions:
 
   create_cum_inc_stop_any:
     run: r:v2 analysis/tables/create_table_cum_inc_stop_any.R
-    needs: [clean_dataset_desc]
+    needs: [clean_dataset_desc, clean_dataset_cov]
     outputs:
       moderately_sensitive:
-
-        # Any antihypertensive stopping (30-day gap)
-        stop_any_30_table: output/tables/stop_any_30_cum_inc.csv
-        stop_any_30_table_midpoint6: output/tables/stop_any_30_cum_inc_midpoint6.csv
-        stop_any_30_plot: output/plots/stop_any_30_cum_inc.png
-        stop_any_30_plot_midpoint6: output/plots/stop_any_30_cum_inc_midpoint6.png
-
         # Any antihypertensive stopping (90-day gap)
         stop_any_90_table: output/tables/stop_any_90_cum_inc.csv
         stop_any_90_table_midpoint6: output/tables/stop_any_90_cum_inc_midpoint6.csv
         stop_any_90_plot: output/plots/stop_any_90_cum_inc.png
         stop_any_90_plot_midpoint6: output/plots/stop_any_90_cum_inc_midpoint6.png
+
+        # Any antihypertensive stopping (120-day gap)
+        stop_any_120_table: output/tables/stop_any_120_cum_inc.csv
+        stop_any_120_table_midpoint6: output/tables/stop_any_120_cum_inc_midpoint6.csv
+        stop_any_120_plot: output/plots/stop_any_120_cum_inc.png
+        stop_any_120_plot_midpoint6: output/plots/stop_any_120_cum_inc_midpoint6.png
 
         # Any antihypertensive stopping (180-day gap)
         stop_any_180_table: output/tables/stop_any_180_cum_inc.csv
@@ -133,14 +132,24 @@ actions:
         describe_preprocessed: output/describe/preprocessed-cov.txt
         describe_ref: output/describe/ref-cov.txt
 
-  create_frailty_table:
-    run: r:v2 analysis/tables/create_frailty_table.R
-    needs: [clean_dataset_cov]
+  # create_frailty_table:
+  #   run: r:v2 analysis/tables/create_frailty_table.R
+  #   needs: [clean_dataset_cov]
+  #   outputs:
+  #     moderately_sensitive:
+  #       frailty_investigation_table: output/tables/frailty_coverage.csv
+  #       frailty_investigation_table_midpoint6: output/tables/frailty_coverage_midpoint6.csv
+  #       frailty_coverage_plots: output/figures/frailty_coverage.png
+
+  create_survival_analysis:
+    run: r:v2 analysis/tables/create_survival_analysis.R
+    needs: [clean_dataset_cov, clean_dataset_desc]
     outputs:
       moderately_sensitive:
-        frailty_investigation_table: output/tables/frailty_coverage.csv
-        frailty_investigation_table_midpoint6: output/tables/frailty_coverage_midpoint6.csv
-        frailty_coverage_plots: output/figures/frailty_coverage.png
+        cox_multivariable_table: output/tables/cox_multivariable.csv
+        cox_univariable_table: output/tables/cox_univariable.csv
+        cox_ph_test_table: output/tables/cox_ph_test.csv
+
 
 
   # generate_project_dag:

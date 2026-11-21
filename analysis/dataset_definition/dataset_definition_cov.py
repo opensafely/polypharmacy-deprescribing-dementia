@@ -6,8 +6,6 @@ from ehrql.tables.tpp import clinical_events, practice_registrations,ons_deaths,
 from ehrql import create_dataset, minimum_of
 from ehrql.query_language import table_from_file , PatientFrame, Series
 from datetime import datetime, date
-from analysis.dataset_definition.variable_helper_functions import (
-    get_cms_on_date)
 from analysis.dataset_definition.add_variables import(
     add_covariates,
     add_inex_variables,
@@ -34,6 +32,9 @@ limit = 2
 
 death_date = minimum_of(patients.date_of_death, ons_deaths.date)
 
+# Date of death (for censoring) - not year-specific
+dataset.add_column("cens_dat_death", death_date)
+
 # Add inex variables for 2015 through 2024
 for year in range(2017, 2025):
     #Add collapsed in/ex variable for each year in the study
@@ -44,7 +45,7 @@ for year in range(2017, 2025):
     add_covariates(dataset, date(year, 1, 1), date(year, 12, 31), year)
 
     #Frailty variables
-    add_frailty_variables(dataset, date(year, 1, 1), year)
+    #add_frailty_variables(dataset, date(year, 1, 1), year)
 
     # Medication review variables
     exp_dat_med_rev = (
@@ -57,9 +58,20 @@ for year in range(2017, 2025):
     
     dataset.add_column(f"exp_dat_med_rev_{year}", exp_dat_med_rev)
 
-    #Cambridge multimorbidity score variables
-    cms = get_cms_on_date(index_date, death_date, return_components=False)
-    dataset.add_column(f"cov_num_cms_{year}", cms)
+    # Date of last medication review before the index date (for time since last review)
+    cov_dat_last_med_rev = (
+        clinical_events.where(clinical_events.snomedct_code.is_in(medication_review_codelist))
+        .where(clinical_events.date.is_before(date(year, 1, 1)))
+        .sort_by(clinical_events.date)
+        .last_for_patient()
+        .date)
+
+    dataset.add_column(f"cov_dat_last_med_rev_{year}", cov_dat_last_med_rev)
+
+    # Deregistration: end of the practice registration active on the index date (for censoring)
+    cens_dat_dereg = practice_registrations.for_patient_on(date(year, 1, 1)).end_date
+
+    dataset.add_column(f"cens_dat_dereg_{year}", cens_dat_dereg)
 
 
 
