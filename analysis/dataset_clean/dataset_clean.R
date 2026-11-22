@@ -13,7 +13,6 @@ library(fs)
 library(lubridate)
 library(tidyr)
 library(data.table)
-library(jsonlite)
 
 ## Get arguments passed in by yaml 
 args <- commandArgs(trailingOnly = TRUE)
@@ -42,8 +41,7 @@ dataclean_dir <- "output/dataset_clean/"
 dir_create(here::here(dataclean_dir))
 
 ## Study years -----------------------------------------------------------------
-constants <- fromJSON("analysis/config.json")
-years <- year(as.Date(constants$start_date)):year(as.Date(constants$end_date))
+years <- get_study_years()
 
 ## Load and stack the yearly datasets ------------------------------------------
 dataset_clean <- bind_rows(lapply(years, function(yr) {
@@ -53,7 +51,7 @@ dataset_clean <- bind_rows(lapply(years, function(yr) {
 }))
 
 if (isTRUE(describe)) {
-  describe_data(df = dataset_clean, name = paste0("preprocessed-", dataset_type))
+  describe_data(df = dataset_clean, name = "preprocessed", suffix = dataset_type)
 }
 
 ## Set reference levels and handle missing values

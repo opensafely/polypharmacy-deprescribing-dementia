@@ -1,7 +1,5 @@
 from ehrql.tables.tpp import patients, practice_registrations, clinical_events, addresses, medications, ons_deaths, apcs, decision_support_values, emergency_care_attendances
 from ehrql import days, case, when, minimum_of
-from functools import reduce
-import operator
 from analysis.dataset_definition.variable_helper_functions import (
     last_matching_event_clinical_snomed_before,
     first_matching_event_clinical_snomed_on_or_before,
@@ -11,7 +9,8 @@ from analysis.dataset_definition.variable_helper_functions import (
     get_latest_ethnicity,
     get_imd,
     filter_codes_by_category,
-    get_cms_on_date
+    get_cms_on_date,
+    any_of
 )
 
 # Codelists from codelists.py (which pulls all variables from the codelist folder)
@@ -47,7 +46,7 @@ def get_inex_conditions(start_date):
 
     # Long-term antihypertensive user: at least MIN_ANTIHYP_PRESCRIPTIONS prescriptions
     # of the same class in the year before the start date
-    inex_bin_antihyp = reduce(operator.or_, [
+    inex_bin_antihyp = any_of([
         medications.where(medications.dmd_code.is_in(codelist))
         .where(medications.date.is_on_or_after(start_date - days(365)))
         .where(medications.date.is_on_or_before(start_date))

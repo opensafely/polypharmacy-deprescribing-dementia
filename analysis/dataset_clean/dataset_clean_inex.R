@@ -15,7 +15,6 @@ library(fs)
 library(lubridate)
 library(tidyr)
 library(data.table)
-library(jsonlite)
 
 ## Get arguments passed in by yaml
 args <- commandArgs(trailingOnly = TRUE)
@@ -36,8 +35,7 @@ dataclean_dir <- "output/dataset_clean/"
 dir_create(here::here(dataclean_dir))
 
 ## Study years -----------------------------------------------------------------
-constants <- fromJSON("analysis/config.json")
-years <- year(as.Date(constants$start_date)):year(as.Date(constants$end_date))
+years <- get_study_years()
 
 ## Clean each year -------------------------------------------------------------
 flows <- list()

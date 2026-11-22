@@ -193,13 +193,7 @@ ref <- function(input, suffix = "", describe = TRUE) {
   # Describe data ----
   if (isTRUE(describe)) {
     print("Describe ref data")
-    describe_data(
-      df = input,
-      name = paste0(
-        "ref",
-        if (nzchar(suffix)) paste0("-", suffix) else ""
-      )
-    )
+    describe_data(df = input, name = "ref", suffix = suffix)
   }
   return(input)
 }

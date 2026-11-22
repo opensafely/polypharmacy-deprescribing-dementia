@@ -23,23 +23,13 @@ inex <- function(input, flow, suffix = "", describe = TRUE) {
     input <- subset(input, input[[var]] == TRUE)
 
     # Add to flow log
-    step_name <- paste("Inclusion criteria:", var)
-    flow[nrow(flow) + 1, ] <- c(step_name, nrow(input))
-
-    # Print the step result
-    print(flow[nrow(flow), ])
+    flow <- add_flow_step(flow, description = paste("Inclusion criteria:", var), input = input)
   }
 
   # Describe data ----
   if (isTRUE(describe)) {
     print("Describe inex data")
-    describe_data(
-      df = input,
-      name = paste0(
-        "inex",
-        if (nzchar(suffix)) paste0("-", suffix) else ""
-      )
-    )
+    describe_data(df = input, name = "inex", suffix = suffix)
   }
   ## Drop variables that are no longer needed
   input <- input %>% select(-starts_with("inex"))

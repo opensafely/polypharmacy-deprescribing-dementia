@@ -13,13 +13,7 @@ import operator
 ## dataset: dataset to add the columns to
 def get_prescription_gaps(dataset, start_date, end_date ,codelist, column_suffix, limit):
     prev_date = start_date
-    cnt_0_14 = 0
-    cnt_14_30 = 0
-    cnt_30_60 = 0
-    cnt_60_90 = 0
-    cnt_90_180 = 0
-    cnt_180_365 = 0
-    cnt_365_plus = 0
+    counts = {}
 
     base_rx = (
         medications.where(medications.dmd_code.is_in(codelist))
@@ -39,22 +33,26 @@ def get_prescription_gaps(dataset, start_date, end_date ,codelist, column_suffix
         if i>0:
             diff_days = (presc_date - prev_date).days
 
-            cnt_0_14 +=  when(prev_date.is_on_or_before(end_date) &(diff_days < 14)).then(1).otherwise(0)
-            cnt_14_30 += when(prev_date.is_on_or_before(end_date) &(diff_days >= 14) & (diff_days < 30)).then(1).otherwise(0)
-            cnt_30_60 += when(prev_date.is_on_or_before(end_date) &(diff_days >= 30) & (diff_days < 60)).then(1).otherwise(0)
-            cnt_60_90 += when(prev_date.is_on_or_before(end_date) &(diff_days >= 60) & (diff_days < 90)).then(1).otherwise(0)
-            cnt_90_180 += when(prev_date.is_on_or_before(end_date) &(diff_days >= 90) & (diff_days < 180)).then(1).otherwise(0)
-            cnt_180_365 += when(prev_date.is_on_or_before(end_date) &(diff_days >= 180) & (diff_days < 365)).then(1).otherwise(0)
-            cnt_365_plus += when(prev_date.is_on_or_before(end_date) & (diff_days >= 365)).then(1).otherwise(0)
+            gap_in_period = prev_date.is_on_or_before(end_date)
+
+            # Gap length bins in days 
+            gap_bins = {
+                "0_14":     diff_days < 14,
+                "14_30":    (diff_days >= 14) & (diff_days < 30),
+                "30_60":    (diff_days >= 30) & (diff_days < 60),
+                "60_90":    (diff_days >= 60) & (diff_days < 90),
+                "90_180":   (diff_days >= 90) & (diff_days < 180),
+                "180_365":  (diff_days >= 180) & (diff_days < 365),
+                "365_plus": diff_days >= 365,
+            }
+
+            # Count the gap in its bin, if it starts within the period
+            for bin_name, bin_condition in gap_bins.items():
+                counts[bin_name] = counts.get(bin_name, 0) + when(gap_in_period & bin_condition).then(1).otherwise(0)
         prev_date = presc_date
 
-    dataset.add_column(f"out_num_gap_0_14_{column_suffix}", cnt_0_14)
-    dataset.add_column(f"out_num_gap_14_30_{column_suffix}", cnt_14_30)
-    dataset.add_column(f"out_num_gap_30_60_{column_suffix}", cnt_30_60)
-    dataset.add_column(f"out_num_gap_60_90_{column_suffix}", cnt_60_90)
-    dataset.add_column(f"out_num_gap_90_180_{column_suffix}", cnt_90_180)
-    dataset.add_column(f"out_num_gap_180_365_{column_suffix}", cnt_180_365)
-    dataset.add_column(f"out_num_gap_365_plus_{column_suffix}", cnt_365_plus)
+    for bin_name, count in counts.items():
+        dataset.add_column(f"out_num_gap_{bin_name}_{column_suffix}", count)
 
 ## Helper function to get the last matching clinical event before a given date
 def last_matching_event_clinical_snomed_before(codelist, start_date, where=True):

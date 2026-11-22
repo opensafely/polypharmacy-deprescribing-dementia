@@ -4,42 +4,26 @@ qa <- function(input, flow, suffix = "", describe = TRUE) {
   # Remove records with missing patient id ----
   print("Remove records with missing patient id")
   input <- input[!is.na(input$patient_id), ]
-  flow[nrow(flow) + 1, ] <- c(
-    "Quality assurance: Removed records with missing patient id",
-    nrow(input)
-  )
+  flow <- add_flow_step(flow, description = "Quality assurance: Removed records with missing patient id", input = input)
+
   # Birth year not in the future
   input <- input[
     !is.na(input$qa_num_birth_year) &
       (input$qa_num_birth_year < format(Sys.Date(),"%Y")),
   ]
-  flow[nrow(flow) + 1, ] <- c(
-    "Quality assurance: Year of birth must be in the past",
-    nrow(input)
-  )
-  print(flow[nrow(flow), ])
+  flow <- add_flow_step(flow, description = "Quality assurance: Year of birth must be in the past", input = input)
 
   # Date of death not in the future
   input <- input[
     is.na(input$qa_num_death_year) |
       (input$qa_num_death_year < format(Sys.Date(),"%Y")),
   ]
-  flow[nrow(flow) + 1, ] <- c(
-    "Quality assurance: Year of death must be in the past",
-    nrow(input)
-  )
-  print(flow[nrow(flow), ])
+  flow <- add_flow_step(flow, description = "Quality assurance: Year of death must be in the past", input = input)
 
   # Describe data ----
   if (isTRUE(describe)) {
     print("Describe qa data")
-    describe_data(
-      df = input,
-      name = paste0(
-        "qa",
-        if (nzchar(suffix)) paste0("-", suffix) else ""
-      )
-    )
+    describe_data(df = input, name = "qa", suffix = suffix)
   }
   return(list(input = input, flow = flow))
 }
