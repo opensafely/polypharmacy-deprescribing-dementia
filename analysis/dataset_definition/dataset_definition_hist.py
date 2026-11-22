@@ -11,6 +11,7 @@ from datetime import date
 from analysis.dataset_definition.variable_helper_functions import (
     get_prescription_gaps
 )
+from analysis.dataset_definition.add_variables import antihypertensive_class_codelists
 
 # Codelists from codelists.py (which pulls all variables from the codelist folder)
 from codelists import *
@@ -35,14 +36,8 @@ dataset = create_dataset()
 dataset.cov_cat_region = practice_registrations.for_patient_on(index_date).practice_nuts1_region_name
 
 ## Outcome Variables - Gaps between prescriptions of each medication class
-get_prescription_gaps(dataset, index_date, end_date, ace_inhibitor_codelist, "acei", limit)
-get_prescription_gaps(dataset, index_date, end_date, alpha_adrenoceptor_blocking_drugs_codelist, "aab", limit)
-get_prescription_gaps(dataset, index_date, end_date, angiotensin_ii_receptor_blockers_codelist, "arb", limit)
-get_prescription_gaps(dataset, index_date, end_date, beta_blockers_codelist, "bb", limit)
-get_prescription_gaps(dataset, index_date, end_date, calcium_channel_blockers_codelist, "ccb", limit)
-get_prescription_gaps(dataset, index_date, end_date, centrally_acting_antihypertensives_codelist, "caa", limit)
-get_prescription_gaps(dataset, index_date, end_date, potassium_sparing_diuretics_codelist, "psd", limit)
-get_prescription_gaps(dataset, index_date, end_date, thiazide_type_diuretics_codelist, "ttd", limit)
+for drug_class, codelist in antihypertensive_class_codelists.items():
+    get_prescription_gaps(dataset, index_date, end_date, codelist, drug_class, limit)
 
 ##Define population
 dataset.configure_dummy_data()

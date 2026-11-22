@@ -2,6 +2,7 @@
 ## The dataset is generated for one study year at a time, pass in as an argument in the yaml.
 
 from analysis.dataset_definition.variable_helper_functions import get_stopping_dates, get_stopping_dates_after_event
+from analysis.dataset_definition.add_variables import antihypertensive_class_codelists
 from ehrql.tables.tpp import practice_registrations, clinical_events, ons_deaths, patients
 from ehrql import create_dataset, minimum_of, get_parameter
 from ehrql.query_language import table_from_file , PatientFrame, Series
@@ -42,17 +43,7 @@ gap_sizes = [90, 120, 180]
 
 # Date of first stop (gap between prescriptions) in the year for each medication class.
 # One call covers all gap sizes, adding columns out_dat_stop_<class>_<gap_size>
-stopping_codelists = {
-    "acei": ace_inhibitor_codelist,
-    "aab": alpha_adrenoceptor_blocking_drugs_codelist,
-    "arb": angiotensin_ii_receptor_blockers_codelist,
-    "bb": beta_blockers_codelist,
-    "ccb": calcium_channel_blockers_codelist,
-    "caa": centrally_acting_antihypertensives_codelist,
-    "psd": potassium_sparing_diuretics_codelist,
-    "ttd": thiazide_type_diuretics_codelist,
-}
-for drug_class, codelist in stopping_codelists.items():
+for drug_class, codelist in antihypertensive_class_codelists.items():
     get_stopping_dates(dataset, index_date, end_date, codelist, f"out_dat_stop_{drug_class}", limit=52, gap_sizes=gap_sizes)
 
 # Review-based stopping definition (stop identified at a medication review).

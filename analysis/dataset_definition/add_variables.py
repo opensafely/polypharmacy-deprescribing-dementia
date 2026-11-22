@@ -16,17 +16,18 @@ from analysis.dataset_definition.variable_helper_functions import (
 # Codelists from codelists.py (which pulls all variables from the codelist folder)
 from codelists import *
 
-## Antihypertensive classes used for the eligibility criterion
-ANTIHYPERTENSIVE_CODELISTS = [
-    ace_inhibitor_codelist,
-    alpha_adrenoceptor_blocking_drugs_codelist,
-    angiotensin_ii_receptor_blockers_codelist,
-    beta_blockers_codelist,
-    calcium_channel_blockers_codelist,
-    centrally_acting_antihypertensives_codelist,
-    potassium_sparing_diuretics_codelist,
-    thiazide_type_diuretics_codelist,
-]
+## Antihypertensive classes used for the eligibility criterion, stopping dates and prescription gaps:
+## abbreviation used in column names -> codelist
+antihypertensive_class_codelists = {
+    "acei": ace_inhibitor_codelist,
+    "aab": alpha_adrenoceptor_blocking_drugs_codelist,
+    "arb": angiotensin_ii_receptor_blockers_codelist,
+    "bb": beta_blockers_codelist,
+    "ccb": calcium_channel_blockers_codelist,
+    "caa": centrally_acting_antihypertensives_codelist,
+    "psd": potassium_sparing_diuretics_codelist,
+    "ttd": thiazide_type_diuretics_codelist,
+}
 
 ## Minimum number of prescriptions of the same antihypertensive class in the year before the start date
 MIN_ANTIHYP_PRESCRIPTIONS = 3
@@ -50,7 +51,7 @@ def get_inex_conditions(start_date):
         .where(medications.date.is_on_or_after(start_date - days(365)))
         .where(medications.date.is_on_or_before(start_date))
         .count_for_patient() >= MIN_ANTIHYP_PRESCRIPTIONS
-        for codelist in ANTIHYPERTENSIVE_CODELISTS
+        for codelist in antihypertensive_class_codelists.values()
     ])
 
     # Alive at start date
