@@ -4,6 +4,7 @@ from functools import reduce
 import operator
 from analysis.dataset_definition.variable_helper_functions import (
     last_matching_event_clinical_snomed_before,
+    first_matching_event_clinical_snomed_on_or_before,
     last_matching_event_apc_before,
     last_matching_event_clinical_ctv3_before,
     ever_matching_event_clinical_ctv3_before,
@@ -105,36 +106,16 @@ def add_covariates(dataset, index_date, end_date):
     cov_cat_region = practice_registrations.for_patient_on(index_date).practice_nuts1_region_name
 
     # Date of first dementia diagnosis
-    cov_dat_dem = (
-        clinical_events.where(clinical_events.snomedct_code.is_in(dementia_codelist))
-        .where(clinical_events.date.is_on_or_before(end_date))
-        .sort_by(clinical_events.date)
-        .first_for_patient()
-        .date)
+    cov_dat_dem = first_matching_event_clinical_snomed_on_or_before(dementia_codelist, end_date).date
 
     # Date of first Alzheimer's diagnosis
-    cov_dat_dem_alz = (
-        clinical_events.where(clinical_events.snomedct_code.is_in(alzheimers_codelist))
-        .where(clinical_events.date.is_on_or_before(end_date))
-        .sort_by(clinical_events.date)
-        .first_for_patient()
-        .date)
+    cov_dat_dem_alz = first_matching_event_clinical_snomed_on_or_before(alzheimers_codelist, end_date).date
 
     # Date of first vascular dementia diagnosis
-    cov_dat_dem_vasc = (
-        clinical_events.where(clinical_events.snomedct_code.is_in(vascular_dementia_codelist))
-        .where(clinical_events.date.is_on_or_before(end_date))
-        .sort_by(clinical_events.date)
-        .first_for_patient()
-        .date)
+    cov_dat_dem_vasc = first_matching_event_clinical_snomed_on_or_before(vascular_dementia_codelist, end_date).date
 
     # Date of first "other" dementia diagnosis
-    cov_dat_dem_other = (
-        clinical_events.where(clinical_events.snomedct_code.is_in(other_dementia_codelist))
-        .where(clinical_events.date.is_on_or_before(end_date))
-        .sort_by(clinical_events.date)
-        .first_for_patient()
-        .date)
+    cov_dat_dem_other = first_matching_event_clinical_snomed_on_or_before(other_dementia_codelist, end_date).date
 
     # Acute MI diagnosis
     cov_bin_ami = (
@@ -157,12 +138,7 @@ def add_covariates(dataset, index_date, end_date):
     )
 
     #Date of CHD diagnosis
-    cov_dat_chd = (
-        clinical_events.where(clinical_events.snomedct_code.is_in(chd_codelist))
-        .where(clinical_events.date.is_on_or_before(end_date))
-        .sort_by(clinical_events.date)
-        .first_for_patient()
-        .date)
+    cov_dat_chd = first_matching_event_clinical_snomed_on_or_before(chd_codelist, end_date).date
 
     ### Cancer
     cov_bin_cancer = (

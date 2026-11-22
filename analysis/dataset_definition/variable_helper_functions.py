@@ -66,6 +66,16 @@ def last_matching_event_clinical_snomed_before(codelist, start_date, where=True)
         .last_for_patient()
     )
 
+## Helper function to get the first matching clinical event on or before a given date
+def first_matching_event_clinical_snomed_on_or_before(codelist, end_date, where=True):
+    return(
+        clinical_events.where(where)
+        .where(clinical_events.snomedct_code.is_in(codelist))
+        .where(clinical_events.date.is_on_or_before(end_date))
+        .sort_by(clinical_events.date)
+        .first_for_patient()
+    )
+
 ## Helper function to get the last matching APC admission before a given date
 def last_matching_event_apc_before(codelist, start_date, only_prim_diagnoses=False, where=True):
     query = apcs.where(where).where(apcs.admission_date.is_before(start_date))
