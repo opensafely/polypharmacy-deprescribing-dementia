@@ -4,7 +4,6 @@
 ## The dataset is generated for one study year at a time, passed in the yaml.
 ## The population is everyone in that year's cleaned inex dataset (eligible on 1 January of that year).
 
-from ehrql.tables.tpp import clinical_events
 from ehrql import create_dataset, get_parameter
 from ehrql.query_language import table_from_file , PatientFrame, Series
 from datetime import date
@@ -12,6 +11,7 @@ from analysis.dataset_definition.add_variables import(
     add_covariates,
     add_frailty_variables
 )
+from analysis.dataset_definition.variable_helper_functions import last_matching_event_clinical_snomed_before
 
 # Codelists from codelists.py (which pulls all variables from the codelist folder)
 from codelists import *
@@ -37,12 +37,7 @@ add_covariates(dataset, index_date, end_date)
 #add_frailty_variables(dataset, index_date)
 
 # Date of last medication review before the index date (for time since last review)
-dataset.cov_dat_last_med_rev = (
-    clinical_events.where(clinical_events.snomedct_code.is_in(medication_review_codelist))
-    .where(clinical_events.date.is_before(index_date))
-    .sort_by(clinical_events.date)
-    .last_for_patient()
-    .date)
+dataset.cov_dat_last_med_rev = last_matching_event_clinical_snomed_before(medication_review_codelist, index_date).date
 
 ##Define population
 dataset.configure_dummy_data()
