@@ -9,6 +9,7 @@ library(here)
 
 print("Source common functions")
 source("analysis/utility.R")
+source("analysis/tables/fn-cum_inc_functions.R")
 
 # Load data
 
@@ -51,107 +52,22 @@ for (gap in gap_sizes) {
       )
     )
 
-  # Survival model (using survfit to create cumulative incidence curves)
+  # Cumulative incidence summarised weekly, and the midpoint6 rounded version
+  weekly_table <- cum_inc_weekly(df_long)
+  weekly_table_mid <- cum_inc_weekly_midpoint6(weekly_table)
 
-  surv_fit <- survfit(Surv(time, event) ~ factor(year), data = df_long)
+  # Plots
+  plot_obj <- plot_cum_inc(
+    weekly_table, "cum_inc",
+    title = paste0("Cumulative incidence (", gap, "-day gap)"),
+    y_label = "Patients stopping any drug (%)"
+  )
 
-  surv_df <- tidy(surv_fit) %>%
-    mutate(
-      year = as.numeric(str_remove(strata, "factor\\(year\\)=")),
-      cum_inc = 1 - estimate
-    )
-
-  # Aggregate by week
-  
-  denom_table <- df_long %>%
-    group_by(year) %>%
-    summarise(
-      denominator = n(),
-      denominator_midpoint6 = roundmid_any(n()),
-      .groups = "drop"
-    )
-
-  weekly_table <- surv_df %>%
-    mutate(week = floor(time / 7) + 1) %>%
-    group_by(year, week) %>%
-    summarise(
-      n_events = sum(n.event, na.rm = TRUE),
-      cum_inc = max(cum_inc),
-      .groups = "drop"
-    ) %>%
-    arrange(year, week) %>%
-    group_by(year) %>%
-    mutate(
-      cum_events = cumsum(n_events),
-      date_ref = as.Date("2000-01-01") + (week - 1) * 7
-    ) %>%
-    ungroup() %>%
-    left_join(denom_table, by = "year")
-
-  # Midpoint6 rounding
-
-  weekly_table_mid <- weekly_table %>%
-    mutate(
-      cum_events_midpoint6 = roundmid_any(cum_events),
-      cum_inc_midpoint6 = cum_events_midpoint6 / denominator_midpoint6
-    ) %>%
-    select(
-      year,
-      week,
-      date_ref,
-      cum_events_midpoint6,
-      cum_inc_midpoint6,
-      denominator_midpoint6
-    )
-
-  # Plot (this is just for viewing in backend.
-  # We will output tables and then create plots based on these tables in post-processing)
-  plot_obj <- ggplot(
-    weekly_table,
-    aes(date_ref, cum_inc, colour = factor(year))
-  ) +
-    geom_step(linewidth = 1) +
-    scale_y_continuous(labels = scales::percent) +
-    scale_x_date(
-      date_labels = "%b",
-      date_breaks = "1 month",
-      limits = as.Date(c("2000-01-01", "2000-12-31"))
-    ) +
-    labs(
-      title = paste0("Cumulative incidence (", gap, "-day gap)"),
-      x = "Calendar time",
-      y = "Patients stopping any drug (%)",
-      colour = "Year"
-    ) +
-    theme_minimal() +
-    theme(
-      legend.position = "right",
-      plot.title = element_text(hjust = 0.5, face = "bold")
-    )
-
-  # Plot (midpoint6)
-  plot_mid <- ggplot(
-    weekly_table_mid,
-    aes(date_ref, cum_inc_midpoint6, colour = factor(year))
-  ) +
-    geom_step(linewidth = 1) +
-    scale_y_continuous(labels = scales::percent) +
-    scale_x_date(
-      date_labels = "%b",
-      date_breaks = "1 month",
-      limits = as.Date(c("2000-01-01", "2000-12-31"))
-    ) +
-    labs(
-      title = paste0("Cumulative incidence (", gap, "-day gap, midpoint6)"),
-      x = "Calendar time",
-      y = "Patients stopping any drug (%)",
-      colour = "Year"
-    ) +
-    theme_minimal() +
-    theme(
-      legend.position = "right",
-      plot.title = element_text(hjust = 0.5, face = "bold")
-    )
+  plot_mid <- plot_cum_inc(
+    weekly_table_mid, "cum_inc_midpoint6",
+    title = paste0("Cumulative incidence (", gap, "-day gap, midpoint6)"),
+    y_label = "Patients stopping any drug (%)"
+  )
 
   # ----------------------------------------------------------------------------
   # Save outputs
@@ -169,7 +85,7 @@ for (gap in gap_sizes) {
   )
 
   write_csv(
-    weekly_table %>% select(-date_ref,-denominator_midpoint6),
+    weekly_table %>% select(-date_ref),
     here("output", "tables", paste0("stop_any_", gap, "_cum_inc.csv"))
   )
 
@@ -182,8 +98,7 @@ for (gap in gap_sizes) {
   )
 
   write_csv(
-    weekly_table_mid %>%
-      select(year, week, cum_events_midpoint6, cum_inc_midpoint6, denominator_midpoint6),
+    weekly_table_mid %>% select(-date_ref),
     here("output", "tables", paste0("stop_any_", gap, "_cum_inc_midpoint6.csv"))
   )
 }
