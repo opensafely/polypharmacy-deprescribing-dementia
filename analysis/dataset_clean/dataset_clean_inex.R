@@ -1,12 +1,7 @@
 ## Cleans the yearly inex datasets.
-## For each study year, reads output/dataset/input_inex_<year>.csv.gz, applies the quality
-## assurance checks and then each inclusion / exclusion criterion in turn, and saves the
-## eligible patients for that year to output/dataset_clean/input_clean_inex_<year>.csv.gz.
-## The number of patients left after each step is combined into one flow chart table with a
-## column per year (output/dataset_clean/flow_inex.csv, plus a midpoint 6 rounded version).
-##
-## Use in project.yaml with the argument describe (TRUE or FALSE).
-## The study years are read from analysis/config.json.
+## For each study year, reads output/dataset/input_inex_<year>.csv.gz, applies QA and
+## inclusion / exclusion criterion, and saves the eligible patients output/dataset_clean/input_clean_inex_<year>.csv.gz.
+## Creates inex flowchart output
 
 library(readr)
 library(here)

@@ -1,5 +1,5 @@
 ## This script defines the outcome and follow-up variables for the study.
-## The dataset is generated for one study year at a time, pass in as an argument in the yaml.
+## This code is run once per study yuear as separate actions in the yaml
 
 from analysis.dataset_definition.variable_helper_functions import get_stopping_dates, get_stopping_dates_after_event
 from analysis.dataset_definition.add_variables import antihypertensive_class_codelists

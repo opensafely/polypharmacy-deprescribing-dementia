@@ -79,7 +79,7 @@ def get_inex_conditions(start_date):
     }
 
 ## This function adds each inclusion and exclusion criterion on the given date to the dataset
-## as a separate column, so the cleaning step can apply them one at a time for the flow chart.
+## as a separate column, so the cleaning step can apply them one at a time and create flowchart.
 ## dataset - the ehrQL dataset which the variables will be added to
 ## start_date - the date on which eligibility is assessed (1 January of each study year)
 def add_inex_variables(dataset, start_date):

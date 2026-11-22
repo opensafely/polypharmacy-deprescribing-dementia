@@ -3,7 +3,7 @@
 ## dataset with one row per patient per year (with a `year` column), handles missing values and
 ## factor levels, and saves output/dataset_clean/input_clean_<type>.rds.
 ##
-## Use in project.yaml with the arguments "type" (cov, out or hist) and describe (TRUE or FALSE)
+## Takes the arguments "type" (cov, out or hist) and describe (TRUE or FALSE)
 ## The study years are read from analysis/config.json.
 
 library(readr)

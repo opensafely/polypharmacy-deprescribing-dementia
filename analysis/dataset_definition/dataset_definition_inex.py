@@ -2,7 +2,7 @@
 ## for one study year. Each criterion is assessed on 1 January of that year and added as a
 ## separate column, so the cleaning step can apply them one at a time and produce a flow
 ## chart for each year.
-## The dataset is generated for one study year at a time, passed as an argument in the yaml.
+## This code is run once per study yuear as separate actions in the yaml
 
 from ehrql.tables.tpp import patients
 from ehrql import create_dataset, get_parameter

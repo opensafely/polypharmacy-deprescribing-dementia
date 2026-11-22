@@ -1,8 +1,5 @@
-## This script defines the variables used for the prescription gap histograms:
-## counts of gaps of different lengths between consecutive prescriptions of each medication class,
-## and the practice region for the regional breakdown.
-##
-## The dataset is generated for one study year at a time, pass as an argument in the yaml
+## This script defines the variables used for the prescription gap histograms
+## This code is run once per study yuear as separate actions in the yaml
 
 from ehrql.tables.tpp import practice_registrations
 from ehrql import create_dataset, get_parameter

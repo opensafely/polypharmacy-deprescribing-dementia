@@ -1,8 +1,7 @@
 ## This script defines possible covariates (predictors of medication reviews and stopping) for the study.
-## They are used in table 1 and the survival analysis. Outcomes and censoring dates are in dataset_definition_out.py.
-##
-## The dataset is generated for one study year at a time, passed in the yaml.
-## The population is everyone in that year's cleaned inex dataset (eligible on 1 January of that year).
+
+## Code is run once for each study year (as a separate action).
+## The population is everyone in that year's cleaned inex dataset.
 
 from ehrql import create_dataset, get_parameter
 from ehrql.query_language import table_from_file , PatientFrame, Series
