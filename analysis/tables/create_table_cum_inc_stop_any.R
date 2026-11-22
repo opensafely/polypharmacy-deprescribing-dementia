@@ -18,10 +18,12 @@ print("Load cleaned dataset")
 # One row per patient per year, for patients eligible on 1 January of that year.
 df <- read_rds(here("output", "dataset_clean", "input_clean_out.rds"))
 
-# Define drug classes and gap sizes for stopping definitions
+# Gap sizes for stopping definitions
 
-drug_classes <- c("acei", "bb", "arb", "aab", "ccb", "caa", "psd", "ttd")
 gap_sizes <- c("90", "120", "180")
+
+# "Stop any": the earliest stop across all drug classes, for each gap size
+df <- add_stop_any(df, gap_sizes)
 
 # ------------------------------------------------------------------------------
 # Main loop over gap sizes
@@ -30,13 +32,9 @@ for (gap in gap_sizes) {
 
   print(paste("Processing gap:", gap))
 
-  # "Stop any": the earliest stop across all drug classes for this gap size
-  stop_cols <- paste0("out_dat_stop_", drug_classes, "_", gap)
-  stop_cols <- stop_cols[stop_cols %in% names(df)]
-
   df_long <- df %>%
     mutate(
-      event_date = do.call(pmin, c(across(all_of(stop_cols)), na.rm = TRUE)),
+      event_date = .data[[paste0("out_dat_stop_any_", gap)]],
       year = as.numeric(year),
       start_date = as.Date(paste0(year, "-01-01")),
       end_date = as.Date(paste0(year, "-12-31"))

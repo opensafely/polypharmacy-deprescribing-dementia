@@ -35,6 +35,17 @@ in_window_before_index <- function(date, index_date, months = 12) {
   !is.na(date) & (date < index_date) & (date >= (index_date %m-% months(months)))
 }
 
+# Adds out_dat_stop_any_<gap> for each gap size: the earliest stop across all drug classes
+# (the earliest of the out_dat_stop_<class>_<gap> columns)
+add_stop_any <- function(df, gap_sizes) {
+  for (gap in gap_sizes) {
+    stop_cols <- str_subset(names(df), paste0("^out_dat_stop_.+_", gap, "$"))
+    df <- df %>%
+      mutate("out_dat_stop_any_{gap}" := do.call(pmin, c(across(all_of(stop_cols)), na.rm = TRUE)))
+  }
+  df
+}
+
 # Tidy a gtsummary regression table body into one row per level for output CSVs
 tidy_cox_table <- function(tbl, study_year) {
   tbl$table_body %>%

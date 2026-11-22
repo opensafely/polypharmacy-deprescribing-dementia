@@ -3,7 +3,7 @@ library(survival)
 library(gtsummary)
 library(here)
 
-source("analysis/utility.R")   # provides in_window_before_index() and tidy_cox_table()
+source("analysis/utility.R")   # provides add_stop_any(), in_window_before_index() and tidy_cox_table()
 
 dir.create(here("output", "tables"), recursive = TRUE, showWarnings = FALSE)
 
@@ -19,10 +19,7 @@ df_out <- read_rds(here("output", "dataset_clean", "input_clean_out.rds")) %>%
   select(patient_id, year, out_dat_med_rev, starts_with("out_dat_stop_"), starts_with("cens_dat_"))
 
 # "Stop any": earliest stop across all drug classes, for each gap size
-for (gap in gap_sizes) {
-  stop_cols <- str_subset(names(df_out), paste0("^out_dat_stop_.+_", gap, "$"))
-  df_out[[paste0("out_dat_stop_any_", gap)]] <- do.call(pmin, c(df_out[stop_cols], na.rm = TRUE))
-}
+df_out <- add_stop_any(df_out, gap_sizes)
 
 #join loade datesets
 df_long <- df_cov %>%
