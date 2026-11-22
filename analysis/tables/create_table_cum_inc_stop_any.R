@@ -25,6 +25,10 @@ gap_sizes <- c("90", "120", "180")
 # "Stop any": the earliest stop across all drug classes, for each gap size
 df <- add_stop_any(df, gap_sizes)
 
+# Output folders
+dir.create(here("output", "plots"), recursive = TRUE, showWarnings = FALSE)
+dir.create(here("output", "tables"), recursive = TRUE, showWarnings = FALSE)
+
 # ------------------------------------------------------------------------------
 # Main loop over gap sizes
 
@@ -70,9 +74,6 @@ for (gap in gap_sizes) {
   # ----------------------------------------------------------------------------
   # Save outputs
   # ----------------------------------------------------------------------------
-
-  dir.create(here("output", "plots"), recursive = TRUE, showWarnings = FALSE)
-  dir.create(here("output", "tables"), recursive = TRUE, showWarnings = FALSE)
 
   # standard
   ggsave(

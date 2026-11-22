@@ -80,6 +80,5 @@ table_desc_region_midpoint6 <- table_desc_region %>%
 # Save
 #------------------------------------------------
 print("Save table_desc_region_midpoint6 to output/tables")
-dir.create(here("output", "tables"), recursive = TRUE, showWarnings = FALSE)
 
 write_csv(table_desc_region_midpoint6, here("output", "tables", "table_desc_region_midpoint6.csv"))

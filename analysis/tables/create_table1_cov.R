@@ -41,7 +41,6 @@ df_master <- df_master %>%
 
 
 years <- sort(unique(df_master$year))
-df_long <- df_master
 
 # create table1 across years
 # this runs the create_table1 function for each year, and appends the rows each time
@@ -51,7 +50,7 @@ table1_by_year <- map_dfr(
     
     print(paste0("Creating Table 1 for year: ", yr))
     
-    df_year <- df_long %>%
+    df_year <- df_master %>%
       filter(year == yr)
     
     create_table1(df_year) %>%
@@ -64,11 +63,8 @@ table1_by_year <- map_dfr(
 )
 
 #create pooled table1
-#every row is already an eligible patient-year
-df_pooled <- df_long
-
-#pick first eligible year
-df_pooled <- df_pooled %>%
+#every row is already an eligible patient-year, so pick each patient's first eligible year
+df_pooled <- df_master %>%
   arrange(patient_id, year) %>%
   group_by(patient_id) %>%
   slice_head(n = 1) %>%

@@ -1,3 +1,15 @@
+# Median (IQR) of a numeric variable as text, rounded to 1 decimal place, e.g. "82 (77-87)"
+format_median_iqr <- function(x) {
+  paste0(
+    round(median(x, na.rm = TRUE), 1),
+    " (",
+    round(quantile(x, 0.25, na.rm = TRUE), 1),
+    "-",
+    round(quantile(x, 0.75, na.rm = TRUE), 1),
+    ")"
+  )
+}
+
 create_table1 <- function(df) {
   #Select variables of interest
   df_table1 <- df %>%
@@ -35,35 +47,10 @@ create_table1 <- function(df) {
       )
     )
   
-  # Calculate median age (IQR)
-  median_iqr_age <- paste0(
-    round(median(df_table1$cov_num_age, na.rm = TRUE), 1),
-    " (",
-    round(quantile(df_table1$cov_num_age, 0.25, na.rm = TRUE), 1),
-    "-",
-    round(quantile(df_table1$cov_num_age, 0.75, na.rm = TRUE), 1),
-    ")"
-  )
-  
-  # Calculate median number of medications (IQR)
-  median_iqr_med_count <- paste0(
-    round(median(df_table1$cov_num_med_count, na.rm = TRUE), 1),
-    " (",
-    round(quantile(df_table1$cov_num_med_count, 0.25, na.rm = TRUE), 1),
-    "-",
-    round(quantile(df_table1$cov_num_med_count, 0.75, na.rm = TRUE), 1),
-    ")"
-  )
-  
-  # Calculate median multimorbidity (CMS) score (IQR)
-  median_iqr_cms <- paste0(
-    round(median(df_table1$cov_num_cms, na.rm = TRUE), 1),
-    " (",
-    round(quantile(df_table1$cov_num_cms, 0.25, na.rm = TRUE), 1),
-    "-",
-    round(quantile(df_table1$cov_num_cms, 0.75, na.rm = TRUE), 1),
-    ")"
-  )
+  # Median (IQR) of age, number of medications and multimorbidity (CMS) score
+  median_iqr_age       <- format_median_iqr(df_table1$cov_num_age)
+  median_iqr_med_count <- format_median_iqr(df_table1$cov_num_med_count)
+  median_iqr_cms       <- format_median_iqr(df_table1$cov_num_cms)
   
   # Aggregate counts
   table1 <- df_long %>%
