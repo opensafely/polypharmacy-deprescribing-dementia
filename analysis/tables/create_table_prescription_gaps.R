@@ -1,11 +1,8 @@
 # This script takes patient level data for prescription gaps 
 
 # Load libraries ---------------------------------------------------------------
-library(readr)
 library(tidyverse)
-library(gtsummary)
 library(here)
-library(dplyr)
 
 # Source common functions ------------------------------------------------------
 print("Source common functions")
@@ -16,62 +13,25 @@ source("analysis/utility.R")
 #------------------------------------------------
 print("Load cleaned dataset")
 
+# One row per patient per year, for patients eligible on 1 January of that year
 df <- readr::read_rds(
   here("output", "dataset_clean", "input_clean_hist.rds")
 )
 
-
 #------------------------------------------------
-# Years to process
+# Total number of gaps of each length, for each year and region
 #------------------------------------------------
-years <- 2017:2024
-
-#------------------------------------------------
-# Create summaries for each year
-#------------------------------------------------
-region_sums <- map_dfr(years, function(year) {
-  
-  print(paste("Processing year:", year))
-  
-  # Dynamic column names
-  region_var <- paste0("desc_cat_region", year)
-  inex_var   <- paste0("inex_bin_all_", year)
-  
-  outcome_cols <- names(df) %>%
-    str_subset(paste0("^out_num_gap_.*", year, "$"))
-  
-  
-  # Keep only relevant columns for this year
-  df_year <- df %>%
-    select(
-      patient_id,
-      all_of(region_var),
-      all_of(inex_var),
-      matches(paste0(year, "$"))
-    ) %>%
-    filter(.data[[inex_var]] == TRUE)
-  
-  # Region summaries only
-  region_summary <- df_year %>%
-    group_by(.data[[region_var]]) %>%
-    summarise(
-      across(
-        starts_with("out_num_gap_"),
-        ~ sum(.x, na.rm = TRUE)
-      ),
-      .groups = "drop"
-    ) %>%
-    rename(region = all_of(region_var)) %>%
-    mutate(year = year) %>%
-    rename_with(
-      .cols = all_of(outcome_cols),
-      .fn = ~ str_remove(.x, paste0("_", year, "$"))
-    ) %>%
-    select(region, year, everything())
-  
-  return(region_summary)
-  
-})
+print("Summarising prescription gaps by year and region")
+region_sums <- df %>%
+  group_by(year, region = cov_cat_region) %>%
+  summarise(
+    across(
+      starts_with("out_num_gap_"),
+      ~ sum(.x, na.rm = TRUE)
+    ),
+    .groups = "drop"
+  ) %>%
+  select(region, year, everything())
 
 #------------------------------------------------
 # Save

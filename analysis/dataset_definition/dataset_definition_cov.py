@@ -1,82 +1,42 @@
-## This script defines possible covariates for the analysis section of the study.
-## For now these will be presented in table 1 format to be used in the descriptive section of the study.
-## Variables are defined for each year of the study period to account for possible changes in the values and inclusion
+## This script defines possible covariates (predictors of medication reviews and stopping) for the study.
 
-from ehrql.tables.tpp import clinical_events, practice_registrations,ons_deaths, patients
-from ehrql import create_dataset, minimum_of
+## Code is run once for each study year (as a separate action).
+## The population is everyone in that year's cleaned inex dataset.
+
+from ehrql import create_dataset, get_parameter
 from ehrql.query_language import table_from_file , PatientFrame, Series
-from datetime import datetime, date
+from datetime import date
 from analysis.dataset_definition.add_variables import(
     add_covariates,
-    add_inex_variables,
     add_frailty_variables
 )
+from analysis.dataset_definition.variable_helper_functions import last_matching_event_clinical_snomed_before
 
 # Codelists from codelists.py (which pulls all variables from the codelist folder)
 from codelists import *
-@table_from_file("output/dataset_clean/input_clean_prematch.csv.gz")
+
+## Study year for this dataset
+year = get_parameter(name="year", type=int)
+index_date = date(year, 1, 1)
+end_date = date(year, 12, 31)
+
+## Patients eligible on 1 January of the study year
+@table_from_file(f"output/dataset_clean/input_clean_inex_{year}.csv.gz")
 class input_inex(PatientFrame):
     qa_num_birth_year = Series(str)
 
 ## Create dataset
 dataset = create_dataset()
 
-import json
-with open("analysis/config.json") as f:
-    study_dates = json.load(f)
-start_date = study_dates["start_date"]
-end_date = study_dates["end_date"]
+# ---------------------------------
+# Create covariates on index date
+add_covariates(dataset, index_date, end_date)
 
-index_date = start_date
-limit = 2
+# Frailty variables are commented out until I decide on how I'm going to use these.
+#add_frailty_variables(dataset, index_date)
 
-death_date = minimum_of(patients.date_of_death, ons_deaths.date)
-
-# Date of death (for censoring) - not year-specific
-dataset.add_column("cens_dat_death", death_date)
-
-# Add inex variables for 2015 through 2024
-for year in range(2017, 2025):
-    #Add collapsed in/ex variable for each year in the study
-    add_inex_variables(dataset, date(year, 1, 1), 1,year)
-
-    # ---------------------------------
-    # Create covariates on index date
-    add_covariates(dataset, date(year, 1, 1), date(year, 12, 31), year)
-
-    #Frailty variables
-    #add_frailty_variables(dataset, date(year, 1, 1), year)
-
-    # Medication review variables
-    exp_dat_med_rev = (
-        clinical_events.where(clinical_events.snomedct_code.is_in(medication_review_codelist))
-        .where(clinical_events.date.is_on_or_after(date(year, 1, 1)))
-        .where(clinical_events.date.is_on_or_before(date(year, 12, 31)))
-        .sort_by(clinical_events.date)
-        .first_for_patient()
-        .date)
-    
-    dataset.add_column(f"exp_dat_med_rev_{year}", exp_dat_med_rev)
-
-    # Date of last medication review before the index date (for time since last review)
-    cov_dat_last_med_rev = (
-        clinical_events.where(clinical_events.snomedct_code.is_in(medication_review_codelist))
-        .where(clinical_events.date.is_before(date(year, 1, 1)))
-        .sort_by(clinical_events.date)
-        .last_for_patient()
-        .date)
-
-    dataset.add_column(f"cov_dat_last_med_rev_{year}", cov_dat_last_med_rev)
-
-    # Deregistration: end of the practice registration active on the index date (for censoring)
-    cens_dat_dereg = practice_registrations.for_patient_on(date(year, 1, 1)).end_date
-
-    dataset.add_column(f"cens_dat_dereg_{year}", cens_dat_dereg)
-
-
-
-
-
+# Date of last medication review before the index date (for time since last review)
+dataset.cov_dat_last_med_rev = last_matching_event_clinical_snomed_before(medication_review_codelist, index_date).date
 
 ##Define population
 dataset.configure_dummy_data()

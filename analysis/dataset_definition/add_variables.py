@@ -1,62 +1,58 @@
-from ehrql.tables.tpp import patients, practice_registrations, clinical_events, addresses, medications, ons_deaths, apcs, decision_support_values, emergency_care_attendances, ethnicity_from_sus 
-from ehrql import create_dataset, codelist_from_csv, days, case, when, minimum_of, show
-from datetime import date
+from ehrql.tables.tpp import patients, practice_registrations, clinical_events, addresses, medications, ons_deaths, apcs, decision_support_values, emergency_care_attendances
+from ehrql import days, case, when, minimum_of
 from analysis.dataset_definition.variable_helper_functions import (
-    get_prescription_dates, 
-    get_prescription_gaps,
     last_matching_event_clinical_snomed_before,
+    first_matching_event_clinical_snomed_on_or_before,
     last_matching_event_apc_before,
     last_matching_event_clinical_ctv3_before,
     ever_matching_event_clinical_ctv3_before,
     get_latest_ethnicity,
     get_imd,
     filter_codes_by_category,
-    get_cms_on_date
+    get_cms_on_date,
+    any_of
 )
 
 # Codelists from codelists.py (which pulls all variables from the codelist folder)
 from codelists import *
 
-## This function adds all the variables for inclusion and exclusion criteria for the study
-## Inputs: 
-## dataset - the ehrQL dataset which the variables will be added to
-## start_date - the date for which the variables will be calculated
-## collapse_vars - if 0, adds all variables separately. If 1, creates one variable which is TRUE if the patient meets all criteria and FALSE otherwise
-## column_suffix - the suffix to add to the variable name if collapse_vars is 1
-def add_inex_variables(dataset, start_date, collapse_vars=0, column_suffix=""):
-    
+## Antihypertensive classes used for the eligibility criterion, stopping dates and prescription gaps:
+## abbreviation used in column names -> codelist
+antihypertensive_class_codelists = {
+    "acei": ace_inhibitor_codelist,
+    "aab": alpha_adrenoceptor_blocking_drugs_codelist,
+    "arb": angiotensin_ii_receptor_blockers_codelist,
+    "bb": beta_blockers_codelist,
+    "ccb": calcium_channel_blockers_codelist,
+    "caa": centrally_acting_antihypertensives_codelist,
+    "psd": potassium_sparing_diuretics_codelist,
+    "ttd": thiazide_type_diuretics_codelist,
+}
+
+## Minimum number of prescriptions of the same antihypertensive class in the year before the start date
+MIN_ANTIHYP_PRESCRIPTIONS = 3
+
+## This function returns the inclusion and exclusion criteria for the study on a given date,
+## as a dict of {variable name: ehrQL boolean expression}.
+## Inputs:
+## start_date - the date on which eligibility is assessed (1 January of each study year)
+def get_inex_conditions(start_date):
+
     # Dementia diagnosis
     inex_bin_has_dem = (
         clinical_events.where(clinical_events.snomedct_code.is_in(dementia_codelist))
         .where(clinical_events.date.is_on_or_before(start_date))
         ).exists_for_patient()
 
-    # Long-term antihypertensive user 
-    inex_bin_antihyp = ((medications.where(medications.dmd_code.is_in(ace_inhibitor_codelist))
+    # Long-term antihypertensive user: at least MIN_ANTIHYP_PRESCRIPTIONS prescriptions
+    # of the same class in the year before the start date
+    inex_bin_antihyp = any_of([
+        medications.where(medications.dmd_code.is_in(codelist))
         .where(medications.date.is_on_or_after(start_date - days(365)))
         .where(medications.date.is_on_or_before(start_date))
-        .count_for_patient()) > 2) | ((medications.where(medications.dmd_code.is_in(alpha_adrenoceptor_blocking_drugs_codelist))
-        .where(medications.date.is_on_or_after(start_date - days(365)))
-        .where(medications.date.is_on_or_before(start_date))
-        .count_for_patient()) > 2) | ((medications.where(medications.dmd_code.is_in(angiotensin_ii_receptor_blockers_codelist))
-        .where(medications.date.is_on_or_after(start_date - days(365)))
-        .where(medications.date.is_on_or_before(start_date))
-        .count_for_patient()) > 2) | ((medications.where(medications.dmd_code.is_in(beta_blockers_codelist))
-        .where(medications.date.is_on_or_after(start_date - days(365)))
-        .where(medications.date.is_on_or_before(start_date))
-        .count_for_patient()) > 2) | ((medications.where(medications.dmd_code.is_in(calcium_channel_blockers_codelist))
-        .where(medications.date.is_on_or_after(start_date - days(365)))
-        .where(medications.date.is_on_or_before(start_date))
-        .count_for_patient()) > 2) | ((medications.where(medications.dmd_code.is_in(centrally_acting_antihypertensives_codelist))
-        .where(medications.date.is_on_or_after(start_date - days(365)))
-        .where(medications.date.is_on_or_before(start_date))
-        .count_for_patient()) > 2) | ((medications.where(medications.dmd_code.is_in(potassium_sparing_diuretics_codelist))
-        .where(medications.date.is_on_or_after(start_date - days(365)))
-        .where(medications.date.is_on_or_before(start_date))
-        .count_for_patient()) > 2) | ((medications.where(medications.dmd_code.is_in(thiazide_type_diuretics_codelist))
-        .where(medications.date.is_on_or_after(start_date - days(365)))
-        .where(medications.date.is_on_or_before(start_date))
-        .count_for_patient()) > 2)
+        .count_for_patient() >= MIN_ANTIHYP_PRESCRIPTIONS
+        for codelist in antihypertensive_class_codelists.values()
+    ])
 
     # Alive at start date
     inex_bin_alive = (((patients.date_of_death.is_null()) | (patients.date_of_death.is_after(start_date))) & 
@@ -77,93 +73,25 @@ def add_inex_variables(dataset, start_date, collapse_vars=0, column_suffix=""):
     #Known region
     inex_bin_known_region = practice_registrations.for_patient_on(start_date).practice_nuts1_region_name.is_not_null()
 
-    # Add all variables to the dataset
-    inex_vars = {
+    return {
         name: value
         for name, value in locals().items() if name.startswith("inex_")
     }
 
-    # This caluse makes use of the collapse_vars variable. Allows us to just return one variable that is TRUE if
-    # the patient meets all eligibility criteria on a given date. 
-    if collapse_vars == 0:
-
-        # Add them all to the dataset
-        for name, expr in inex_vars.items():
-            dataset.add_column(name, expr)
-
-    else:
-        # Combine all expressions using logical AND
-        combined_expr = None
-
-        for expr in inex_vars.values():
-            if combined_expr is None:
-                combined_expr = expr
-            else:
-                combined_expr = combined_expr & expr
-
-        # Only add if at least one variable exists
-        if combined_expr is not None:
-            dataset.add_column(f"inex_bin_all_{column_suffix}", combined_expr)
-
-## This function adds inclusion and exclusion criteria for the initial dataset (anyone who could become elligible at any point during the study period).
+## This function adds each inclusion and exclusion criterion on the given date to the dataset
+## as a separate column, so the cleaning step can apply them one at a time and create flowchart.
 ## dataset - the ehrQL dataset which the variables will be added to
-## start_date - the start date for which the variables will be calculated
-## end_date - the end date of the study period, used to calculate some variables such as medication use
-def add_inex_variables_prematch(dataset,start_date,end_date):
-    
-    # Dementia diagnosis before end date
-    inex_bin_has_dem = (
-        clinical_events.where(clinical_events.snomedct_code.is_in(dementia_codelist))
-        .where(clinical_events.date.is_on_or_before(end_date))
-        ).exists_for_patient()
-    
-    # More than 2 antihypertensive 
-    inex_bin_antihyp = ((medications.where(medications.dmd_code.is_in(ace_inhibitor_codelist))
-        .where(medications.date.is_on_or_after(start_date))
-        .where(medications.date.is_on_or_before(end_date))
-        .count_for_patient()) > 2) | ((medications.where(medications.dmd_code.is_in(alpha_adrenoceptor_blocking_drugs_codelist))
-        .where(medications.date.is_on_or_after(start_date))
-        .where(medications.date.is_on_or_before(end_date))
-        .count_for_patient()) > 2) | ((medications.where(medications.dmd_code.is_in(angiotensin_ii_receptor_blockers_codelist))
-        .where(medications.date.is_on_or_after(start_date))
-        .where(medications.date.is_on_or_before(end_date))
-        .count_for_patient()) > 2) | ((medications.where(medications.dmd_code.is_in(beta_blockers_codelist))
-        .where(medications.date.is_on_or_after(start_date))
-        .where(medications.date.is_on_or_before(end_date))
-        .count_for_patient()) > 2) | ((medications.where(medications.dmd_code.is_in(calcium_channel_blockers_codelist))
-        .where(medications.date.is_on_or_after(start_date))
-        .where(medications.date.is_on_or_before(end_date))
-        .count_for_patient()) > 2) | ((medications.where(medications.dmd_code.is_in(centrally_acting_antihypertensives_codelist))
-        .where(medications.date.is_on_or_after(start_date))
-        .where(medications.date.is_on_or_before(end_date))
-        .count_for_patient()) > 2) | ((medications.where(medications.dmd_code.is_in(potassium_sparing_diuretics_codelist))
-        .where(medications.date.is_on_or_after(start_date))
-        .where(medications.date.is_on_or_before(end_date))
-        .count_for_patient()) > 2)
-    
-    # Alive at any time during study
-    inex_bin_alive = (((patients.date_of_death.is_null()) | (patients.date_of_death.is_after(start_date))) & 
-        ((ons_deaths.date.is_null()) | (ons_deaths.date.is_after(start_date))))
-    
-    #65 or over at any time
-    inex_bin_over_64 = patients.age_on(end_date)>64
-
-    #Known sex
-    inex_bin_known_sex = (patients.sex == "male") | (patients.sex == "female")
-
-    #Add all variables to the dataset
-    inex_vars = {name: value for name, value in locals().items() if name.startswith("inex_")}
-
-    # Add them all to the dataset
-    for name, expr in inex_vars.items():
+## start_date - the date on which eligibility is assessed (1 January of each study year)
+def add_inex_variables(dataset, start_date):
+    for name, expr in get_inex_conditions(start_date).items():
         dataset.add_column(name, expr)
 
 ## This function adds all the covariates for the study.
 ## Inputs:
 ## dataset - the ehrQL dataset which the variables will be added to
 ## index_date - the start date for which the variables will be calculated and date for non time-varying variables
-## end_date - the end date of the study period, used to calculate some variables such diagnoses
-def add_covariates(dataset, index_date, end_date, column_suffix=""):
+## end_date - the end date of the period, used to calculate some variables such diagnoses
+def add_covariates(dataset, index_date, end_date):
 
     cov_num_age = patients.age_on(index_date)
     cov_cat_sex = patients.sex
@@ -177,36 +105,16 @@ def add_covariates(dataset, index_date, end_date, column_suffix=""):
     cov_cat_region = practice_registrations.for_patient_on(index_date).practice_nuts1_region_name
 
     # Date of first dementia diagnosis
-    cov_dat_dem = (
-        clinical_events.where(clinical_events.snomedct_code.is_in(dementia_codelist))
-        .where(clinical_events.date.is_on_or_before(end_date))
-        .sort_by(clinical_events.date)
-        .first_for_patient()
-        .date)
+    cov_dat_dem = first_matching_event_clinical_snomed_on_or_before(dementia_codelist, end_date).date
 
     # Date of first Alzheimer's diagnosis
-    cov_dat_dem_alz = (
-        clinical_events.where(clinical_events.snomedct_code.is_in(alzheimers_codelist))
-        .where(clinical_events.date.is_on_or_before(end_date))
-        .sort_by(clinical_events.date)
-        .first_for_patient()
-        .date)
+    cov_dat_dem_alz = first_matching_event_clinical_snomed_on_or_before(alzheimers_codelist, end_date).date
 
     # Date of first vascular dementia diagnosis
-    cov_dat_dem_vasc = (
-        clinical_events.where(clinical_events.snomedct_code.is_in(vascular_dementia_codelist))
-        .where(clinical_events.date.is_on_or_before(end_date))
-        .sort_by(clinical_events.date)
-        .first_for_patient()
-        .date)
+    cov_dat_dem_vasc = first_matching_event_clinical_snomed_on_or_before(vascular_dementia_codelist, end_date).date
 
     # Date of first "other" dementia diagnosis
-    cov_dat_dem_other = (
-        clinical_events.where(clinical_events.snomedct_code.is_in(other_dementia_codelist))
-        .where(clinical_events.date.is_on_or_before(end_date))
-        .sort_by(clinical_events.date)
-        .first_for_patient()
-        .date)
+    cov_dat_dem_other = first_matching_event_clinical_snomed_on_or_before(other_dementia_codelist, end_date).date
 
     # Acute MI diagnosis
     cov_bin_ami = (
@@ -229,12 +137,7 @@ def add_covariates(dataset, index_date, end_date, column_suffix=""):
     )
 
     #Date of CHD diagnosis
-    cov_dat_chd = (
-        clinical_events.where(clinical_events.snomedct_code.is_in(chd_codelist))
-        .where(clinical_events.date.is_on_or_before(end_date))
-        .sort_by(clinical_events.date)
-        .first_for_patient()
-        .date)
+    cov_dat_chd = first_matching_event_clinical_snomed_on_or_before(chd_codelist, end_date).date
 
     ### Cancer
     cov_bin_cancer = (
@@ -315,53 +218,18 @@ def add_covariates(dataset, index_date, end_date, column_suffix=""):
 
     # Cambridge multimorbidity score on the index date
     death_date = minimum_of(patients.date_of_death, ons_deaths.date)
-    # cov_num_cms = get_cms_on_date(index_date, death_date, return_components=False)
+    cov_num_cms = get_cms_on_date(index_date, death_date, return_components=False)
 
     # ---- Add all covariates to dataset ----
     covariates = {name: value for name, value in locals().items() if name.startswith("cov_")}
 
     for name, expr in covariates.items():
-        dataset.add_column(f"{name}_{column_suffix}", expr)
-    
-
-## This function adds columns for the next and previous prescriptions of a given medication around an index date
-## It also creates the columns counting the frequency of size gaps for the medication within the study period.
-## Inputs:
-## dataset - the ehrQL dataset which the variables will be added to
-## index_date - the date around which the next and previous prescriptions will be identified
-## start_date - the start date for which the gaps will be calulated
-## end_date - the end date for which the gaps will be calculated
-## medication_codelist - the codelist for the medication for which the variables will be created
-## column_suffix - the suffix to add to the variables created by this function
-def add_out_variables(dataset, index_date, start_date, end_date, medication_codelist, column_suffix):
-    ## Date of next antihypertensive medication after medication review
-    out_dat_next_med = (
-        medications.where(medications.dmd_code.is_in(medication_codelist))
-        .where(medications.date.is_after(index_date))
-        .where(medications.date.is_on_or_before(end_date))
-        .sort_by(medications.date)
-        .first_for_patient()
-        .date)
-
-    ## Date of previous antihypertensive medication before medication review
-    out_dat_prev_med = (
-        medications.where(medications.dmd_code.is_in(medication_codelist))
-        .where(medications.date.is_before(index_date))
-        .where(medications.date.is_on_or_after(start_date))
-        .sort_by(medications.date)
-        .last_for_patient()
-        .date)
-
-    ## Number of days between prescription dates of antihypertensives
-    get_prescription_gaps(dataset, start_date, end_date, medication_codelist, column_suffix, 100)
-
-    # ---- Add variables to dataset ----
-    dataset.add_column(f"out_dat_next_{column_suffix}", out_dat_next_med)
-    dataset.add_column(f"out_dat_prev_{column_suffix}", out_dat_prev_med)
+        dataset.add_column(name, expr)
 
 
-def add_frailty_variables(dataset, index_date, column_suffix=""):
-    ## Date of next antihypertensive medication after medication review
+## This function adds the dates of the latest frailty codes (mild, moderate, severe, score) before the index date.
+## I'm not currently calling this. WIll be added in a later push, when I fully decide how to use the codes.
+def add_frailty_variables(dataset, index_date):
 
     cov_dat_mildfrail = last_matching_event_clinical_snomed_before(mild_frailty,index_date).date
     cov_dat_moderatefrail = last_matching_event_clinical_snomed_before(moderate_frailty,index_date).date
@@ -372,8 +240,8 @@ def add_frailty_variables(dataset, index_date, column_suffix=""):
 
 
     # ---- Add variables to dataset ----
-    dataset.add_column(f"cov_dat_mildfrail_{column_suffix}", cov_dat_mildfrail)
-    dataset.add_column(f"cov_dat_moderatefrail_{column_suffix}", cov_dat_moderatefrail)
-    dataset.add_column(f"cov_dat_severefrail_{column_suffix}", cov_dat_severefrail)
-    dataset.add_column(f"cov_dat_scorefrail_{column_suffix}", cov_dat_scorefrail)
-    dataset.add_column(f"cov_num_scorefrail_{column_suffix}", cov_num_scorefrail)
+    dataset.add_column("cov_dat_mildfrail", cov_dat_mildfrail)
+    dataset.add_column("cov_dat_moderatefrail", cov_dat_moderatefrail)
+    dataset.add_column("cov_dat_severefrail", cov_dat_severefrail)
+    dataset.add_column("cov_dat_scorefrail", cov_dat_scorefrail)
+    dataset.add_column("cov_num_scorefrail", cov_num_scorefrail)

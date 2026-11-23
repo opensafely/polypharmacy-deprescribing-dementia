@@ -1,29 +1,8 @@
-from datetime import date
-
-from ehrql.tables.tpp import patients, practice_registrations, clinical_events, addresses, ethnicity_from_sus, medications, ons_deaths, apcs
-from ehrql import create_dataset, codelist_from_csv, days, case, when, minimum_of, show
+from ehrql.tables.tpp import patients, clinical_events, addresses, ethnicity_from_sus, medications, apcs
+from ehrql import days, case, when, minimum_of
 from codelists import *
 from functools import reduce
 import operator
-
-
-## This function creates a column for each prescription date of a medication from a given codelist
-## codelist: list of codes to search for
-## start_date: date to start searching from
-## end_date: date to stop searching
-## limit: number of prescription dates to extract
-## dataset: dataset to add the columns to
-def get_prescription_dates(dataset, start_date, end_date, codelist, column_suffix, limit):
-    prev_drug_date = start_date
-    for i in range(limit):
-        drug_date = (medications.where(medications.dmd_code.is_in(codelist))
-        .where(medications.date.is_after(prev_drug_date))
-        .where(medications.date.is_on_or_before(end_date))
-        .sort_by(medications.date)
-        .first_for_patient()
-        .date)
-        dataset.add_column(f"out_dat_{column_suffix}_{i}", drug_date)
-        prev_drug_date = drug_date
 
 
 ## This function counts the frequency of gaps between prescriptions within specified time intervals
@@ -34,13 +13,7 @@ def get_prescription_dates(dataset, start_date, end_date, codelist, column_suffi
 ## dataset: dataset to add the columns to
 def get_prescription_gaps(dataset, start_date, end_date ,codelist, column_suffix, limit):
     prev_date = start_date
-    cnt_0_14 = 0
-    cnt_14_30 = 0
-    cnt_30_60 = 0
-    cnt_60_90 = 0
-    cnt_90_180 = 0
-    cnt_180_365 = 0
-    cnt_365_plus = 0
+    counts = {}
 
     base_rx = (
         medications.where(medications.dmd_code.is_in(codelist))
@@ -60,22 +33,26 @@ def get_prescription_gaps(dataset, start_date, end_date ,codelist, column_suffix
         if i>0:
             diff_days = (presc_date - prev_date).days
 
-            cnt_0_14 +=  when(prev_date.is_on_or_before(end_date) &(diff_days < 14)).then(1).otherwise(0)
-            cnt_14_30 += when(prev_date.is_on_or_before(end_date) &(diff_days >= 14) & (diff_days < 30)).then(1).otherwise(0)
-            cnt_30_60 += when(prev_date.is_on_or_before(end_date) &(diff_days >= 30) & (diff_days < 60)).then(1).otherwise(0)
-            cnt_60_90 += when(prev_date.is_on_or_before(end_date) &(diff_days >= 60) & (diff_days < 90)).then(1).otherwise(0)
-            cnt_90_180 += when(prev_date.is_on_or_before(end_date) &(diff_days >= 90) & (diff_days < 180)).then(1).otherwise(0)
-            cnt_180_365 += when(prev_date.is_on_or_before(end_date) &(diff_days >= 180) & (diff_days < 365)).then(1).otherwise(0)
-            cnt_365_plus += when(prev_date.is_on_or_before(end_date) & (diff_days >= 365)).then(1).otherwise(0)
+            gap_in_period = prev_date.is_on_or_before(end_date)
+
+            # Gap length bins in days 
+            gap_bins = {
+                "0_14":     diff_days < 14,
+                "14_30":    (diff_days >= 14) & (diff_days < 30),
+                "30_60":    (diff_days >= 30) & (diff_days < 60),
+                "60_90":    (diff_days >= 60) & (diff_days < 90),
+                "90_180":   (diff_days >= 90) & (diff_days < 180),
+                "180_365":  (diff_days >= 180) & (diff_days < 365),
+                "365_plus": diff_days >= 365,
+            }
+
+            # Count the gap in its bin, if it starts within the period
+            for bin_name, bin_condition in gap_bins.items():
+                counts[bin_name] = counts.get(bin_name, 0) + when(gap_in_period & bin_condition).then(1).otherwise(0)
         prev_date = presc_date
 
-    dataset.add_column(f"out_num_gap_0_14_{column_suffix}", cnt_0_14)
-    dataset.add_column(f"out_num_gap_14_30_{column_suffix}", cnt_14_30)
-    dataset.add_column(f"out_num_gap_30_60_{column_suffix}", cnt_30_60)
-    dataset.add_column(f"out_num_gap_60_90_{column_suffix}", cnt_60_90)
-    dataset.add_column(f"out_num_gap_90_180_{column_suffix}", cnt_90_180)
-    dataset.add_column(f"out_num_gap_180_365_{column_suffix}", cnt_180_365)
-    dataset.add_column(f"out_num_gap_365_plus_{column_suffix}", cnt_365_plus)
+    for bin_name, count in counts.items():
+        dataset.add_column(f"out_num_gap_{bin_name}_{column_suffix}", count)
 
 ## Helper function to get the last matching clinical event before a given date
 def last_matching_event_clinical_snomed_before(codelist, start_date, where=True):
@@ -85,6 +62,16 @@ def last_matching_event_clinical_snomed_before(codelist, start_date, where=True)
         .where(clinical_events.date.is_before(start_date))
         .sort_by(clinical_events.date)
         .last_for_patient()
+    )
+
+## Helper function to get the first matching clinical event on or before a given date
+def first_matching_event_clinical_snomed_on_or_before(codelist, end_date, where=True):
+    return(
+        clinical_events.where(where)
+        .where(clinical_events.snomedct_code.is_in(codelist))
+        .where(clinical_events.date.is_on_or_before(end_date))
+        .sort_by(clinical_events.date)
+        .first_for_patient()
     )
 
 ## Helper function to get the last matching APC admission before a given date
@@ -121,6 +108,8 @@ def filter_codes_by_category(codelist, include):
     return {k:v for k,v in codelist.items() if v in include}
 
 
+## Not currently used in the pipeline. Kept for the planned sensitivity analyses that define stopping
+## relative to a medication review (see the commented-out call in dataset_definition_desc.py).
 ## this function identifies the first date within a time period on which a patient "stops" a medication following a specified clinical event.
 ## A stop is defined at an event where the patient was on the medication beforehand (a prescription within `lookback` days before the event)
 ## and the gap between the last prescription before the event and the next prescription on/after the event is at least gap_size days
@@ -216,18 +205,17 @@ def get_stopping_dates_after_event(dataset, start_date, end_date ,med_codelist, 
 ## it steps through consecutive prescriptions. The first gap of at least gap_size days (or no further prescription) is a stop,
 ## and the stop date is the last prescription before the gap plus gap_size (the date the gap is confirmed).
 ## Only stop dates between start_date and end_date are counted.
-## One column is added per gap size, named f"{column_prefix}_{gap_size}_{column_suffix}".
+## One column is added per gap size, named f"{column_prefix}_{gap_size}".
 ## Inputs:
 ## dataset - the ehrQL dataset which the variables will be added to
 ## start_date - the start date for the time period
 ## end_date - the end date of the time period
 ## med_codelist - the codelist for the medication for which stopping is being identified
-## column_prefix - the start of the column names (e.g. "desc_dat_stop_acei")
-## column_suffix - the end of the column names (e.g. the year)
+## column_prefix - the start of the column names (e.g. "out_dat_stop_acei")
 ## limit - the maximum number of prescriptions to step through (should exceed the number of prescriptions a patient gets in the period)
 ## gap_sizes - list of gap sizes (days without a prescription) that define a stop
 ## lookback - the number of days before start_date in which a prescription must exist for the patient to count as being on the medication
-def get_stopping_dates(dataset, start_date, end_date, med_codelist, column_prefix, column_suffix, limit, gap_sizes, lookback=365):
+def get_stopping_dates(dataset, start_date, end_date, med_codelist, column_prefix, limit, gap_sizes, lookback=365):
 
     #filter medications table to just prescriptions of interest within the date range (including the lookback before the start date
     #and the largest gap after the end date, so gaps starting near the end of the period can be confirmed), sorted by date
@@ -279,7 +267,7 @@ def get_stopping_dates(dataset, start_date, end_date, med_codelist, column_prefi
     # first stop in the period for each gap size
     for gap_size in gap_sizes:
         dataset.add_column(
-            f"{column_prefix}_{gap_size}_{column_suffix}",
+            f"{column_prefix}_{gap_size}",
             minimum_of(*stop_dates[gap_size])
         )
 

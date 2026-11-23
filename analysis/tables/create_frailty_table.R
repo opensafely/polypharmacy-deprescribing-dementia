@@ -1,11 +1,8 @@
+# Frailty investigation. Not currently run: its yaml action is commented out until
+# we come back to this later.
 # Load libraries ---------------------------------------------------------------
-library(readr)
 library(tidyverse)
-library(gtsummary)
 library(here)
-library(dplyr)
-library(lubridate)
-library(ggplot2)
 # Source common functions ------------------------------------------------------
 print("Source common functions")
 source("analysis/utility.R")

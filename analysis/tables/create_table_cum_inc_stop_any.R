@@ -3,40 +3,31 @@
 library(tidyverse)
 library(survival)
 library(broom)
-library(scales)
 library(here)
-library(dplyr)
-library(readr)
 
 # Source common functions
 
 print("Source common functions")
 source("analysis/utility.R")
+source("analysis/tables/fn-cum_inc_functions.R")
 
 # Load data
 
 print("Load cleaned dataset")
-df <- read_rds(here("output", "dataset_clean", "input_clean_desc.rds"))
+# Stopping dates and censoring dates (death, deregistration) both come from the out dataset.
+# One row per patient per year, for patients eligible on 1 January of that year.
+df <- read_rds(here("output", "dataset_clean", "input_clean_out.rds"))
 
-# Death and deregistration dates (for censoring) come from the cov dataset
-df_cens <- read_rds(here("output", "dataset_clean", "input_clean_cov.rds")) %>%
-  select(patient_id, cens_dat_death, starts_with("cens_dat_dereg_"))
+# Gap sizes for stopping definitions
 
-df <- df %>%
-  left_join(df_cens, by = "patient_id")
-
-# Define drug classes and gap sizes for stopping definitions
-
-drug_classes <- c("acei", "bb", "arb", "aab", "ccb", "caa", "psd", "ttd")
 gap_sizes <- c("90", "120", "180")
 
-# Get years from the dataset based on column names
-stop_cols <- names(df) %>%
-  str_subset("^desc_dat_stop_")
+# "Stop any": the earliest stop across all drug classes, for each gap size
+df <- add_stop_any(df, gap_sizes)
 
-years <- stop_cols %>%
-  str_extract("\\d{4}$") %>%
-  unique()
+# Output folders
+dir.create(here("output", "plots"), recursive = TRUE, showWarnings = FALSE)
+dir.create(here("output", "tables"), recursive = TRUE, showWarnings = FALSE)
 
 # ------------------------------------------------------------------------------
 # Main loop over gap sizes
@@ -45,48 +36,13 @@ for (gap in gap_sizes) {
 
   print(paste("Processing gap:", gap))
 
-  # Create variables variables showing "stop any drug"
-  for (yr in years) {
-
-    cols_this_year <- paste0("desc_dat_stop_", drug_classes, "_", gap, "_", yr)
-
-    # Handles case when there are no columns for this year (e.g. if some drug classes were not present in that year)
-    cols_this_year <- cols_this_year[ cols_this_year %in% names(df) ]
-
-    #new column for "stopping" of any antihypetensive drug for this year for the gap size
-    new_col <- paste0("desc_dat_stop_any_", gap, "_", yr)
-
-    #select the minimum date across all drug classes for this year
-    df <- df %>%
-      mutate(
-        !!new_col := do.call(
-          pmin,
-          c(across(all_of(cols_this_year)), na.rm = TRUE)
-        )
-      ) %>%
-      mutate(
-        !!new_col := if_else(
-          is.infinite(.data[[new_col]]),
-          as.Date(NA),
-          as.Date(.data[[new_col]])
-        )
-      )
-  }
-
-  # Reshape data
   df_long <- df %>%
-    pivot_longer(
-      cols = matches(paste0("^(desc_dat_stop_any_", gap, "|inex_bin_all|cens_dat_dereg)_\\d{4}$")),
-      names_to = c(".value", "year"),
-      names_pattern = "(.*)_(\\d{4})"
-    ) %>%
     mutate(
+      event_date = .data[[paste0("out_dat_stop_any_", gap)]],
       year = as.numeric(year),
-      event_date = as.Date(.data[[paste0("desc_dat_stop_any_", gap)]]),
       start_date = as.Date(paste0(year, "-01-01")),
       end_date = as.Date(paste0(year, "-12-31"))
     ) %>%
-    filter(inex_bin_all) %>%
     mutate(
       # Censor at the earliest of death, deregistration or end of year (as in the survival analysis)
       censor_date = pmin(end_date, cens_dat_death, cens_dat_dereg, na.rm = TRUE),
@@ -98,114 +54,26 @@ for (gap in gap_sizes) {
       )
     )
 
-  # Survival model (using survfit to create cumulative incidence curves)
+  # Cumulative incidence summarised weekly, and the midpoint6 rounded version
+  weekly_table <- cum_inc_weekly(df_long)
+  weekly_table_mid <- cum_inc_weekly_midpoint6(weekly_table)
 
-  surv_fit <- survfit(Surv(time, event) ~ factor(year), data = df_long)
+  # Plots
+  plot_obj <- plot_cum_inc(
+    weekly_table, "cum_inc",
+    title = paste0("Cumulative incidence (", gap, "-day gap)"),
+    y_label = "Patients stopping any drug (%)"
+  )
 
-  surv_df <- tidy(surv_fit) %>%
-    mutate(
-      year = as.numeric(str_remove(strata, "factor\\(year\\)=")),
-      cum_inc = 1 - estimate
-    )
-
-  # Aggregate by week
-  
-  denom_table <- df_long %>%
-    group_by(year) %>%
-    summarise(
-      denominator = n(),
-      denominator_midpoint6 = roundmid_any(n()),
-      .groups = "drop"
-    )
-
-  weekly_table <- surv_df %>%
-    mutate(week = floor(time / 7) + 1) %>%
-    group_by(year, week) %>%
-    summarise(
-      n_events = sum(n.event, na.rm = TRUE),
-      cum_inc = max(cum_inc),
-      .groups = "drop"
-    ) %>%
-    arrange(year, week) %>%
-    group_by(year) %>%
-    mutate(
-      cum_events = cumsum(n_events),
-      date_ref = as.Date("2000-01-01") + (week - 1) * 7
-    ) %>%
-    ungroup() %>%
-    left_join(denom_table, by = "year")
-
-  # Midpoint6 rounding
-
-  weekly_table_mid <- weekly_table %>%
-    mutate(
-      cum_events_midpoint6 = roundmid_any(cum_events),
-      cum_inc_midpoint6 = cum_events_midpoint6 / denominator_midpoint6
-    ) %>%
-    select(
-      year,
-      week,
-      date_ref,
-      cum_events_midpoint6,
-      cum_inc_midpoint6,
-      denominator_midpoint6
-    )
-
-  # Plot (this is just for viewing in backend.
-  # We will output tables and then create plots based on these tables in post-processing)
-  plot_obj <- ggplot(
-    weekly_table,
-    aes(date_ref, cum_inc, colour = factor(year))
-  ) +
-    geom_step(linewidth = 1) +
-    scale_y_continuous(labels = scales::percent) +
-    scale_x_date(
-      date_labels = "%b",
-      date_breaks = "1 month",
-      limits = as.Date(c("2000-01-01", "2000-12-31"))
-    ) +
-    labs(
-      title = paste0("Cumulative incidence (", gap, "-day gap)"),
-      x = "Calendar time",
-      y = "Patients stopping any drug (%)",
-      colour = "Year"
-    ) +
-    theme_minimal() +
-    theme(
-      legend.position = "right",
-      plot.title = element_text(hjust = 0.5, face = "bold")
-    )
-
-  # Plot (midpoint6)
-  plot_mid <- ggplot(
-    weekly_table_mid,
-    aes(date_ref, cum_inc_midpoint6, colour = factor(year))
-  ) +
-    geom_step(linewidth = 1) +
-    scale_y_continuous(labels = scales::percent) +
-    scale_x_date(
-      date_labels = "%b",
-      date_breaks = "1 month",
-      limits = as.Date(c("2000-01-01", "2000-12-31"))
-    ) +
-    labs(
-      title = paste0("Cumulative incidence (", gap, "-day gap, midpoint6)"),
-      x = "Calendar time",
-      y = "Patients stopping any drug (%)",
-      colour = "Year"
-    ) +
-    theme_minimal() +
-    theme(
-      legend.position = "right",
-      plot.title = element_text(hjust = 0.5, face = "bold")
-    )
+  plot_mid <- plot_cum_inc(
+    weekly_table_mid, "cum_inc_midpoint6",
+    title = paste0("Cumulative incidence (", gap, "-day gap, midpoint6)"),
+    y_label = "Patients stopping any drug (%)"
+  )
 
   # ----------------------------------------------------------------------------
   # Save outputs
   # ----------------------------------------------------------------------------
-
-  dir.create(here("output", "plots"), recursive = TRUE, showWarnings = FALSE)
-  dir.create(here("output", "tables"), recursive = TRUE, showWarnings = FALSE)
 
   # standard
   ggsave(
@@ -216,7 +84,7 @@ for (gap in gap_sizes) {
   )
 
   write_csv(
-    weekly_table %>% select(-date_ref,-denominator_midpoint6),
+    weekly_table %>% select(-date_ref),
     here("output", "tables", paste0("stop_any_", gap, "_cum_inc.csv"))
   )
 
@@ -229,8 +97,7 @@ for (gap in gap_sizes) {
   )
 
   write_csv(
-    weekly_table_mid %>%
-      select(year, week, cum_events_midpoint6, cum_inc_midpoint6, denominator_midpoint6),
+    weekly_table_mid %>% select(-date_ref),
     here("output", "tables", paste0("stop_any_", gap, "_cum_inc_midpoint6.csv"))
   )
 }

@@ -1,9 +1,6 @@
 # Load libraries ---------------------------------------------------------------
-library(readr)
 library(tidyverse)
-library(gtsummary)
 library(here)
-library(dplyr)
 
 # Source common functions ------------------------------------------------------
 print("Source common functions")
@@ -19,7 +16,16 @@ dir.create(here("output", "tables"), recursive = TRUE, showWarnings = FALSE)
 # Load data
 #------------------------------------------------
 print("Load cleaned dataset")
+# One row per patient per year, for patients eligible on 1 January of that year
 df_master <- readr::read_rds(here("output", "dataset_clean", "input_clean_cov.rds"))
+
+# Date of first medication review in the year comes from the out dataset
+# (used for the "exposed" columns: patients who had a medication review in the year)
+df_med_rev <- readr::read_rds(here("output", "dataset_clean", "input_clean_out.rds")) %>%
+  select(patient_id, year, out_dat_med_rev)
+
+df_master <- df_master %>%
+  left_join(df_med_rev, by = c("patient_id", "year"))
 
 
 #------------------------------------------------
@@ -31,17 +37,10 @@ df_master <- df_master %>%
 
 # Create binary exposed variable
 df_master <- df_master %>%
-  mutate(across(starts_with("exp_dat_med_rev"), ~ !is.na(.x), .names = "{sub('dat', 'bin', .col)}"))
+  mutate(across(starts_with("out_dat_med_rev"), ~ !is.na(.x), .names = "{sub('dat', 'bin', .col)}"))
 
 
-years <- 2017:2024
-#pivot to long format
-df_long <- df_master %>%
-  pivot_longer(
-    cols = matches(paste0("_(", paste(years, collapse = "|"), ")$")),
-    names_to = c(".value", "year"),
-    names_pattern = "(.+)_(\\d{4})$"
-  )
+years <- sort(unique(df_master$year))
 
 # create table1 across years
 # this runs the create_table1 function for each year, and appends the rows each time
@@ -51,11 +50,8 @@ table1_by_year <- map_dfr(
     
     print(paste0("Creating Table 1 for year: ", yr))
     
-    df_year <- df_long %>%
-      filter(
-        year == yr,
-        inex_bin_all == TRUE
-      )
+    df_year <- df_master %>%
+      filter(year == yr)
     
     create_table1(df_year) %>%
       mutate(
@@ -67,12 +63,8 @@ table1_by_year <- map_dfr(
 )
 
 #create pooled table1
-#filter to eligible patients 
-df_pooled <- df_long %>%
-  filter(inex_bin_all == TRUE)
-
-#pick first eligible year
-df_pooled <- df_pooled %>%
+#every row is already an eligible patient-year, so pick each patient's first eligible year
+df_pooled <- df_master %>%
   arrange(patient_id, year) %>%
   group_by(patient_id) %>%
   slice_head(n = 1) %>%

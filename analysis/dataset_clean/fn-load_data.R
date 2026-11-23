@@ -66,13 +66,7 @@ load_data <- function(filename, suffix = "", describe = TRUE) {
   # Describe data ----
   if (isTRUE(describe)) {
     print("Describe preprocessed data")
-    describe_data(
-      df = input,
-      name = paste0(
-        "preprocessed",
-        if (nzchar(suffix)) paste0("-", suffix) else ""
-      )
-    )
+    describe_data(df = input, name = "preprocessed", suffix = suffix)
   }
 
   return(input)

@@ -6,7 +6,9 @@ roundmid_any <- function(x, to = 6) {
 }
 
 # Function for describing data ----
-describe_data <- function(df, name) {
+# Writes output/describe/<name>.txt, or <name>-<suffix>.txt if a suffix is given
+describe_data <- function(df, name, suffix = "") {
+  if (nzchar(suffix)) name <- paste0(name, "-", suffix)
   fs::dir_create(here::here("output/describe/"))
   sink(paste0("output/describe/", name, ".txt"))
   print(skimr::skim(df))
@@ -14,9 +16,34 @@ describe_data <- function(df, name) {
   message(paste0("output/describe/", name, ".txt written successfully."))
 }
 
+# Study years: every calendar year from start_date to end_date in analysis/config.json
+# (the same years create_project_yaml.py generates the yearly actions for)
+get_study_years <- function() {
+  config <- jsonlite::fromJSON("analysis/config.json")
+  lubridate::year(as.Date(config$start_date)):lubridate::year(as.Date(config$end_date))
+}
+
+# Adds a step to the flow chart table: the step description and the number of patients left, and prints it
+add_flow_step <- function(flow, description, input) {
+  flow[nrow(flow) + 1, ] <- c(description, nrow(input))
+  print(flow[nrow(flow), ])
+  flow
+}
+
 # TRUE if a date falls in the `months` before the index date
 in_window_before_index <- function(date, index_date, months = 12) {
   !is.na(date) & (date < index_date) & (date >= (index_date %m-% months(months)))
+}
+
+# Adds out_dat_stop_any_<gap> for each gap size: the earliest stop across all drug classes
+# (the earliest of the out_dat_stop_<class>_<gap> columns)
+add_stop_any <- function(df, gap_sizes) {
+  for (gap in gap_sizes) {
+    stop_cols <- str_subset(names(df), paste0("^out_dat_stop_.+_", gap, "$"))
+    df <- df %>%
+      mutate("out_dat_stop_any_{gap}" := do.call(pmin, c(across(all_of(stop_cols)), na.rm = TRUE)))
+  }
+  df
 }
 
 # Tidy a gtsummary regression table body into one row per level for output CSVs

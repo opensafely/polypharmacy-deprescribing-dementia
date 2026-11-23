@@ -3,47 +3,34 @@ library(survival)
 library(gtsummary)
 library(here)
 
-source("analysis/utility.R")   # provides in_window_before_index() and tidy_cox_table()
+source("analysis/utility.R")   # provides add_stop_any(), in_window_before_index() and tidy_cox_table()
 
 dir.create(here("output", "tables"), recursive = TRUE, showWarnings = FALSE)
 
-# ---- 1. Load and filter ------------------------------------------------------
-df_master <- read_rds(here("output", "dataset_clean", "input_clean_cov.rds"))
-years <- 2017:2024
+# ---- 1. Load ----------------------------------------------------------------
+# Both datasets have one row per patient per year, for patients eligible on 1 January of that year
+df_cov <- read_rds(here("output", "dataset_clean", "input_clean_cov.rds"))
+years <- sort(unique(df_cov$year))
 gap_sizes <- c(90, 120, 180)   # gap sizes used to define stopping a medication
 
-# Stopping dates come from the desc dataset (one column per drug class, gap size and year)
-df_stop <- read_rds(here("output", "dataset_clean", "input_clean_desc.rds")) %>%
-  select(patient_id, starts_with("desc_dat_stop_"))
+# Outcomes and censoring dates come from the out dataset: first medication review, stopping dates
+# (one column per drug class and gap size), death and deregistration
+df_out <- read_rds(here("output", "dataset_clean", "input_clean_out.rds")) %>%
+  select(patient_id, year, out_dat_med_rev, starts_with("out_dat_stop_"), starts_with("cens_dat_"))
 
-# "Stop any": earliest stop across all drug classes, for each gap size and year
-for (gap in gap_sizes) {
-  for (yr in years) {
-    cols_this_year <- str_subset(names(df_stop), paste0("^desc_dat_stop_.+_", gap, "_", yr, "$"))
-    new_col <- paste0("out_dat_stop_any_", gap, "_", yr)
-    df_stop[[new_col]] <- if (length(cols_this_year) > 0) {
-      do.call(pmin, c(df_stop[cols_this_year], na.rm = TRUE))
-    } else {
-      as.Date(NA)
-    }
-  }
-}
+# "Stop any": earliest stop across all drug classes, for each gap size
+df_out <- add_stop_any(df_out, gap_sizes)
 
-df_master <- df_master %>%
-  left_join(select(df_stop, patient_id, starts_with("out_dat_stop_any_")), by = "patient_id")
-
-# pivot to long format and filter to eligible patients
-df_long <- df_master %>%
-  pivot_longer(
-    cols = matches(paste0("_(", paste(years, collapse = "|"), ")$")),
-    names_to = c(".value", "year"),
-    names_pattern = "(.+)_(\\d{4})$"
-  ) %>%
-  filter(inex_bin_all == TRUE)   # apply inclusion/exclusion criteria
+#join loade datesets
+df_long <- df_cov %>%
+  left_join(
+    select(df_out, patient_id, year, out_dat_med_rev, starts_with("out_dat_stop_any_"), starts_with("cens_dat_")),
+    by = c("patient_id", "year")
+  )
 
 # Outcomes to model: name used in the output = date column in df_long
 outcomes <- c(
-  med_rev = "exp_dat_med_rev",   # first medication review
+  med_rev = "out_dat_med_rev",   # first medication review
   setNames(paste0("out_dat_stop_any_", gap_sizes), paste0("stop_any_", gap_sizes))   # first stop of any antihypertensive
 )
 
@@ -51,11 +38,10 @@ outcomes <- c(
 # Frailty / EFI left out for now.
 predictors <- c(
   "cov_num_age", "cov_cat_sex", "cov_cat_ethnicity", "cov_cat_imd", "cov_cat_region",
-  # dementia subtype (not mutually exclusive)
   "cov_bin_dem_alz_base", "cov_bin_dem_vasc_base", "cov_bin_dem_other_base",
   "cov_bin_chd_base", "cov_bin_ami", "cov_bin_stroke", "cov_bin_cancer",
   "cov_bin_hypertension", "cov_num_med_count", "cov_cat_smoking",
-  # "cov_num_cms",   # add back when CMS memory issue is resolved
+  "cov_num_cms",
   "cov_bin_carehome",
   "cov_bin_hosp_12m", "cov_bin_AE_12m",
   "cov_cat_time_since_rev"
@@ -71,7 +57,9 @@ results_ph    <- list()
 for (study_year in years) {
 
   df <- df_long %>% filter(year==study_year) %>%
-    select(-matches("efi|frail"))   # add frailty back when ready
+    select(-matches("efi|frail")) %>%   # add frailty back when ready
+    # drop factor levels with no patients this year (they would give NA coefficients)
+    mutate(across(starts_with("cov_cat_"), droplevels))
 
   index_date <- as.Date(paste0(study_year, "-01-01"))   # time zero
   end_date   <- as.Date(paste0(study_year, "-12-31"))   # administrative end of follow-up
@@ -95,12 +83,9 @@ for (study_year in years) {
 
       # Add later: frailty
 
-      # Factors
-      cov_cat_sex       = factor(cov_cat_sex),
-      cov_cat_imd       = factor(cov_cat_imd),
-      cov_cat_region    = factor(cov_cat_region),
-      cov_cat_ethnicity = relevel(factor(cov_cat_ethnicity), ref = "White"),
-      cov_cat_smoking   = relevel(factor(cov_cat_smoking), ref = "N"),
+      #factors
+      cov_cat_ethnicity = relevel(cov_cat_ethnicity, ref = "White"),
+      cov_cat_smoking   = relevel(cov_cat_smoking, ref = "Never smoker"),
 
       # Censor at the earliest of death, deregistration or end of year
       censor_date = pmin(end_date, cens_dat_death, cens_dat_dereg, na.rm = TRUE)
